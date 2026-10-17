@@ -240,6 +240,38 @@
           </div>
         </div>
 
+        <!-- App Name / Package Identifier for IAP IDs -->
+        <div class="app-id-config-card">
+          <div class="app-id-header">
+            <div class="app-id-title-group">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+              <div>
+                <h3 class="app-id-title">App Package &amp; IAP ID Generator</h3>
+                <p class="app-id-desc">All IDs will be generated in lowercase. Product IDs use <code>.</code> separator, Offer IDs use <code>-</code> separator with 1-click copy.</p>
+              </div>
+            </div>
+            <div class="app-id-syntax-badges">
+              <span class="syntax-badge"><span class="badge-dot dot-blue"></span>Product ID: <code>com.{app}.shop.{item}</code></span>
+              <span class="syntax-badge"><span class="badge-dot dot-emerald"></span>Offer ID: <code>com-{app}-shop-{item}</code></span>
+              <span class="syntax-badge" id="discountOfferSyntaxBadge" style="display: none;"><span class="badge-dot dot-amber"></span>Promo Offer: <code id="promoBadgeCode">...-25-percent-discount</code></span>
+            </div>
+          </div>
+          <div class="app-id-body">
+            <div class="form-group flex-2">
+              <label for="appNameInput">
+                <span>App / Game Identifier (Lower Case)</span>
+                <span class="tooltip-trigger" title="All IDs are automatically converted to lowercase. For example, 'MyGame' or 'space runner' becomes 'mygame' or 'space-runner'.">ℹ️</span>
+              </label>
+              <div class="input-addon-box">
+                <span class="input-addon-tag">com.</span>
+                <input type="text" id="appNameInput" value="mygame" placeholder="e.g. mygame or space_runner" autocomplete="off" spellcheck="false">
+                <span class="input-addon-tag">.shop</span>
+              </div>
+              <span class="input-hint">Preview: Product ID: <strong id="previewProdId" style="color: var(--accent-blue);">com.mygame.shop.no-ads</strong> • Offer ID: <strong id="previewOfferId" style="color: var(--accent-emerald);">com-mygame-shop-no-ads</strong></span>
+            </div>
+          </div>
+        </div>
+
         <!-- Add Item Row -->
         <form id="addItemForm" class="add-item-form">
           <div class="form-group flex-2">
@@ -320,7 +352,8 @@
 
       <div class="quick-export-group">
         <button class="btn btn-secondary btn-sm" id="btnCopyPlayConsole" title="Copy Google Play Console friendly format">
-          📋 Copy Play Store Format
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          Copy Play Store Format
         </button>
       </div>
     </div>

@@ -10,6 +10,7 @@
   const state = {
     baseCurrency: 'USD',
     appPrice: 1.99,
+    appName: 'mygame',
     playFeeRate: 0.15,
     bufferRate: 0.02,
     pppStrength: 1.0,
@@ -33,6 +34,37 @@
     ]
   };
 
+  // Vector SVG Icons for Copy & Checkmark (Strictly no emojis)
+  const COPY_ICON_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="copy-svg"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+  const CHECK_ICON_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="check-svg"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+  // Slug & IAP Identifier Sanitizer
+  function sanitizeSlug(text) {
+    return String(text || '')
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9_-]/g, '')
+      .replace(/-+/g, '-');
+  }
+
+  // Generate Google Play IAP Product ID & Offer IDs
+  function generateIapIds(appName, prodName, discountRate) {
+    const cleanApp = sanitizeSlug(appName || 'mygame') || 'mygame';
+    const cleanProd = sanitizeSlug(prodName || 'item') || 'item';
+
+    // Product ID: com.{app}.shop.{product}
+    const productId = `com.${cleanApp}.shop.${cleanProd}`;
+
+    // Default Offer ID: com-{app}-shop-{product} (uses - instead of .)
+    const offerId = `com-${cleanApp}-shop-${cleanProd}`;
+
+    // Promotional Offer ID (with discount suffix)
+    const discountOfferId = `com-${cleanApp}-shop-${cleanProd}-${discountRate}-percent-discount`;
+
+    return { productId, offerId, discountOfferId };
+  }
+
   // Standard Indian charm price points for mobile gaming
   const INR_LADDER = [
     9, 19, 29, 39, 49, 79, 89, 99, 110, 149, 199, 249, 299, 399, 499,
@@ -52,6 +84,13 @@
     elements.pppStrengthRange = document.getElementById('pppStrengthRange');
     elements.pppStrengthDisplay = document.getElementById('pppStrengthDisplay');
     elements.charmRoundingToggle = document.getElementById('charmRoundingToggle');
+
+    // App Identifier & ID Generator elements
+    elements.appNameInput = document.getElementById('appNameInput');
+    elements.previewProdId = document.getElementById('previewProdId');
+    elements.previewOfferId = document.getElementById('previewOfferId');
+    elements.discountOfferSyntaxBadge = document.getElementById('discountOfferSyntaxBadge');
+    elements.promoBadgeCode = document.getElementById('promoBadgeCode');
 
     // Discount elements
     elements.discountEnableToggle = document.getElementById('discountEnableToggle');
@@ -331,22 +370,92 @@
     elements.catalogueItemsList.innerHTML = '';
     const baseCode = state.baseCurrency;
 
+    // Update live previews in App Identifier card
+    const firstItem = state.catalogueItems[0] || { name: 'no-ads' };
+    const sampleIds = generateIapIds(state.appName, firstItem.name, state.discountRate);
+    if (elements.previewProdId) elements.previewProdId.textContent = sampleIds.productId;
+    if (elements.previewOfferId) elements.previewOfferId.textContent = sampleIds.offerId;
+    if (elements.promoBadgeCode) elements.promoBadgeCode.textContent = `...-${state.discountRate}-percent-discount`;
+    if (elements.discountOfferSyntaxBadge) {
+      elements.discountOfferSyntaxBadge.style.display = state.discountEnabled ? 'inline-flex' : 'none';
+    }
+
     state.catalogueItems.forEach((item) => {
+      const ids = generateIapIds(state.appName, item.name, state.discountRate);
       const card = document.createElement('div');
       card.className = 'sku-card';
+
+      let discountOfferRowHtml = '';
+      if (state.discountEnabled) {
+        discountOfferRowHtml = `
+          <div class="sku-id-row">
+            <div class="sku-id-left">
+              <span class="sku-id-label label-discount">OFFER (-${state.discountRate}%)</span>
+              <span class="sku-id-code discount-offer-code" title="${escapeHTML(ids.discountOfferId)}">${escapeHTML(ids.discountOfferId)}</span>
+            </div>
+            <button class="btn-icon-copy" data-copy-val="${escapeHTML(ids.discountOfferId)}" data-type="Discount Offer ID" title="Copy Discount Offer ID to clipboard">
+              ${COPY_ICON_SVG}
+            </button>
+          </div>
+        `;
+      }
+
       card.innerHTML = `
-        <div class="sku-info">
-          <span class="sku-name">${escapeHTML(item.name)}</span>
-          <span class="sku-price">${baseCode} ${item.price.toFixed(2)}</span>
+        <div class="sku-card-top">
+          <div class="sku-info">
+            <span class="sku-name">${escapeHTML(item.name)}</span>
+            <span class="sku-price">${baseCode} ${item.price.toFixed(2)}</span>
+          </div>
+          <button class="sku-delete-btn" title="Delete product SKU" data-id="${item.id}">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
         </div>
-        <button class="sku-delete-btn" title="Delete product SKU" data-id="${item.id}">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-        </button>
+        <div class="sku-ids-group">
+          <div class="sku-id-row">
+            <div class="sku-id-left">
+              <span class="sku-id-label label-product">PRODUCT ID</span>
+              <span class="sku-id-code product-code" title="${escapeHTML(ids.productId)}">${escapeHTML(ids.productId)}</span>
+            </div>
+            <button class="btn-icon-copy" data-copy-val="${escapeHTML(ids.productId)}" data-type="Product ID" title="Copy Product ID to clipboard">
+              ${COPY_ICON_SVG}
+            </button>
+          </div>
+          <div class="sku-id-row">
+            <div class="sku-id-left">
+              <span class="sku-id-label label-offer">OFFER ID</span>
+              <span class="sku-id-code offer-code" title="${escapeHTML(ids.offerId)}">${escapeHTML(ids.offerId)}</span>
+            </div>
+            <button class="btn-icon-copy" data-copy-val="${escapeHTML(ids.offerId)}" data-type="Offer ID" title="Copy Offer ID to clipboard">
+              ${COPY_ICON_SVG}
+            </button>
+          </div>
+          ${discountOfferRowHtml}
+        </div>
       `;
 
       card.querySelector('.sku-delete-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         deleteCatalogueItem(item.id);
+      });
+
+      card.querySelectorAll('.btn-icon-copy').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const copyVal = btn.getAttribute('data-copy-val');
+          const type = btn.getAttribute('data-type');
+          navigator.clipboard.writeText(copyVal).then(() => {
+            btn.innerHTML = CHECK_ICON_SVG;
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.innerHTML = COPY_ICON_SVG;
+              btn.classList.remove('copied');
+            }, 1200);
+            showToast(`Copied ${type}: ${copyVal}`, 'success');
+          }).catch(err => {
+            console.error(err);
+            showToast('Could not copy to clipboard', 'warning');
+          });
+        });
       });
 
       elements.catalogueItemsList.appendChild(card);
@@ -491,7 +600,7 @@
         <div class="price-box">
           <span class="discount-price-val">${c.currency} ${cleanDiscountNum}</span>
           <button class="btn-copy" data-copy-val="${cleanDiscountNum}" data-country="${escapeHTML(c.name)}" data-currency="${c.currency}" title="Copy promo price to clipboard">
-            📋
+            ${COPY_ICON_SVG}
           </button>
         </div>
         <div>
@@ -519,7 +628,7 @@
           <div class="price-box">
             <span class="retail-price-val">${c.currency} ${cleanRetailNum}</span>
             <button class="btn-copy" data-copy-val="${cleanRetailNum}" data-country="${escapeHTML(c.name)}" data-currency="${c.currency}" title="Copy retail price to clipboard">
-              📋
+              ${COPY_ICON_SVG}
             </button>
           </div>
           <div class="base-price-val">≈ ${baseCode} ${calc.retailInBase.toFixed(2)}</div>
@@ -562,7 +671,7 @@
   }
 
   function attachTableRowListeners() {
-    // Quick copy button
+    // Quick copy button (uses SVG icons)
     document.querySelectorAll('.btn-copy').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -571,10 +680,10 @@
         const currency = btn.getAttribute('data-currency');
 
         navigator.clipboard.writeText(valToCopy).then(() => {
-          btn.textContent = '✓';
+          btn.innerHTML = CHECK_ICON_SVG;
           btn.classList.add('copied');
           setTimeout(() => {
-            btn.textContent = '📋';
+            btn.innerHTML = COPY_ICON_SVG;
             btn.classList.remove('copied');
           }, 1200);
           showToast(`Copied ${currency} ${valToCopy} (${country}) for Google Play!`, 'success');
@@ -872,11 +981,23 @@
       showToast(`Charm rounding ${state.charmRounding ? 'Enabled' : 'Disabled'}`, 'info');
     });
 
+    // App Name / Package Identifier Input
+    if (elements.appNameInput) {
+      elements.appNameInput.addEventListener('input', (e) => {
+        state.appName = e.target.value;
+        renderCatalogueItems();
+      });
+    }
+
     // Discount Toggle
     elements.discountEnableToggle.addEventListener('change', (e) => {
       state.discountEnabled = e.target.checked;
       elements.discountControlsRow.style.opacity = state.discountEnabled ? '1' : '0.4';
       elements.discountControlsRow.style.pointerEvents = state.discountEnabled ? 'auto' : 'none';
+      if (elements.discountOfferSyntaxBadge) {
+        elements.discountOfferSyntaxBadge.style.display = state.discountEnabled ? 'inline-flex' : 'none';
+      }
+      renderCatalogueItems();
       renderAllTables();
       showToast(`Promotional discount ${state.discountEnabled ? 'Enabled (' + state.discountRate + '% OFF)' : 'Disabled'}`, 'info');
     });
@@ -885,7 +1006,11 @@
     elements.discountRateRange.addEventListener('input', (e) => {
       state.discountRate = parseInt(e.target.value, 10);
       elements.discountRateDisplay.textContent = `${state.discountRate}% OFF`;
+      if (elements.promoBadgeCode) {
+        elements.promoBadgeCode.textContent = `...-${state.discountRate}-percent-discount`;
+      }
       if (state.discountEnabled) {
+        renderCatalogueItems();
         renderAllTables();
       }
     });
