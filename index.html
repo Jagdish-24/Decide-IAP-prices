@@ -19,7 +19,7 @@
     <div class="header-container">
       <div class="brand">
         <div class="brand-icon">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
           </svg>
         </div>
@@ -35,28 +35,28 @@
           <span id="fxStatusText">Connecting Rates...</span>
         </div>
         <button class="btn btn-secondary" id="btnHelpModal" title="Learn the mathematical & behavioural logic">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
           Logic Guide
         </button>
         <button class="btn btn-primary" id="btnExportAllCsv" title="Export entire pricing matrix to CSV">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           Export CSV
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Main Content Container -->
+  <!-- Main Content Container (Edge to Edge Fluid Layout) -->
   <main class="main-container">
     
-    <!-- Top Strategic Parameters Banner -->
+    <!-- Top Strategic Parameters Banner (4 Cards Grid) -->
     <section class="config-grid">
       
       <!-- Card 1: Base Currency & App Price -->
       <div class="config-card">
         <div class="card-header">
           <div class="card-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v12M15 9.5H9.5a2.5 2.5 0 0 0 0 5h5"></path></svg>
           </div>
           <div>
             <h3>1. Base Currency</h3>
@@ -68,17 +68,14 @@
           <button type="button" class="currency-btn active" data-currency="USD">
             <span class="flag">🇺🇸</span>
             <span class="curr-code">USD</span>
-            <span class="curr-symbol">$</span>
           </button>
           <button type="button" class="currency-btn" data-currency="EUR">
             <span class="flag">🇪🇺</span>
             <span class="curr-code">EUR</span>
-            <span class="curr-symbol">€</span>
           </button>
           <button type="button" class="currency-btn" data-currency="INR">
             <span class="flag">🇮🇳</span>
             <span class="curr-code">INR</span>
-            <span class="curr-symbol">₹</span>
           </button>
         </div>
 
@@ -88,7 +85,7 @@
             <span class="tooltip-trigger" title="For free games with only IAP, set this to 0.00">ℹ️</span>
           </label>
           <div class="input-with-adornment">
-            <span class="currency-adornment" id="appPriceSymbol">$</span>
+            <span class="currency-adornment baseCurrCode" id="appPriceSymbol">USD</span>
             <input type="number" id="appPriceInput" step="0.01" min="0" value="1.99" placeholder="1.99">
           </div>
           <span class="input-hint">Set to 0.00 if this is a Free-to-Play game</span>
@@ -99,7 +96,7 @@
       <div class="config-card">
         <div class="card-header">
           <div class="card-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
           </div>
           <div>
             <h3>2. Google Play Cut &amp; Buffer</h3>
@@ -136,7 +133,7 @@
       <div class="config-card">
         <div class="card-header">
           <div class="card-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>
           </div>
           <div>
             <h3>3. Pricing Behavior Engine</h3>
@@ -147,7 +144,7 @@
         <div class="form-row">
           <div class="slider-header">
             <label for="pppStrengthRange">
-              Purchasing Power Parity (PPP) Discount
+              Purchasing Power Parity (PPP)
               <span class="tooltip-trigger" title="100% applies full regional purchasing power adjustments. 0% uses raw unadjusted exchange rates.">ℹ️</span>
             </label>
             <span class="slider-badge" id="pppStrengthDisplay">100%</span>
@@ -163,12 +160,60 @@
         <div class="toggle-field">
           <div>
             <span class="toggle-label">Psychological Charm Rounding</span>
-            <span class="toggle-desc">Rounds to .99, .49, or authentic local game brackets (e.g. ₹29, ₹49, ₹89)</span>
+            <span class="toggle-desc">Rounds to .99, .49, or local game brackets (e.g. INR 29, 49, 89)</span>
           </div>
           <label class="switch">
             <input type="checkbox" id="charmRoundingToggle" checked>
             <span class="slider round"></span>
           </label>
+        </div>
+      </div>
+
+      <!-- Card 4: Promotional Discount Simulator -->
+      <div class="config-card">
+        <div class="card-header">
+          <div class="card-icon" style="color: var(--accent-amber); background: rgba(245, 158, 11, 0.1);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+          </div>
+          <div>
+            <h3>4. Promotional Discount</h3>
+            <p>Simulate special sales, flash deals &amp; promos</p>
+          </div>
+        </div>
+
+        <div class="toggle-field" style="border-top: none; padding-top: 0;">
+          <div>
+            <label for="discountEnableToggle" class="toggle-label" style="cursor: pointer;">Enable Discount Column</label>
+            <span class="toggle-desc">Adds a side-by-side promotional price column</span>
+          </div>
+          <label class="switch" for="discountEnableToggle">
+            <input type="checkbox" id="discountEnableToggle">
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div class="form-row" id="discountControlsRow" style="opacity: 0.4; pointer-events: none; transition: opacity 0.2s;">
+          <div class="slider-header">
+            <label for="discountRateRange">Discount Percentage</label>
+            <span class="slider-badge" id="discountRateDisplay" style="color: var(--accent-amber); background: rgba(245, 158, 11, 0.12);">25% OFF</span>
+          </div>
+          <input type="range" id="discountRateRange" min="1" max="99" step="1" value="25">
+          <div class="range-labels">
+            <span>1% (Minimal)</span>
+            <span>50% (Half Off)</span>
+            <span>99% (Flash Sale)</span>
+          </div>
+
+          <div class="toggle-field" style="margin-top: 10px;">
+            <div>
+              <label for="discountCharmToggle" class="toggle-label" style="cursor: pointer;">Discount Charm Rounding</label>
+              <span class="toggle-desc">Rounds discounted prices to .99, .49, or local tiers</span>
+            </div>
+            <label class="switch" for="discountCharmToggle">
+              <input type="checkbox" id="discountCharmToggle" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -204,12 +249,12 @@
           <div class="form-group flex-1">
             <label for="newItemPrice">Price (<span class="baseCurrCode">USD</span>)</label>
             <div class="input-with-adornment">
-              <span class="currency-adornment baseCurrSymbol">$</span>
+              <span class="currency-adornment baseCurrCode">USD</span>
               <input type="number" id="newItemPrice" step="0.01" min="0.01" placeholder="1.50" required>
             </div>
           </div>
           <div class="form-group flex-0 align-end">
-            <button type="submit" class="btn btn-secondary" style="height: 44px;">
+            <button type="submit" class="btn btn-secondary" style="height: 42px;">
               + Add SKU
             </button>
           </div>
@@ -223,11 +268,11 @@
         <!-- Generate Button Strip -->
         <div class="generate-strip">
           <div class="generate-info">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-            <span>Click <strong>Generate</strong> to calculate recommended retail prices, local VAT/GST, Google Play 15%/30% cut, and your net earnings across all 176 countries.</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>Click <strong>Generate</strong> to calculate recommended retail prices, local VAT/GST, Google Play cuts, and developer net proceeds across all 176 locations.</span>
           </div>
           <button class="btn btn-cta" id="btnGenerate">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
             <span>Generate Global Pricing Matrix</span>
           </button>
         </div>
@@ -239,21 +284,21 @@
       <div class="kpi-card">
         <span class="kpi-label">Base Item Selected</span>
         <div class="kpi-value" id="kpiActiveItemName">No Ads</div>
-        <span class="kpi-sub" id="kpiActiveItemPrice">$1.50 Base Price</span>
+        <span class="kpi-sub" id="kpiActiveItemPrice">USD 1.50 Base Price</span>
       </div>
       <div class="kpi-card">
         <span class="kpi-label">Tier 1 Avg Net Take-Home</span>
-        <div class="kpi-value text-emerald" id="kpiTier1Net">$1.06</div>
+        <div class="kpi-value text-emerald" id="kpiTier1Net">USD 1.06</div>
         <span class="kpi-sub">70.8% Net Margin</span>
       </div>
       <div class="kpi-card">
         <span class="kpi-label">Tier 2 Avg Net Take-Home</span>
-        <div class="kpi-value text-cyan" id="kpiTier2Net">$0.58</div>
+        <div class="kpi-value text-blue" id="kpiTier2Net">USD 0.58</div>
         <span class="kpi-sub">~50% PPP Localized</span>
       </div>
       <div class="kpi-card">
         <span class="kpi-label">Tier 3 Avg Net Take-Home</span>
-        <div class="kpi-value text-amber" id="kpiTier3Net">$0.34</div>
+        <div class="kpi-value text-amber" id="kpiTier3Net">USD 0.34</div>
         <span class="kpi-sub">High-Volume Micro-Tier</span>
       </div>
     </section>
@@ -268,7 +313,7 @@
       </div>
       
       <div class="search-box">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         <input type="text" id="globalCountrySearch" placeholder="Filter countries by name, currency, or ISO code...">
         <button class="btn-clear" id="btnClearSearch" title="Clear search">&times;</button>
       </div>
@@ -280,11 +325,11 @@
       </div>
     </div>
 
-    <!-- 4 Collapsible Sections as required: Master List, Tier 1, Tier 2, Tier 3 -->
+    <!-- 4 Collapsible Sections: Master List, Tier 1, Tier 2, Tier 3 -->
     <div class="sections-accordion-container">
       
       <!-- Section 1: Master List -->
-      <section class="accordion-section" id="sectionMaster">
+      <section class="accordion-section active" id="sectionMaster">
         <div class="accordion-header" data-target="masterContent">
           <div class="accordion-title-group">
             <span class="accordion-chevron">▼</span>
@@ -292,7 +337,7 @@
             <h2 class="accordion-title">All Google Play Countries &amp; Regions</h2>
             <span class="count-badge" id="masterCount">176 Locations</span>
           </div>
-          <div class="accordion-desc">Complete global distribution roster with tax rates, currency codes, and developer cuts</div>
+          <div class="accordion-desc">Complete global distribution roster with tax rates, ISO currency codes, and developer cuts</div>
         </div>
         <div class="accordion-content" id="masterContent">
           <div class="table-responsive">
@@ -302,11 +347,13 @@
                   <th>Country</th>
                   <th>Currency</th>
                   <th>End-User Retail Price</th>
+                  <th class="col-discount-header" style="display: none;">Discounted Price</th>
                   <th>Tax / VAT Cut</th>
                   <th>Google Play Cut</th>
                   <th>Buffer Cut</th>
                   <th>Developer Net (Local)</th>
-                  <th>Developer Net (<span class="baseCurrCode">USD</span>)</th>
+                  <th>Developer Net (USD)</th>
+                  <th>Developer Net (INR)</th>
                   <th>Gamer Profile</th>
                   <th>Action</th>
                 </tr>
@@ -320,7 +367,7 @@
       </section>
 
       <!-- Section 2: Tier 1 -->
-      <section class="accordion-section" id="sectionTier1">
+      <section class="accordion-section active" id="sectionTier1">
         <div class="accordion-header" data-target="tier1Content">
           <div class="accordion-title-group">
             <span class="accordion-chevron">▼</span>
@@ -338,11 +385,13 @@
                   <th>Country</th>
                   <th>Currency</th>
                   <th>End-User Retail Price</th>
+                  <th class="col-discount-header" style="display: none;">Discounted Price</th>
                   <th>Tax / VAT Cut</th>
                   <th>Google Play Cut</th>
                   <th>Buffer Cut</th>
                   <th>Developer Net (Local)</th>
-                  <th>Developer Net (<span class="baseCurrCode">USD</span>)</th>
+                  <th>Developer Net (USD)</th>
+                  <th>Developer Net (INR)</th>
                   <th>Gamer Profile</th>
                   <th>Action</th>
                 </tr>
@@ -356,7 +405,7 @@
       </section>
 
       <!-- Section 3: Tier 2 -->
-      <section class="accordion-section" id="sectionTier2">
+      <section class="accordion-section active" id="sectionTier2">
         <div class="accordion-header" data-target="tier2Content">
           <div class="accordion-title-group">
             <span class="accordion-chevron">▼</span>
@@ -374,11 +423,13 @@
                   <th>Country</th>
                   <th>Currency</th>
                   <th>End-User Retail Price</th>
+                  <th class="col-discount-header" style="display: none;">Discounted Price</th>
                   <th>Tax / VAT Cut</th>
                   <th>Google Play Cut</th>
                   <th>Buffer Cut</th>
                   <th>Developer Net (Local)</th>
-                  <th>Developer Net (<span class="baseCurrCode">USD</span>)</th>
+                  <th>Developer Net (USD)</th>
+                  <th>Developer Net (INR)</th>
                   <th>Gamer Profile</th>
                   <th>Action</th>
                 </tr>
@@ -392,7 +443,7 @@
       </section>
 
       <!-- Section 4: Tier 3 -->
-      <section class="accordion-section" id="sectionTier3">
+      <section class="accordion-section active" id="sectionTier3">
         <div class="accordion-header" data-target="tier3Content">
           <div class="accordion-title-group">
             <span class="accordion-chevron">▼</span>
@@ -400,7 +451,7 @@
             <h2 class="accordion-title">High-Volume &amp; Price-Sensitive Markets</h2>
             <span class="count-badge" id="tier3Count">93 Locations</span>
           </div>
-          <div class="accordion-desc">India, Indonesia, Philippines, Pakistan, Nigeria, Egypt, Vietnam, etc. Sub-dollar microtransactions (₹29, ₹49, ₹89) bypass resistance.</div>
+          <div class="accordion-desc">India, Indonesia, Philippines, Pakistan, Nigeria, Egypt, Vietnam, etc. Sub-dollar microtransactions (INR 29, 49, 89) bypass resistance.</div>
         </div>
         <div class="accordion-content" id="tier3Content">
           <div class="table-responsive">
@@ -410,11 +461,13 @@
                   <th>Country</th>
                   <th>Currency</th>
                   <th>End-User Retail Price</th>
+                  <th class="col-discount-header" style="display: none;">Discounted Price</th>
                   <th>Tax / VAT Cut</th>
                   <th>Google Play Cut</th>
                   <th>Buffer Cut</th>
                   <th>Developer Net (Local)</th>
-                  <th>Developer Net (<span class="baseCurrCode">USD</span>)</th>
+                  <th>Developer Net (USD)</th>
+                  <th>Developer Net (INR)</th>
                   <th>Gamer Profile</th>
                   <th>Action</th>
                 </tr>
@@ -442,7 +495,7 @@
               <span class="modal-tier-badge" id="modalTierBadge">Tier 3</span>
               <span class="modal-iso" id="modalIsoCode">IN</span>
             </div>
-            <p class="modal-sub" id="modalCurrencyInfo">Indian Rupee (INR - ₹)</p>
+            <p class="modal-sub" id="modalCurrencyInfo">Indian Rupee (INR)</p>
           </div>
         </div>
         <button class="modal-close" id="btnCloseModal">&times;</button>
@@ -457,11 +510,11 @@
           </div>
           <div class="hero-item">
             <span class="hero-label">Recommended Retail Price</span>
-            <span class="hero-val text-accent" id="modalRetailPrice">₹49.00</span>
+            <span class="hero-val text-blue" id="modalRetailPrice">INR 49.00</span>
           </div>
           <div class="hero-item">
             <span class="hero-label">Base Currency Equivalent</span>
-            <span class="hero-val" id="modalBaseEquiv">$0.51 USD</span>
+            <span class="hero-val" id="modalBaseEquiv">USD 0.51</span>
           </div>
           <div class="hero-item">
             <span class="hero-label">PPP Adjustment</span>
@@ -491,11 +544,11 @@
             </div>
             <div class="strategy-item full-width">
               <span class="strat-label">Player Mindset &amp; Price Resistance</span>
-              <p class="strat-val" id="modalMindset">Enormous mobile gaming audience (90%+ mobile-first). Extreme resistance to &gt;₹100 ($1.20+) unlocalized pricing. ₹29, ₹49, and ₹89 are the holy grail impulse micro-transaction brackets.</p>
+              <p class="strat-val" id="modalMindset">Enormous mobile gaming audience (90%+ mobile-first). Extreme resistance to &gt;INR 100 unlocalized pricing. INR 29, 49, and 89 are the impulse micro-transaction sweet spots.</p>
             </div>
             <div class="strategy-item full-width">
               <span class="strat-label">Strategic Recommendation</span>
-              <p class="strat-val text-emerald" id="modalRecommendation">High volume, sub-dollar charm pricing (₹29 - ₹89). Massive conversion lift when priced below ₹50.</p>
+              <p class="strat-val text-emerald" id="modalRecommendation">High volume, sub-dollar charm pricing (INR 29 - 89). Massive conversion lift when priced below INR 50.</p>
             </div>
           </div>
         </div>
@@ -512,8 +565,8 @@
     <div class="modal-card logic-modal">
       <div class="modal-header">
         <div class="modal-country-identity">
-          <div class="card-icon" style="background: rgba(0, 242, 254, 0.15); color: #00f2fe;">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <div class="card-icon" style="background: rgba(56, 189, 248, 0.12); color: var(--accent-blue);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
           </div>
           <div>
             <h3>PlayPrice Logic &amp; Mathematical Engine</h3>
@@ -524,15 +577,15 @@
       </div>
       <div class="modal-body logic-body">
         <div class="logic-block">
-          <h4>1. The 1 EUR vs 110 Rupees Problem</h4>
-          <p>A €1.00 or $1.50 microtransaction is casual pocket change in Europe or the US. But translated naively through raw exchange rates, that becomes ₹110 to ₹140 in India, 1,700 ARS in Argentina, or 7.50 BRL in Brazil. In these economies, average daily mobile gamer disposable income is dramatically lower. Conversion collapses by over 80% because the price crosses the "luxury psychological barrier".</p>
+          <h4>1. The EUR 1.00 vs INR 110 Problem</h4>
+          <p>A EUR 1.00 or USD 1.50 microtransaction is casual pocket change in Europe or the US. But translated naively through raw exchange rates, that becomes INR 110 to INR 140 in India, ARS 1,700 in Argentina, or BRL 7.50 in Brazil. In these economies, average daily mobile gamer disposable income is dramatically lower. Conversion collapses by over 80% because the price crosses the "luxury psychological barrier".</p>
         </div>
 
         <div class="logic-block">
           <h4>2. Purchasing Power Parity (PPP) Calculation</h4>
           <p>This engine computes a local target price based on World Bank &amp; IMF PPP factors:</p>
           <code>Local Target = Base Price (USD) &times; Local FX Rate &times; PPP Multiplier</code>
-          <p>For example, with Indian PPP multiplier ~0.28, a $1.50 item targets ~₹39 - ₹49 rather than ₹140. Conversion jumps by 400%+, generating far higher aggregate net revenue for the developer.</p>
+          <p>For example, with Indian PPP multiplier ~0.28, a USD 1.50 item targets ~INR 39 - 49 rather than INR 140. Conversion jumps by 400%+, generating far higher aggregate net revenue for the developer.</p>
         </div>
 
         <div class="logic-block">

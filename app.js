@@ -14,27 +14,23 @@
     bufferRate: 0.02,
     pppStrength: 1.0,
     charmRounding: true,
+    discountEnabled: false,
+    discountRate: 25,
+    discountCharm: true,
     activeProductId: 'iap_1', // default selected product
     searchQuery: '',
     exchangeRates: window.FALLBACK_EXCHANGE_RATES || {},
     countries: window.PLAY_STORE_COUNTRIES || [],
     catalogueItems: [
       { id: 'iap_1', name: 'No Ads', price: 1.50 },
-      { id: 'iap_2', name: 'Starter Pack', price: 1.50 },
-      { id: 'iap_3', name: 'Gold 1', price: 1.50 },
+      { id: 'iap_2', name: 'Starter Pack', price: 1.99 },
+      { id: 'iap_3', name: 'Gold 1', price: 0.99 },
       { id: 'iap_4', name: 'Gold 2', price: 2.99 },
       { id: 'iap_5', name: 'Gold 3', price: 4.99 },
       { id: 'iap_6', name: 'Gold 4', price: 9.99 },
       { id: 'iap_7', name: 'Gold 5', price: 19.99 },
       { id: 'iap_8', name: 'Gold 6', price: 49.99 }
     ]
-  };
-
-  // Currency Symbols
-  const CURRENCY_SYMBOLS = {
-    USD: '$',
-    EUR: '€',
-    INR: '₹'
   };
 
   // Standard Indian charm price points for mobile gaming
@@ -56,6 +52,14 @@
     elements.pppStrengthRange = document.getElementById('pppStrengthRange');
     elements.pppStrengthDisplay = document.getElementById('pppStrengthDisplay');
     elements.charmRoundingToggle = document.getElementById('charmRoundingToggle');
+
+    // Discount elements
+    elements.discountEnableToggle = document.getElementById('discountEnableToggle');
+    elements.discountControlsRow = document.getElementById('discountControlsRow');
+    elements.discountRateRange = document.getElementById('discountRateRange');
+    elements.discountRateDisplay = document.getElementById('discountRateDisplay');
+    elements.discountCharmToggle = document.getElementById('discountCharmToggle');
+
     elements.catalogueItemsList = document.getElementById('catalogueItemsList');
     elements.addItemForm = document.getElementById('addItemForm');
     elements.newItemName = document.getElementById('newItemName');
@@ -128,8 +132,7 @@
       if (data && data.rates) {
         state.exchangeRates = data.rates;
         elements.fxStatusText.textContent = 'Live FX Active (Synced)';
-        elements.fxStatusPill.classList.add('status-live');
-        showToast('Live exchange rates successfully synchronized', 'success');
+        showToast('Live exchange rates synchronized', 'success');
       }
     } catch (err) {
       console.warn('Using cached exchange rates fallback:', err);
@@ -154,12 +157,7 @@
 
   // Apply psychological charm pricing
   function applyCharmPricing(rawPrice, currencyCode) {
-    if (!state.charmRounding) {
-      return Math.round(rawPrice * 100) / 100;
-    }
-
     if (currencyCode === 'INR') {
-      // Find closest ladder step in Indian mobile gaming tiers
       let closest = INR_LADDER[0];
       let minDiff = Math.abs(rawPrice - closest);
       for (const step of INR_LADDER) {
@@ -173,17 +171,14 @@
     }
 
     if (currencyCode === 'JPY') {
-      // Round to nearest 10
       return Math.max(10, Math.round(rawPrice / 10) * 10);
     }
 
     if (currencyCode === 'KRW') {
-      // Round to nearest 100
       return Math.max(100, Math.round(rawPrice / 100) * 100);
     }
 
     if (currencyCode === 'IDR' || currencyCode === 'VND') {
-      // Round to nearest 1000
       return Math.max(1000, Math.round(rawPrice / 1000) * 1000);
     }
 
@@ -204,7 +199,6 @@
       return floor + 0.90;
     }
 
-    // Default general charm: 2 decimals, round to .99 or .49 if moderate, else standard rounding
     if (rawPrice >= 100) {
       return Math.round(rawPrice);
     }
@@ -224,19 +218,38 @@
     const localRate = getRate(country.currency);
     const rawLocalPrice = targetUsd * localRate;
 
-    // Determine gross retail price with charm rounding
-    const retailPrice = applyCharmPricing(rawLocalPrice, country.currency);
+    // Determine gross retail price with optional charm rounding
+    let retailPrice = rawLocalPrice;
+    if (state.charmRounding) {
+      retailPrice = applyCharmPricing(rawLocalPrice, country.currency);
+    } else {
+      retailPrice = Math.round(rawLocalPrice * 100) / 100;
+    }
+
+    // Promotional Discount Calculation (if enabled)
+    let discountedPrice = retailPrice;
+    if (state.discountEnabled) {
+      const rawDiscounted = retailPrice * (1 - state.discountRate / 100);
+      if (state.discountCharm) {
+        discountedPrice = applyCharmPricing(rawDiscounted, country.currency);
+      } else {
+        discountedPrice = Math.round(rawDiscounted * 100) / 100;
+      }
+    }
+
+    // Pricing base to use for tax and cuts (discounted if enabled and active)
+    const effectiveRetail = retailPrice;
 
     // VAT / Tax Cut
     let taxAmount = 0;
-    let netRevenueBase = retailPrice;
+    let netRevenueBase = effectiveRetail;
 
     if (country.taxType === 'included' && country.taxRate > 0) {
-      taxAmount = retailPrice * (country.taxRate / (100 + country.taxRate));
-      netRevenueBase = retailPrice - taxAmount;
+      taxAmount = effectiveRetail * (country.taxRate / (100 + country.taxRate));
+      netRevenueBase = effectiveRetail - taxAmount;
     } else {
       taxAmount = 0;
-      netRevenueBase = retailPrice;
+      netRevenueBase = effectiveRetail;
     }
 
     // Google Play Cut (15% or 30% of Net Revenue Base)
@@ -245,11 +258,17 @@
     // Buffer Cut (e.g. 2% of Net Revenue Base)
     const bufferCut = netRevenueBase * state.bufferRate;
 
-    // Developer Net Proceeds
+    // Developer Net Proceeds in Local Currency
     const developerNetLocal = netRevenueBase - playStoreCut - bufferCut;
 
-    // Converted Developer Net in Selected Base Currency
+    // Converted Developer Net in USD
     const developerNetInUsd = country.currency === 'USD' ? developerNetLocal : (developerNetLocal / localRate);
+    
+    // Converted Developer Net in INR
+    const inrRate = getRate('INR');
+    const developerNetInInr = developerNetInUsd * inrRate;
+
+    // Converted Developer Net in Selected Base Currency
     const developerNetInBase = baseCurr === 'USD' ? developerNetInUsd : (developerNetInUsd * baseToUsdRate);
 
     // Retail in Base Currency equivalent
@@ -265,6 +284,7 @@
     return {
       country,
       retailPrice,
+      discountedPrice,
       retailInBase,
       taxAmount,
       taxPct,
@@ -275,22 +295,31 @@
       bufferPct,
       developerNetLocal,
       developerNetInBase,
+      developerNetInUsd,
+      developerNetInInr,
       developerNetPct,
       effectivePpp
     };
   }
 
-  // 4. Formatting Helpers
-  function formatMoney(amount, currencyCode, symbol) {
-    if (isNaN(amount)) return '0.00';
-    const sym = symbol || currencyCode;
+  // 4. Formatting Helpers (Strictly ISO Currency Codes, No Symbols)
+  function formatMoney(amount, currencyCode) {
+    if (isNaN(amount)) return `${currencyCode} 0.00`;
     let formatted = '';
     if (['INR', 'JPY', 'KRW', 'VND', 'IDR', 'CLP', 'COP'].includes(currencyCode)) {
       formatted = Math.round(amount).toLocaleString('en-US');
     } else {
       formatted = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-    return `${sym} ${formatted}`;
+    return `${currencyCode} ${formatted}`;
+  }
+
+  function formatCleanNumber(amount, currencyCode) {
+    if (isNaN(amount)) return '0.00';
+    if (['INR', 'JPY', 'KRW', 'VND', 'IDR', 'CLP', 'COP'].includes(currencyCode)) {
+      return String(Math.round(amount));
+    }
+    return amount.toFixed(2);
   }
 
   function formatPct(val) {
@@ -300,18 +329,18 @@
   // 5. Render Catalogue Items in UI
   function renderCatalogueItems() {
     elements.catalogueItemsList.innerHTML = '';
-    const sym = CURRENCY_SYMBOLS[state.baseCurrency] || '$';
+    const baseCode = state.baseCurrency;
 
-    state.catalogueItems.forEach((item, index) => {
+    state.catalogueItems.forEach((item) => {
       const card = document.createElement('div');
       card.className = 'sku-card';
       card.innerHTML = `
         <div class="sku-info">
           <span class="sku-name">${escapeHTML(item.name)}</span>
-          <span class="sku-price">${sym} ${item.price.toFixed(2)}</span>
+          <span class="sku-price">${baseCode} ${item.price.toFixed(2)}</span>
         </div>
         <button class="sku-delete-btn" title="Delete product SKU" data-id="${item.id}">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
         </button>
       `;
 
@@ -332,14 +361,14 @@
     // Option 1: App Price
     const optApp = document.createElement('option');
     optApp.value = 'app_price';
-    optApp.textContent = `App Price (${CURRENCY_SYMBOLS[state.baseCurrency]}${state.appPrice.toFixed(2)})`;
+    optApp.textContent = `App Price (${state.baseCurrency} ${state.appPrice.toFixed(2)})`;
     elements.activeProductSelector.appendChild(optApp);
 
     // Options for each catalogue item
     state.catalogueItems.forEach(item => {
       const opt = document.createElement('option');
       opt.value = item.id;
-      opt.textContent = `${item.name} (${CURRENCY_SYMBOLS[state.baseCurrency]}${item.price.toFixed(2)})`;
+      opt.textContent = `${item.name} (${state.baseCurrency} ${item.price.toFixed(2)})`;
       elements.activeProductSelector.appendChild(opt);
     });
 
@@ -364,11 +393,16 @@
   function renderAllTables() {
     const activeProd = getActiveProduct();
     const query = state.searchQuery.toLowerCase().trim();
-    const baseSym = CURRENCY_SYMBOLS[state.baseCurrency] || '$';
+    const baseCode = state.baseCurrency;
+
+    // Toggle visibility of the discount header in all tables
+    document.querySelectorAll('.col-discount-header').forEach(th => {
+      th.style.display = state.discountEnabled ? 'table-cell' : 'none';
+    });
 
     // Update KPI Header
     elements.kpiActiveItemName.textContent = activeProd.name;
-    elements.kpiActiveItemPrice.textContent = `${baseSym}${activeProd.price.toFixed(2)} Base`;
+    elements.kpiActiveItemPrice.textContent = `${baseCode} ${activeProd.price.toFixed(2)} Base`;
 
     // Filter countries based on search query
     const filteredCountries = state.countries.filter(c => {
@@ -414,6 +448,13 @@
     elements.tbodyTier2.innerHTML = tier2Rows.join('') || getEmptyTableNotice();
     elements.tbodyTier3.innerHTML = tier3Rows.join('') || getEmptyTableNotice();
 
+    // Trigger subtle flash animation on tables
+    document.querySelectorAll('.pricing-table').forEach(tbl => {
+      tbl.classList.remove('table-updated');
+      void tbl.offsetWidth; // trigger reflow
+      tbl.classList.add('table-updated');
+    });
+
     // Update counts
     elements.masterCount.textContent = `${masterRows.length} Locations`;
     elements.tier1Count.textContent = `${tier1Rows.length} Locations`;
@@ -421,25 +462,44 @@
     elements.tier3Count.textContent = `${tier3Rows.length} Locations`;
 
     // Update KPI Averages
-    elements.kpiTier1Net.textContent = t1Count > 0 ? `${baseSym}${(t1NetSum / t1Count).toFixed(2)}` : `${baseSym}0.00`;
-    elements.kpiTier2Net.textContent = t2Count > 0 ? `${baseSym}${(t2NetSum / t2Count).toFixed(2)}` : `${baseSym}0.00`;
-    elements.kpiTier3Net.textContent = t3Count > 0 ? `${baseSym}${(t3NetSum / t3Count).toFixed(2)}` : `${baseSym}0.00`;
+    elements.kpiTier1Net.textContent = t1Count > 0 ? `${baseCode} ${(t1NetSum / t1Count).toFixed(2)}` : `${baseCode} 0.00`;
+    elements.kpiTier2Net.textContent = t2Count > 0 ? `${baseCode} ${(t2NetSum / t2Count).toFixed(2)}` : `${baseCode} 0.00`;
+    elements.kpiTier3Net.textContent = t3Count > 0 ? `${baseCode} ${(t3NetSum / t3Count).toFixed(2)}` : `${baseCode} 0.00`;
 
-    // Reattach row click listeners
+    // Reattach listeners
     attachTableRowListeners();
   }
 
   function getEmptyTableNotice() {
-    return `<tr><td colspan="10" style="text-align: center; padding: 32px; color: var(--text-muted);">No matching countries found for query "${escapeHTML(state.searchQuery)}".</td></tr>`;
+    const colSpan = state.discountEnabled ? 12 : 11;
+    return `<tr><td colspan="${colSpan}" style="text-align: center; padding: 28px; color: var(--text-muted);">No matching countries found for query "${escapeHTML(state.searchQuery)}".</td></tr>`;
   }
 
   function buildTableRow(calc) {
     const c = calc.country;
-    const baseSym = CURRENCY_SYMBOLS[state.baseCurrency] || '$';
+    const baseCode = state.baseCurrency;
 
     let mindsetClass = 'mindset-volume';
     if (c.tier === 1) mindsetClass = 'mindset-high';
     else if (c.tier === 2) mindsetClass = 'mindset-medium';
+
+    const cleanRetailNum = formatCleanNumber(calc.retailPrice, c.currency);
+    const cleanDiscountNum = formatCleanNumber(calc.discountedPrice, c.currency);
+
+    const discountCellHtml = state.discountEnabled ? `
+      <td class="mono-cell col-discount-cell">
+        <div class="price-box">
+          <span class="discount-price-val">${c.currency} ${cleanDiscountNum}</span>
+          <button class="btn-copy" data-copy-val="${cleanDiscountNum}" data-country="${escapeHTML(c.name)}" data-currency="${c.currency}" title="Copy promo price to clipboard">
+            📋
+          </button>
+        </div>
+        <div>
+          <span class="original-price-strike">${cleanRetailNum}</span>
+          <span class="discount-badge">-${state.discountRate}%</span>
+        </div>
+      </td>
+    ` : '';
 
     return `
       <tr data-country-name="${escapeHTML(c.name)}">
@@ -453,30 +513,40 @@
           </div>
         </td>
         <td class="mono-cell">
-          <strong>${c.currency}</strong> <span style="color:var(--text-muted)">(${c.symbol})</span>
+          <strong>${c.currency}</strong>
         </td>
         <td class="mono-cell">
-          <div class="retail-price-val">${formatMoney(calc.retailPrice, c.currency, c.symbol)}</div>
-          <div class="base-price-val">≈ ${baseSym}${calc.retailInBase.toFixed(2)} ${state.baseCurrency}</div>
+          <div class="price-box">
+            <span class="retail-price-val">${c.currency} ${cleanRetailNum}</span>
+            <button class="btn-copy" data-copy-val="${cleanRetailNum}" data-country="${escapeHTML(c.name)}" data-currency="${c.currency}" title="Copy retail price to clipboard">
+              📋
+            </button>
+          </div>
+          <div class="base-price-val">≈ ${baseCode} ${calc.retailInBase.toFixed(2)}</div>
         </td>
+        ${discountCellHtml}
         <td class="mono-cell">
           <div class="cut-val">${formatPct(calc.taxPct)}</div>
-          <div class="cut-sub">${formatMoney(calc.taxAmount, c.currency, c.symbol)}</div>
+          <div class="cut-sub">${formatMoney(calc.taxAmount, c.currency)}</div>
         </td>
         <td class="mono-cell">
           <div class="cut-val">${formatPct(calc.playCutPct)}</div>
-          <div class="cut-sub">${formatMoney(calc.playStoreCut, c.currency, c.symbol)}</div>
+          <div class="cut-sub">${formatMoney(calc.playStoreCut, c.currency)}</div>
         </td>
         <td class="mono-cell">
           <div class="cut-val">${formatPct(calc.bufferPct)}</div>
-          <div class="cut-sub">${formatMoney(calc.bufferCut, c.currency, c.symbol)}</div>
+          <div class="cut-sub">${formatMoney(calc.bufferCut, c.currency)}</div>
         </td>
         <td class="mono-cell">
-          <div class="net-highlight">${formatMoney(calc.developerNetLocal, c.currency, c.symbol)}</div>
+          <div class="net-highlight">${formatMoney(calc.developerNetLocal, c.currency)}</div>
           <span class="net-pct-badge">${formatPct(calc.developerNetPct)} margin</span>
         </td>
         <td class="mono-cell">
-          <div class="net-highlight">${baseSym}${calc.developerNetInBase.toFixed(2)}</div>
+          <div class="net-highlight">USD ${calc.developerNetInUsd.toFixed(2)}</div>
+          <div class="cut-sub">take-home</div>
+        </td>
+        <td class="mono-cell">
+          <div class="net-highlight">INR ${calc.developerNetInInr.toFixed(2)}</div>
           <div class="cut-sub">take-home</div>
         </td>
         <td>
@@ -492,6 +562,30 @@
   }
 
   function attachTableRowListeners() {
+    // Quick copy button
+    document.querySelectorAll('.btn-copy').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const valToCopy = btn.getAttribute('data-copy-val');
+        const country = btn.getAttribute('data-country');
+        const currency = btn.getAttribute('data-currency');
+
+        navigator.clipboard.writeText(valToCopy).then(() => {
+          btn.textContent = '✓';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = '📋';
+            btn.classList.remove('copied');
+          }, 1200);
+          showToast(`Copied ${currency} ${valToCopy} (${country}) for Google Play!`, 'success');
+        }).catch(err => {
+          console.error(err);
+          showToast('Could not copy to clipboard', 'warning');
+        });
+      });
+    });
+
+    // Strategy button
     document.querySelectorAll('.btn-detail').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -500,6 +594,7 @@
       });
     });
 
+    // Row click
     document.querySelectorAll('.pricing-table tbody tr').forEach(row => {
       row.addEventListener('click', () => {
         const countryName = row.getAttribute('data-country-name');
@@ -515,18 +610,18 @@
 
     const activeProd = getActiveProduct();
     const calc = calculateCountryPricing(country, activeProd.price, state.baseCurrency);
-    const baseSym = CURRENCY_SYMBOLS[state.baseCurrency] || '$';
+    const baseCode = state.baseCurrency;
 
     elements.modalFlag.textContent = country.flag;
     elements.modalCountryName.textContent = country.name;
     elements.modalTierBadge.textContent = `Tier ${country.tier}`;
     elements.modalTierBadge.className = `modal-tier-badge badge-t${country.tier}`;
     elements.modalIsoCode.textContent = country.code;
-    elements.modalCurrencyInfo.textContent = `${country.currency} (${country.symbol}) • Tax: ${country.taxLabel}`;
+    elements.modalCurrencyInfo.textContent = `Currency: ${country.currency} • Tax: ${country.taxLabel}`;
 
-    elements.modalItemName.textContent = `${activeProd.name} (${baseSym}${activeProd.price.toFixed(2)})`;
-    elements.modalRetailPrice.textContent = formatMoney(calc.retailPrice, country.currency, country.symbol);
-    elements.modalBaseEquiv.textContent = `${baseSym}${calc.retailInBase.toFixed(2)} ${state.baseCurrency}`;
+    elements.modalItemName.textContent = `${activeProd.name} (${baseCode} ${activeProd.price.toFixed(2)})`;
+    elements.modalRetailPrice.textContent = formatMoney(calc.retailPrice, country.currency);
+    elements.modalBaseEquiv.textContent = `${baseCode} ${calc.retailInBase.toFixed(2)}`;
 
     const pppDiscountPct = Math.round((1 - country.pppRatio) * state.pppStrength * 100);
     elements.modalPppDiscount.textContent = pppDiscountPct > 0 ? `-${pppDiscountPct}% Regional Value Adjustment` : 'Standard Tier 1 Benchmark';
@@ -535,27 +630,27 @@
     elements.modalWaterfallBars.innerHTML = `
       <div class="waterfall-row gross">
         <span>1. Customer Pays (Gross Retail)</span>
-        <span>${formatMoney(calc.retailPrice, country.currency, country.symbol)} (100%)</span>
+        <span>${formatMoney(calc.retailPrice, country.currency)} (100%)</span>
       </div>
       <div class="waterfall-row cut">
         <span>2. Minus Local VAT / Sales Tax (${formatPct(calc.taxPct)})</span>
-        <span>-${formatMoney(calc.taxAmount, country.currency, country.symbol)}</span>
+        <span>-${formatMoney(calc.taxAmount, country.currency)}</span>
       </div>
       <div class="waterfall-row net-base">
         <span>3. Net Revenue Base</span>
-        <span>${formatMoney(calc.netRevenueBase, country.currency, country.symbol)}</span>
+        <span>${formatMoney(calc.netRevenueBase, country.currency)}</span>
       </div>
       <div class="waterfall-row cut">
         <span>4. Minus Google Play Fee (${(state.playFeeRate * 100).toFixed(0)}% of Net Base)</span>
-        <span>-${formatMoney(calc.playStoreCut, country.currency, country.symbol)}</span>
+        <span>-${formatMoney(calc.playStoreCut, country.currency)}</span>
       </div>
       <div class="waterfall-row cut">
         <span>5. Minus Buffer (Indian 0.1% TDS / FX spread / Fees: ${(state.bufferRate * 100).toFixed(1)}%)</span>
-        <span>-${formatMoney(calc.bufferCut, country.currency, country.symbol)}</span>
+        <span>-${formatMoney(calc.bufferCut, country.currency)}</span>
       </div>
       <div class="waterfall-row final-net">
         <span>6. Developer Net Proceeds</span>
-        <span>${formatMoney(calc.developerNetLocal, country.currency, country.symbol)} (${formatPct(calc.developerNetPct)}) ≈ ${baseSym}${calc.developerNetInBase.toFixed(2)} ${state.baseCurrency}</span>
+        <span>${formatMoney(calc.developerNetLocal, country.currency)} (${formatPct(calc.developerNetPct)}) ≈ USD ${calc.developerNetInUsd.toFixed(2)} | INR ${calc.developerNetInInr.toFixed(2)}</span>
       </div>
     `;
 
@@ -595,9 +690,10 @@
       'Base Currency',
       'Base Input Price',
       'Local Currency Code',
-      'Local Currency Symbol',
       'Local Retail Price',
       'Retail Price In Base Currency',
+      'Promotional Discount %',
+      'Discounted Price (Local)',
       'VAT / Tax Rate %',
       'Tax Amount (Local)',
       'Net Revenue Base (Local)',
@@ -606,7 +702,8 @@
       'Buffer %',
       'Buffer Cut (Local)',
       'Developer Net Take-Home (Local)',
-      'Developer Net Take-Home (Base Currency)',
+      'Developer Net Take-Home (USD)',
+      'Developer Net Take-Home (INR)',
       'Developer Net Margin %',
       'Willingness To Pay',
       'Popular Payment Methods',
@@ -615,7 +712,6 @@
 
     const rows = [headers];
 
-    // Combine App Price + all Catalogue Items
     const productsToExport = [
       { id: 'app_price', name: 'App Price (Download)', price: state.appPrice },
       ...state.catalogueItems
@@ -632,9 +728,10 @@
           `"${state.baseCurrency}"`,
           prod.price.toFixed(2),
           `"${country.currency}"`,
-          `"${country.symbol}"`,
           calc.retailPrice.toFixed(2),
           calc.retailInBase.toFixed(2),
+          state.discountEnabled ? `${state.discountRate}%` : 'None',
+          state.discountEnabled ? calc.discountedPrice.toFixed(2) : calc.retailPrice.toFixed(2),
           calc.taxPct.toFixed(1),
           calc.taxAmount.toFixed(2),
           calc.netRevenueBase.toFixed(2),
@@ -643,7 +740,8 @@
           (state.bufferRate * 100).toFixed(1),
           calc.bufferCut.toFixed(2),
           calc.developerNetLocal.toFixed(2),
-          calc.developerNetInBase.toFixed(2),
+          calc.developerNetInUsd.toFixed(2),
+          calc.developerNetInInr.toFixed(2),
           calc.developerNetPct.toFixed(1),
           `"${country.behavior ? country.behavior.willingness : ''}"`,
           `"${country.behavior ? country.behavior.popularPayment : ''}"`,
@@ -670,7 +768,8 @@
     const lines = ['Country/Region,Currency,Default Price'];
     state.countries.forEach(country => {
       const calc = calculateCountryPricing(country, activeProd.price, state.baseCurrency);
-      lines.push(`${country.code},${country.currency},${calc.retailPrice.toFixed(2)}`);
+      const priceVal = state.discountEnabled ? calc.discountedPrice : calc.retailPrice;
+      lines.push(`${country.code},${country.currency},${priceVal.toFixed(2)}`);
     });
 
     const text = lines.join('\n');
@@ -696,12 +795,11 @@
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transform = 'translateY(10px)';
-      toast.style.transition = 'all 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
+      toast.style.transition = 'all 0.25s ease';
+      setTimeout(() => toast.remove(), 250);
+    }, 3200);
   }
 
-  // Helper escape
   function escapeHTML(str) {
     if (!str) return '';
     return str.replace(/[&<>'"]/g, 
@@ -724,10 +822,8 @@
         btn.classList.add('active');
         state.baseCurrency = btn.getAttribute('data-currency');
 
-        // Update adornment symbols
-        const sym = CURRENCY_SYMBOLS[state.baseCurrency] || '$';
-        elements.appPriceSymbol.textContent = sym;
-        document.querySelectorAll('.baseCurrSymbol').forEach(el => el.textContent = sym);
+        // Update adornment ISO codes
+        elements.appPriceSymbol.textContent = state.baseCurrency;
         document.querySelectorAll('.baseCurrCode').forEach(el => el.textContent = state.baseCurrency);
 
         renderCatalogueItems();
@@ -776,6 +872,32 @@
       showToast(`Charm rounding ${state.charmRounding ? 'Enabled' : 'Disabled'}`, 'info');
     });
 
+    // Discount Toggle
+    elements.discountEnableToggle.addEventListener('change', (e) => {
+      state.discountEnabled = e.target.checked;
+      elements.discountControlsRow.style.opacity = state.discountEnabled ? '1' : '0.4';
+      elements.discountControlsRow.style.pointerEvents = state.discountEnabled ? 'auto' : 'none';
+      renderAllTables();
+      showToast(`Promotional discount ${state.discountEnabled ? 'Enabled (' + state.discountRate + '% OFF)' : 'Disabled'}`, 'info');
+    });
+
+    // Discount Rate Slider
+    elements.discountRateRange.addEventListener('input', (e) => {
+      state.discountRate = parseInt(e.target.value, 10);
+      elements.discountRateDisplay.textContent = `${state.discountRate}% OFF`;
+      if (state.discountEnabled) {
+        renderAllTables();
+      }
+    });
+
+    // Discount Charm Toggle
+    elements.discountCharmToggle.addEventListener('change', (e) => {
+      state.discountCharm = e.target.checked;
+      if (state.discountEnabled) {
+        renderAllTables();
+      }
+    });
+
     // Add Item Form
     elements.addItemForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -800,15 +922,15 @@
 
       renderCatalogueItems();
       renderAllTables();
-      showToast(`Added product "${name}"`, 'success');
+      showToast(`Added product "${name}" (${state.baseCurrency} ${price.toFixed(2)})`, 'success');
     });
 
-    // Reset Catalogue to Default Template
+    // Reset Catalogue to Default Template (with distinct prices)
     elements.btnResetCatalogue.addEventListener('click', () => {
       state.catalogueItems = [
         { id: 'iap_1', name: 'No Ads', price: 1.50 },
-        { id: 'iap_2', name: 'Starter Pack', price: 1.50 },
-        { id: 'iap_3', name: 'Gold 1', price: 1.50 },
+        { id: 'iap_2', name: 'Starter Pack', price: 1.99 },
+        { id: 'iap_3', name: 'Gold 1', price: 0.99 },
         { id: 'iap_4', name: 'Gold 2', price: 2.99 },
         { id: 'iap_5', name: 'Gold 3', price: 4.99 },
         { id: 'iap_6', name: 'Gold 4', price: 9.99 },
@@ -818,26 +940,25 @@
       state.activeProductId = 'iap_1';
       renderCatalogueItems();
       renderAllTables();
-      showToast('Reset catalogue to standard game IAP tiers', 'info');
+      showToast('Reset catalogue to staggered game IAP tiers', 'info');
     });
 
-    // Quick Add button focus
     elements.btnQuickAdd.addEventListener('click', () => {
       elements.newItemName.focus();
     });
 
-    // Big Generate Button
     elements.btnGenerate.addEventListener('click', () => {
       renderAllTables();
-      showToast('Pricing Matrix recalculation complete across all 176 countries!', 'success');
-      // Smooth scroll to table preview
+      showToast('Pricing Matrix recalculation complete across all 176 locations!', 'success');
       document.querySelector('.table-control-bar').scrollIntoView({ behavior: 'smooth' });
     });
 
     // Active product selector dropdown
     elements.activeProductSelector.addEventListener('change', (e) => {
       state.activeProductId = e.target.value;
+      const active = getActiveProduct();
       renderAllTables();
+      showToast(`Switched preview to "${active.name}" (${state.baseCurrency} ${active.price.toFixed(2)})`, 'info');
     });
 
     // Search bar
@@ -862,9 +983,6 @@
       });
     });
 
-    // Start with all sections open
-    document.querySelectorAll('.accordion-section').forEach(s => s.classList.add('active'));
-
     // Export CSV
     elements.btnExportAllCsv.addEventListener('click', exportFullMatrixCsv);
 
@@ -885,7 +1003,6 @@
       if (e.target === elements.logicModalBackdrop) closeLogicModal();
     });
 
-    // Keyboard ESC to close modal
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeCountryStrategyModal();
@@ -901,12 +1018,10 @@
     renderCatalogueItems();
     renderAllTables();
 
-    // Fetch live currency rates in background
     await fetchLiveExchangeRates();
     renderAllTables();
   }
 
-  // Start when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
