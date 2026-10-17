@@ -2585,6 +2585,13 @@ body.hide-col-action [data-col="action"] {
   border-color: var(--accent-blue);
 }
 
+.btn-template-pill.active {
+  background: rgba(30, 144, 255, 0.16);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  box-shadow: inset 0 0 0 1px var(--accent-blue);
+}
+
 /* ==========================================================================
    Revenue Forecaster & Volume Simulator
    ========================================================================== */

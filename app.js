@@ -2174,6 +2174,14 @@
     state.catalogueItems = preset.items.map(i => ({ ...i }));
     state.activeProductId = state.catalogueItems[0].id;
     saveCatalogueItems();
+
+    if (elements.templateBtns) {
+      elements.templateBtns.forEach(b => {
+        const k = b.getAttribute('data-preset') || b.getAttribute('data-template');
+        b.classList.toggle('active', k === presetKey);
+      });
+    }
+
     renderCatalogueItems();
     renderAllTables();
     showToast(`Loaded "${preset.name}" preset catalogue!`, 'success');
@@ -2426,9 +2434,12 @@
       ];
       state.activeProductId = 'iap_1';
       saveCatalogueItems();
+      if (elements.templateBtns) {
+        elements.templateBtns.forEach(b => b.classList.remove('active'));
+      }
       renderCatalogueItems();
       renderAllTables();
-      showToast('Reset catalogue to staggered game IAP tiers', 'info');
+      showToast('Reset catalogue to default game IAP tiers', 'info');
     });
 
     elements.btnQuickAdd.addEventListener('click', () => {
@@ -2484,8 +2495,10 @@
     if (elements.templateBtns) {
       elements.templateBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-          const presetKey = btn.getAttribute('data-preset');
-          loadCataloguePreset(presetKey);
+          const presetKey = btn.getAttribute('data-preset') || btn.getAttribute('data-template');
+          if (presetKey) {
+            loadCataloguePreset(presetKey);
+          }
         });
       });
     }
