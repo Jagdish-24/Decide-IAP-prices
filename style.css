@@ -1188,124 +1188,236 @@ input:checked + .slider.round:before {
   background: rgba(248, 113, 113, 0.12);
 }
 
-/* Inline Edit Form Controls on SKU Card */
-.sku-card-top.edit-mode {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  width: 100%;
-  padding-bottom: 2px;
+/* ==========================================================================
+   SKU Card Edit Mode (Refined, Spacious & Clear UI/UX)
+   ========================================================================== */
+.sku-card.is-editing {
+  border-color: var(--accent-blue) !important;
+  box-shadow: 0 0 0 1px var(--accent-blue), 0 8px 24px rgba(0, 0, 0, 0.65) !important;
+  background: #0b1329 !important;
+  padding: 14px 16px;
+  gap: 12px;
 }
 
-.sku-inline-edit-fields {
+.sku-edit-panel {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
+}
+
+.sku-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+}
+
+.sku-edit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.sku-edit-badge svg {
+  display: block;
+}
+
+.sku-edit-shortcut-hint {
+  font-size: 0.64rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sku-edit-fields-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.sku-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sku-field-name {
+  flex: 1.6;
+  min-width: 0;
+}
+
+.sku-field-price {
+  flex: 1.1;
+  min-width: 110px;
+}
+
+.sku-edit-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-transform: uppercase;
 }
 
 .sku-edit-name-input {
-  flex: 2;
-  min-width: 0;
+  width: 100%;
+  height: 36px;
   background: var(--bg-surface);
-  border: 1px solid var(--accent-blue);
+  border: 1px solid var(--border-strong);
   color: #fff;
-  font-size: 0.82rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  padding: 6px 8px;
+  padding: 0 10px;
   border-radius: 0;
   font-family: inherit;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .sku-edit-name-input:focus {
   outline: none;
+  border-color: var(--accent-blue);
   box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+  background: #0f1c38;
 }
 
 .sku-edit-price-box {
-  flex: 1;
-  min-width: 95px;
   display: flex;
   align-items: center;
+  height: 36px;
   background: var(--bg-surface);
-  border: 1px solid var(--accent-blue);
+  border: 1px solid var(--border-strong);
   border-radius: 0;
   overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.sku-edit-price-box:focus-within {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+  background: #0f1c38;
 }
 
 .sku-edit-curr-tag {
-  padding: 6px 8px;
+  height: 100%;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--bg-surface-elevated);
   border-right: 1px solid var(--border-subtle);
   font-size: 0.72rem;
   font-weight: 800;
   font-family: var(--font-mono);
   color: var(--text-secondary);
-  line-height: 1;
+  user-select: none;
+  flex-shrink: 0;
 }
 
 .sku-edit-price-input {
+  flex: 1;
   width: 100%;
+  min-width: 0;
+  height: 100%;
   border: none !important;
   background: transparent !important;
   color: #fff;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-family: var(--font-mono);
   font-weight: 700;
-  padding: 6px 8px !important;
+  padding: 0 8px !important;
   box-shadow: none !important;
+  -moz-appearance: textfield;
+}
+
+.sku-edit-price-input::-webkit-outer-spin-button,
+.sku-edit-price-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .sku-edit-price-input:focus {
   outline: none !important;
 }
 
-.sku-edit-actions {
+.sku-edit-actions-row {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
-  width: 100%;
-}
-
-.sku-btn-save {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--accent-emerald);
-  color: #052e16;
-  font-size: 0.72rem;
-  font-weight: 800;
-  padding: 4px 10px;
-  border: none;
-  cursor: pointer;
-  border-radius: 0;
-  transition: all var(--transition-fast);
-}
-
-.sku-btn-save:hover {
-  background: #34d399;
-  box-shadow: 0 0 8px rgba(52, 211, 153, 0.4);
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .sku-btn-cancel {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  background: transparent;
-  color: var(--text-muted);
-  border: 1px solid var(--border-subtle);
-  font-size: 0.72rem;
+  justify-content: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-strong);
+  font-size: 0.75rem;
   font-weight: 600;
-  padding: 4px 8px;
+  height: 32px;
+  padding: 0 12px;
   cursor: pointer;
   border-radius: 0;
   transition: all var(--transition-fast);
 }
 
 .sku-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: #fff;
-  border-color: var(--border-strong);
-  background: var(--bg-surface);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.sku-btn-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--accent-emerald);
+  color: #022c22;
+  font-size: 0.75rem;
+  font-weight: 800;
+  height: 32px;
+  padding: 0 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 0;
+  letter-spacing: 0.02em;
+  transition: all var(--transition-fast);
+}
+
+.sku-btn-save:hover {
+  background: #34d399;
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.45);
+}
+
+.sku-ids-sub-label {
+  display: none;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.sku-card.is-editing .sku-ids-sub-label {
+  display: block;
+}
+
+.sku-card.is-editing .sku-ids-group {
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  padding-top: 10px;
 }
 
 /* SKU IAP ID & Offer ID List */

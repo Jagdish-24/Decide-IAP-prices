@@ -698,28 +698,44 @@
           </div>
         </div>
 
-        <!-- Inline Edit Mode Bar -->
-        <div class="sku-card-top edit-mode" style="display: none;">
-          <div class="sku-inline-edit-fields">
-            <input type="text" class="sku-edit-name-input" value="${escapeHTML(item.name)}" placeholder="Product Name" spellcheck="false" autocomplete="off" required>
-            <div class="sku-edit-price-box">
-              <span class="sku-edit-curr-tag">${baseCode}</span>
-              <input type="number" step="0.01" min="0.01" class="sku-edit-price-input" value="${item.price.toFixed(2)}" placeholder="1.50" required>
+        <!-- Inline Edit Mode Panel -->
+        <div class="sku-card-top edit-mode sku-edit-panel" style="display: none;">
+          <div class="sku-edit-header">
+            <div class="sku-edit-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              <span>Edit SKU</span>
+            </div>
+            <span class="sku-edit-shortcut-hint">Enter ↵ save • Esc cancel</span>
+          </div>
+
+          <div class="sku-edit-fields-row">
+            <div class="sku-edit-field sku-field-name">
+              <label class="sku-edit-label">Product Name</label>
+              <input type="text" class="sku-edit-name-input" value="${escapeHTML(item.name)}" placeholder="e.g. Starter Pack" spellcheck="false" autocomplete="off" required>
+            </div>
+            <div class="sku-edit-field sku-field-price">
+              <label class="sku-edit-label">Base Price (${baseCode})</label>
+              <div class="sku-edit-price-box">
+                <span class="sku-edit-curr-tag">${baseCode}</span>
+                <input type="number" step="0.01" min="0.01" class="sku-edit-price-input" value="${item.price.toFixed(2)}" placeholder="1.50" required>
+              </div>
             </div>
           </div>
-          <div class="sku-edit-actions">
-            <button type="button" class="sku-btn-save" title="Save changes (Enter)">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              <span>Save</span>
-            </button>
-            <button type="button" class="sku-btn-cancel" title="Cancel (Esc)">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+
+          <div class="sku-edit-actions-row">
+            <button type="button" class="btn sku-btn-cancel" title="Discard changes (Esc)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               <span>Cancel</span>
+            </button>
+            <button type="button" class="btn sku-btn-save" title="Save changes (Enter)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Save Changes</span>
             </button>
           </div>
         </div>
 
         <div class="sku-ids-group">
+          <div class="sku-ids-sub-label">Play Store Identifiers (Auto-Synced)</div>
           <div class="sku-id-row">
             <div class="sku-id-left">
               <span class="sku-id-label label-product">PRODUCT ID</span>
