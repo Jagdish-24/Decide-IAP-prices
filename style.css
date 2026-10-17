@@ -357,25 +357,21 @@ body {
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-subtle);
   border-radius: 0;
-  padding: 8px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
   cursor: pointer;
   transition: all var(--transition-fast);
   color: var(--text-secondary);
 }
 
-.currency-btn .flag {
-  font-size: 1.15rem;
-}
-
 .currency-btn .curr-code {
-  font-weight: 700;
-  font-size: 0.85rem;
+  font-weight: 800;
+  font-size: 0.9rem;
   color: var(--text-primary);
   font-family: var(--font-mono);
+  letter-spacing: 0.06em;
 }
 
 .currency-btn:hover {
@@ -384,9 +380,14 @@ body {
 }
 
 .currency-btn.active {
-  background: rgba(56, 189, 248, 0.12);
+  background: rgba(56, 189, 248, 0.14);
   border-color: var(--accent-blue);
   color: #fff;
+  box-shadow: 0 0 0 1px var(--accent-blue);
+}
+
+.currency-btn.active .curr-code {
+  color: var(--accent-blue);
 }
 
 /* Input Fields */
