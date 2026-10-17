@@ -41,6 +41,10 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
           Logic Guide
         </button>
+        <button class="btn btn-secondary" id="btnApiSyncModal" title="Open Google Play Developer API Sync instructions &amp; CLI commands">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+          API Sync
+        </button>
         <button class="btn btn-secondary" id="btnImportData" title="Import settings and catalogue data from JSON backup">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4H5v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           Import Data
@@ -50,7 +54,11 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4H5v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
           Export Data
         </button>
-        <button class="btn btn-primary" id="btnExportAllCsv" title="Export entire pricing matrix to CSV">
+        <button class="btn btn-secondary" id="btnExportApiJson" title="Export direct Google Play API JSON payload for active SKU">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          API JSON
+        </button>
+        <button class="btn btn-primary" id="btnExportAllCsv" title="Export entire pricing matrix for active SKU to CSV">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v6h6"></path><path d="M8 13h2"></path><path d="M14 13h2"></path><path d="M8 17h2"></path><path d="M14 17h2"></path></svg>
           Export CSV
         </button>
@@ -317,6 +325,17 @@
                   Add Product / SKU
                 </h4>
               </div>
+
+              <!-- Quick Monetization Templates -->
+              <div class="preset-templates-bar">
+                <span class="preset-templates-label">Quick Presets:</span>
+                <div class="preset-pills-row">
+                  <button type="button" class="btn-template-pill" data-template="casual" title="Load Casual Game starter SKUs (No Ads, Starter Pack, Coin Pouch, Gem Chest)">Casual</button>
+                  <button type="button" class="btn-template-pill" data-template="rpg" title="Load Mid-Core RPG / Gacha tier SKUs (6-tier Gem packs &amp; Battle Pass)">RPG / Gacha</button>
+                  <button type="button" class="btn-template-pill" data-template="saas" title="Load Subscription &amp; SaaS app tiers (Monthly, Annual, Lifetime)">SaaS App</button>
+                </div>
+              </div>
+
               <form id="addItemForm" class="add-item-form-vertical">
                 <div class="form-group">
                   <label for="newItemName">Product Name</label>
@@ -397,6 +416,110 @@
       </div>
     </section>
 
+    <!-- Revenue Simulator & Volume Forecaster Section -->
+    <section class="revenue-simulator-section" id="revenueSimulatorSection">
+      <div class="simulator-card">
+        <div class="simulator-header" id="simulatorHeaderToggle">
+          <div class="simulator-title-group">
+            <div class="sim-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <div>
+              <div class="badge-pill sim-badge">Commercial Planning</div>
+              <h3 class="simulator-title">Volume &amp; Revenue Forecaster ("What-If" Sales Simulator)</h3>
+            </div>
+          </div>
+          <div class="simulator-header-right">
+            <span class="sim-toggle-hint">Interactive Financial Simulator</span>
+            <span class="sim-chevron" id="simChevron">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </span>
+          </div>
+        </div>
+
+        <div class="simulator-content" id="simulatorContent">
+          <div class="sim-grid">
+            <!-- Sliders / Inputs for Volume per Tier -->
+            <div class="sim-inputs-col">
+              <div class="sim-input-block">
+                <div class="sim-slider-header">
+                  <label for="volTier1Input"><span class="badge-dot dot-blue"></span>Tier 1 Monthly Sales (USA, UK, JP, DE...):</label>
+                  <input type="number" id="volTier1Input" min="0" step="100" value="5000" class="sim-num-input">
+                </div>
+                <input type="range" id="volTier1Range" min="0" max="50000" step="250" value="5000">
+              </div>
+
+              <div class="sim-input-block">
+                <div class="sim-slider-header">
+                  <label for="volTier2Input"><span class="badge-dot dot-purple"></span>Tier 2 Monthly Sales (BR, MX, PL, TR...):</label>
+                  <input type="number" id="volTier2Input" min="0" step="100" value="3000" class="sim-num-input">
+                </div>
+                <input type="range" id="volTier2Range" min="0" max="50000" step="250" value="3000">
+              </div>
+
+              <div class="sim-input-block">
+                <div class="sim-slider-header">
+                  <label for="volTier3Input"><span class="badge-dot dot-amber"></span>Tier 3 Monthly Sales (IN, ID, PK, NG...):</label>
+                  <input type="number" id="volTier3Input" min="0" step="100" value="12000" class="sim-num-input">
+                </div>
+                <input type="range" id="volTier3Range" min="0" max="100000" step="500" value="12000">
+              </div>
+            </div>
+
+            <!-- Calculated Payout Metrics -->
+            <div class="sim-metrics-col">
+              <div class="sim-metrics-grid">
+                <div class="sim-metric-card">
+                  <span class="sim-metric-label">Total Monthly Units</span>
+                  <div class="sim-metric-val" id="simTotalUnits">20,000</div>
+                  <span class="sim-metric-sub">Across All 3 Tiers</span>
+                </div>
+                <div class="sim-metric-card">
+                  <span class="sim-metric-label">Gross Player Spend</span>
+                  <div class="sim-metric-val" id="simGrossSpend">$13,540.00</div>
+                  <span class="sim-metric-sub" id="simGrossInr">INR 1,178,000</span>
+                </div>
+                <div class="sim-metric-card">
+                  <span class="sim-metric-label">Tax / VAT Withheld</span>
+                  <div class="sim-metric-val text-muted" id="simTaxTotal">-$1,620.00</div>
+                  <span class="sim-metric-sub">Remitted by Google</span>
+                </div>
+                <div class="sim-metric-card">
+                  <span class="sim-metric-label">Google Play Cut (<span id="simPlayRateLabel">15%</span>)</span>
+                  <div class="sim-metric-val text-blue" id="simPlayCutTotal">-$1,788.00</div>
+                  <span class="sim-metric-sub">On Net Revenue Base</span>
+                </div>
+              </div>
+
+              <!-- Highlight Payout Banner -->
+              <div class="sim-payout-hero">
+                <div>
+                  <span class="sim-payout-label">Projected Developer Net Bank Take-Home:</span>
+                  <div class="sim-payout-val text-emerald" id="simNetPayoutUsd">$9,892.00 / month</div>
+                  <span class="sim-payout-inr" id="simNetPayoutInr">≈ INR 860,600.00 / month</span>
+                </div>
+                <div class="sim-margin-pill" id="simNetMarginPill">73.1% Net Margin</div>
+              </div>
+
+              <!-- Stacked Visual Margin Bar -->
+              <div class="sim-stacked-bar-container">
+                <div class="sim-bar-label-row">
+                  <span>Gross Revenue Distribution:</span>
+                  <span id="simBarLegend">Net Take-Home • Google Fee • Tax • Buffer</span>
+                </div>
+                <div class="sim-stacked-bar" id="simStackedBar">
+                  <div class="bar-seg seg-net" id="barSegNet" style="width: 73%;" title="Developer Net Take-Home">73% Net</div>
+                  <div class="bar-seg seg-play" id="barSegPlay" style="width: 15%;" title="Google Play Fee">15% Play</div>
+                  <div class="bar-seg seg-tax" id="barSegTax" style="width: 10%;" title="Local Tax / VAT">10% Tax</div>
+                  <div class="bar-seg seg-buffer" id="barSegBuffer" style="width: 2%;" title="Forex &amp; Buffer">2%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Active Item Selector Bar -->
     <div class="table-control-bar">
       <div class="control-item-selector">
@@ -404,6 +527,17 @@
         <select id="activeProductSelector" class="custom-select">
           <!-- Filled dynamically -->
         </select>
+      </div>
+
+      <!-- Quick Regional / Continent Filter Chips -->
+      <div class="region-filter-bar" id="regionFilterBar">
+        <button type="button" class="btn-region-pill active" data-region="ALL">All (176)</button>
+        <button type="button" class="btn-region-pill" data-region="EUROPE">Europe (44)</button>
+        <button type="button" class="btn-region-pill" data-region="ASIA">Asia (41)</button>
+        <button type="button" class="btn-region-pill" data-region="AMERICAS">Americas (35)</button>
+        <button type="button" class="btn-region-pill" data-region="AFRICA">Africa (44)</button>
+        <button type="button" class="btn-region-pill" data-region="OCEANIA">Oceania (10)</button>
+        <button type="button" class="btn-region-pill" data-region="ZERO_TAX">Zero Tax (32)</button>
       </div>
       
       <div class="search-box">
@@ -454,6 +588,11 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           Copy Play Store Format
         </button>
+
+        <button class="btn btn-secondary btn-sm" id="btnExportMasterCsv" title="Export unified CSV matrix containing ALL catalogue SKUs across 176 countries">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          Master CSV (All SKUs)
+        </button>
       </div>
     </div>
 
@@ -478,17 +617,17 @@
             <table class="pricing-table" id="tableMaster">
               <thead>
                 <tr>
-                  <th data-col="country">Country</th>
-                  <th data-col="currency">Currency</th>
-                  <th data-col="retail">End-User Retail Price</th>
-                  <th data-col="discount" class="col-discount-header" style="display: none;">Discounted Price</th>
-                  <th data-col="tax">Tax / VAT Cut</th>
-                  <th data-col="playcut">Google Play Cut</th>
-                  <th data-col="buffercut">Buffer Cut</th>
-                  <th data-col="netlocal">Developer Net (Local)</th>
-                  <th data-col="netusd">Developer Net (USD)</th>
-                  <th data-col="netinr">Developer Net (INR)</th>
-                  <th data-col="discountnetinr" class="col-discount-netinr-header" style="display: none;">Discount Net (INR)</th>
+                  <th data-col="country" data-sortable="true" title="Click to sort by Country">Country <span class="sort-icon"></span></th>
+                  <th data-col="currency" data-sortable="true" title="Click to sort by Currency">Currency <span class="sort-icon"></span></th>
+                  <th data-col="retail" data-sortable="true" title="Click to sort by Retail Price">End-User Retail Price <span class="sort-icon"></span></th>
+                  <th data-col="discount" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Price">Discounted Price <span class="sort-icon"></span></th>
+                  <th data-col="tax" data-sortable="true" title="Click to sort by Tax Rate">Tax / VAT Cut <span class="sort-icon"></span></th>
+                  <th data-col="playcut" data-sortable="true" title="Click to sort by Play Cut">Google Play Cut <span class="sort-icon"></span></th>
+                  <th data-col="buffercut" data-sortable="true" title="Click to sort by Buffer Cut">Buffer Cut <span class="sort-icon"></span></th>
+                  <th data-col="netlocal" data-sortable="true" title="Click to sort by Margin %">Developer Net (Local) <span class="sort-icon"></span></th>
+                  <th data-col="netusd" data-sortable="true" title="Click to sort by Net USD">Developer Net (USD) <span class="sort-icon"></span></th>
+                  <th data-col="netinr" data-sortable="true" title="Click to sort by Net INR">Developer Net (INR) <span class="sort-icon"></span></th>
+                  <th data-col="discountnetinr" class="col-discount-netinr-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Net INR">Discount Net (INR) <span class="sort-icon"></span></th>
                   <th data-col="mindset">Gamer Profile</th>
                   <th data-col="action">Action</th>
                 </tr>
@@ -519,17 +658,17 @@
             <table class="pricing-table" id="tableTier1">
               <thead>
                 <tr>
-                  <th data-col="country">Country</th>
-                  <th data-col="currency">Currency</th>
-                  <th data-col="retail">End-User Retail Price</th>
-                  <th data-col="discount" class="col-discount-header" style="display: none;">Discounted Price</th>
-                  <th data-col="tax">Tax / VAT Cut</th>
-                  <th data-col="playcut">Google Play Cut</th>
-                  <th data-col="buffercut">Buffer Cut</th>
-                  <th data-col="netlocal">Developer Net (Local)</th>
-                  <th data-col="netusd">Developer Net (USD)</th>
-                  <th data-col="netinr">Developer Net (INR)</th>
-                  <th data-col="discountnetinr" class="col-discount-netinr-header" style="display: none;">Discount Net (INR)</th>
+                  <th data-col="country" data-sortable="true" title="Click to sort by Country">Country <span class="sort-icon"></span></th>
+                  <th data-col="currency" data-sortable="true" title="Click to sort by Currency">Currency <span class="sort-icon"></span></th>
+                  <th data-col="retail" data-sortable="true" title="Click to sort by Retail Price">End-User Retail Price <span class="sort-icon"></span></th>
+                  <th data-col="discount" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Price">Discounted Price <span class="sort-icon"></span></th>
+                  <th data-col="tax" data-sortable="true" title="Click to sort by Tax Rate">Tax / VAT Cut <span class="sort-icon"></span></th>
+                  <th data-col="playcut" data-sortable="true" title="Click to sort by Play Cut">Google Play Cut <span class="sort-icon"></span></th>
+                  <th data-col="buffercut" data-sortable="true" title="Click to sort by Buffer Cut">Buffer Cut <span class="sort-icon"></span></th>
+                  <th data-col="netlocal" data-sortable="true" title="Click to sort by Margin %">Developer Net (Local) <span class="sort-icon"></span></th>
+                  <th data-col="netusd" data-sortable="true" title="Click to sort by Net USD">Developer Net (USD) <span class="sort-icon"></span></th>
+                  <th data-col="netinr" data-sortable="true" title="Click to sort by Net INR">Developer Net (INR) <span class="sort-icon"></span></th>
+                  <th data-col="discountnetinr" class="col-discount-netinr-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Net INR">Discount Net (INR) <span class="sort-icon"></span></th>
                   <th data-col="mindset">Gamer Profile</th>
                   <th data-col="action">Action</th>
                 </tr>
@@ -560,17 +699,17 @@
             <table class="pricing-table" id="tableTier2">
               <thead>
                 <tr>
-                  <th data-col="country">Country</th>
-                  <th data-col="currency">Currency</th>
-                  <th data-col="retail">End-User Retail Price</th>
-                  <th data-col="discount" class="col-discount-header" style="display: none;">Discounted Price</th>
-                  <th data-col="tax">Tax / VAT Cut</th>
-                  <th data-col="playcut">Google Play Cut</th>
-                  <th data-col="buffercut">Buffer Cut</th>
-                  <th data-col="netlocal">Developer Net (Local)</th>
-                  <th data-col="netusd">Developer Net (USD)</th>
-                  <th data-col="netinr">Developer Net (INR)</th>
-                  <th data-col="discountnetinr" class="col-discount-netinr-header" style="display: none;">Discount Net (INR)</th>
+                  <th data-col="country" data-sortable="true" title="Click to sort by Country">Country <span class="sort-icon"></span></th>
+                  <th data-col="currency" data-sortable="true" title="Click to sort by Currency">Currency <span class="sort-icon"></span></th>
+                  <th data-col="retail" data-sortable="true" title="Click to sort by Retail Price">End-User Retail Price <span class="sort-icon"></span></th>
+                  <th data-col="discount" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Price">Discounted Price <span class="sort-icon"></span></th>
+                  <th data-col="tax" data-sortable="true" title="Click to sort by Tax Rate">Tax / VAT Cut <span class="sort-icon"></span></th>
+                  <th data-col="playcut" data-sortable="true" title="Click to sort by Play Cut">Google Play Cut <span class="sort-icon"></span></th>
+                  <th data-col="buffercut" data-sortable="true" title="Click to sort by Buffer Cut">Buffer Cut <span class="sort-icon"></span></th>
+                  <th data-col="netlocal" data-sortable="true" title="Click to sort by Margin %">Developer Net (Local) <span class="sort-icon"></span></th>
+                  <th data-col="netusd" data-sortable="true" title="Click to sort by Net USD">Developer Net (USD) <span class="sort-icon"></span></th>
+                  <th data-col="netinr" data-sortable="true" title="Click to sort by Net INR">Developer Net (INR) <span class="sort-icon"></span></th>
+                  <th data-col="discountnetinr" class="col-discount-netinr-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Net INR">Discount Net (INR) <span class="sort-icon"></span></th>
                   <th data-col="mindset">Gamer Profile</th>
                   <th data-col="action">Action</th>
                 </tr>
@@ -601,17 +740,17 @@
             <table class="pricing-table" id="tableTier3">
               <thead>
                 <tr>
-                  <th data-col="country">Country</th>
-                  <th data-col="currency">Currency</th>
-                  <th data-col="retail">End-User Retail Price</th>
-                  <th data-col="discount" class="col-discount-header" style="display: none;">Discounted Price</th>
-                  <th data-col="tax">Tax / VAT Cut</th>
-                  <th data-col="playcut">Google Play Cut</th>
-                  <th data-col="buffercut">Buffer Cut</th>
-                  <th data-col="netlocal">Developer Net (Local)</th>
-                  <th data-col="netusd">Developer Net (USD)</th>
-                  <th data-col="netinr">Developer Net (INR)</th>
-                  <th data-col="discountnetinr" class="col-discount-netinr-header" style="display: none;">Discount Net (INR)</th>
+                  <th data-col="country" data-sortable="true" title="Click to sort by Country">Country <span class="sort-icon"></span></th>
+                  <th data-col="currency" data-sortable="true" title="Click to sort by Currency">Currency <span class="sort-icon"></span></th>
+                  <th data-col="retail" data-sortable="true" title="Click to sort by Retail Price">End-User Retail Price <span class="sort-icon"></span></th>
+                  <th data-col="discount" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Price">Discounted Price <span class="sort-icon"></span></th>
+                  <th data-col="tax" data-sortable="true" title="Click to sort by Tax Rate">Tax / VAT Cut <span class="sort-icon"></span></th>
+                  <th data-col="playcut" data-sortable="true" title="Click to sort by Play Cut">Google Play Cut <span class="sort-icon"></span></th>
+                  <th data-col="buffercut" data-sortable="true" title="Click to sort by Buffer Cut">Buffer Cut <span class="sort-icon"></span></th>
+                  <th data-col="netlocal" data-sortable="true" title="Click to sort by Margin %">Developer Net (Local) <span class="sort-icon"></span></th>
+                  <th data-col="netusd" data-sortable="true" title="Click to sort by Net USD">Developer Net (USD) <span class="sort-icon"></span></th>
+                  <th data-col="netinr" data-sortable="true" title="Click to sort by Net INR">Developer Net (INR) <span class="sort-icon"></span></th>
+                  <th data-col="discountnetinr" class="col-discount-netinr-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Net INR">Discount Net (INR) <span class="sort-icon"></span></th>
                   <th data-col="mindset">Gamer Profile</th>
                   <th data-col="action">Action</th>
                 </tr>
@@ -753,6 +892,126 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-primary" id="btnAcceptLogic">Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Play Developer API Sync Helper Modal -->
+  <div class="modal-backdrop" id="apiModalBackdrop">
+    <div class="modal-card api-helper-modal">
+      <div class="modal-header">
+        <div class="modal-country-identity">
+          <div class="card-icon" style="background: rgba(129, 140, 248, 0.14); color: var(--accent-indigo);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+          </div>
+          <div>
+            <h3>Google Play Developer API Integration Helper</h3>
+            <p>Automate live pricing updates in Google Play Console with official API tools</p>
+          </div>
+        </div>
+        <button class="modal-close" id="btnCloseApiModal" title="Close modal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body api-modal-body">
+        <!-- Direct Action Buttons Row -->
+        <div class="api-actions-hero">
+          <div class="api-action-box">
+            <div class="api-box-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              <strong>1. Direct API Payload (.json)</strong>
+            </div>
+            <p>Download the exact JSON object ready for Google Play API v3 <code>inappproducts.patch</code>.</p>
+            <button type="button" class="btn btn-primary btn-sm btn-block" id="btnModalDownloadJson">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4H5v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Download API JSON
+            </button>
+          </div>
+
+          <div class="api-action-box">
+            <div class="api-box-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+              <strong>2. Python CLI Sync Script</strong>
+            </div>
+            <p>Production Python automation tool with service account auth, dry-run, and CSV sync.</p>
+            <button type="button" class="btn btn-secondary btn-sm btn-block" id="btnModalDownloadScript">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4H5v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Download Python Script
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Command Snippets -->
+        <div class="api-command-section">
+          <div class="api-section-title-row">
+            <h4>Live Terminal Commands (Auto-filled for <span id="apiModalActiveSku">Active SKU</span>)</h4>
+            <span class="api-badge-free">100% Free API</span>
+          </div>
+
+          <!-- Dry Run Command Box -->
+          <div class="code-snippet-box">
+            <div class="code-snippet-header">
+              <span>Safe Dry-Run Verification (Preview Only):</span>
+              <button class="btn-copy-code" id="btnCopyDryRunCmd" title="Copy to clipboard">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy Command
+              </button>
+            </div>
+            <pre><code id="codeDryRunCmd">python sync_prices_to_play_console.py --key service-account.json --package com.mygame.shop --sku com.mygame.shop.no-ads --csv playprice-matrix.csv --dry-run</code></pre>
+          </div>
+
+          <!-- Live Push Command Box -->
+          <div class="code-snippet-box">
+            <div class="code-snippet-header">
+              <span>Publish Live Prices to Play Console:</span>
+              <button class="btn-copy-code" id="btnCopyLiveCmd" title="Copy to clipboard">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy Command
+              </button>
+            </div>
+            <pre><code id="codeLiveCmd">python sync_prices_to_play_console.py --key service-account.json --package com.mygame.shop --sku com.mygame.shop.no-ads --csv playprice-matrix.csv</code></pre>
+          </div>
+        </div>
+
+        <!-- Quick GCP Checklist -->
+        <div class="api-checklist-section">
+          <h4>4-Step One-Time Setup Checklist</h4>
+          <div class="checklist-grid">
+            <div class="check-step">
+              <span class="step-num">1</span>
+              <div>
+                <strong>Enable API in Google Cloud</strong>
+                <p>Search "Google Play Android Developer API" in Google Cloud Console and click Enable.</p>
+              </div>
+            </div>
+            <div class="check-step">
+              <span class="step-num">2</span>
+              <div>
+                <strong>Create Service Account Key</strong>
+                <p>Create a Service Account, generate a JSON Key, and save as <code>service-account.json</code>.</p>
+              </div>
+            </div>
+            <div class="check-step">
+              <span class="step-num">3</span>
+              <div>
+                <strong>Link in Play Console</strong>
+                <p>Go to Play Console &gt; Developer account &gt; API access and grant access to the Service Account.</p>
+              </div>
+            </div>
+            <div class="check-step">
+              <span class="step-num">4</span>
+              <div>
+                <strong>Grant Monetization Permission</strong>
+                <p>Check "Manage in-app products and subscriptions" under Account Permissions.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnAcceptApiModal">Understood</button>
       </div>
     </div>
   </div>

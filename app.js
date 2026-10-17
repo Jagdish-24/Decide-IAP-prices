@@ -20,6 +20,13 @@
     discountCharm: true,
     activeProductId: 'iap_1', // default selected product
     searchQuery: '',
+    selectedRegion: 'ALL',
+    sortColumn: null,
+    sortDirection: null,
+    simVolumeT1: 5000,
+    simVolumeT2: 3000,
+    simVolumeT3: 12000,
+    isSimulatorCollapsed: false,
     visibleColumns: {
       country: true,
       currency: true,
@@ -47,6 +54,61 @@
       { id: 'iap_7', name: 'Gold 5', price: 19.99 },
       { id: 'iap_8', name: 'Gold 6', price: 49.99 }
     ]
+  };
+
+  // 100% Verified Country Roster Mapping by Continent / Region
+  const REGIONS = {
+    EUROPE: new Set(['AL', 'AD', 'AT', 'BY', 'BE', 'BA', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GI', 'GR', 'HU', 'IS', 'IE', 'IT', 'LV', 'LI', 'LT', 'LU', 'MT', 'MD', 'MC', 'ME', 'NL', 'MK', 'NO', 'PL', 'PT', 'RO', 'RU', 'SM', 'RS', 'SK', 'SI', 'ES', 'SE', 'CH', 'UA', 'GB', 'VA']),
+    ASIA: new Set(['AF', 'AM', 'AZ', 'BH', 'BD', 'BT', 'KH', 'GE', 'HK', 'IN', 'ID', 'IQ', 'IL', 'JP', 'JO', 'KZ', 'KW', 'KG', 'LA', 'LB', 'MO', 'MY', 'MV', 'MN', 'MM', 'NP', 'OM', 'PK', 'PH', 'QA', 'SA', 'SG', 'KR', 'LK', 'TW', 'TJ', 'TH', 'TR', 'TM', 'AE', 'UZ', 'VN', 'YE']),
+    AMERICAS: new Set(['AG', 'AR', 'AW', 'BS', 'BB', 'BZ', 'BM', 'BO', 'BR', 'VG', 'CA', 'KY', 'CL', 'CO', 'CR', 'DM', 'DO', 'EC', 'SV', 'GD', 'GT', 'GY', 'HT', 'HN', 'JM', 'MX', 'NI', 'PA', 'PY', 'PE', 'KN', 'LC', 'VC', 'SR', 'TT', 'US', 'UY', 'VE']),
+    AFRICA: new Set(['DZ', 'AO', 'BJ', 'BW', 'BF', 'BI', 'CM', 'CV', 'CF', 'TD', 'KM', 'CG', 'CD', 'CI', 'DJ', 'EG', 'ER', 'SZ', 'ET', 'GA', 'GM', 'GH', 'GN', 'GW', 'KE', 'LS', 'LR', 'LY', 'MG', 'MW', 'ML', 'MR', 'MU', 'MA', 'MZ', 'NA', 'NE', 'NG', 'RW', 'ST', 'SN', 'SC', 'SL', 'SO', 'ZA', 'TZ', 'TG', 'TN', 'UG', 'ZM', 'ZW']),
+    OCEANIA: new Set(['AU', 'FJ', 'FM', 'NZ', 'PG', 'SB', 'TO', 'VU', 'WS', 'TC']),
+    GLOBAL: new Set(['GLOBAL_USD', 'GLOBAL_EUR'])
+  };
+
+  // Google Play Official Regional Minimum Transaction Floors
+  const GOOGLE_PLAY_MIN_PRICES = {
+    USD: 0.10, EUR: 0.10, GBP: 0.10, INR: 10.00, BRL: 0.99, CAD: 0.10,
+    AUD: 0.10, NZD: 0.15, JPY: 50.00, KRW: 1000.00, IDR: 3000.00, TRY: 2.00,
+    MXN: 5.00, PLN: 1.00, ZAR: 3.00, AED: 1.00, SAR: 1.00, THB: 10.00,
+    VND: 6000.00, PHP: 15.00, MYR: 1.00, SGD: 0.20, CHF: 0.10, SEK: 1.00,
+    NOK: 1.00, DKK: 1.00, TWD: 10.00, HKD: 1.00, CLP: 100.00, COP: 500.00,
+    ARS: 50.00, EGP: 5.00, NGN: 50.00, PKR: 20.00, BDT: 10.00, DZD: 30.00,
+    KZT: 50.00, UAH: 5.00, CZK: 5.00, HUF: 50.00, ILS: 1.00, PEN: 1.00, RON: 1.00
+  };
+
+  // Quick Catalogue Monetization Presets
+  const CATALOGUE_PRESETS = {
+    casual: {
+      name: 'Casual / Hyper-Casual',
+      items: [
+        { id: 'iap_c1', name: 'No Ads', price: 1.99 },
+        { id: 'iap_c2', name: 'Starter Pack', price: 0.99 },
+        { id: 'iap_c3', name: 'Coin Pouch (500)', price: 2.99 },
+        { id: 'iap_c4', name: 'Gem Chest (2,000)', price: 9.99 },
+        { id: 'iap_c5', name: 'Unlimited Lives (7 Days)', price: 4.99 }
+      ]
+    },
+    rpg: {
+      name: 'Mid-Core RPG / Gacha',
+      items: [
+        { id: 'iap_r1', name: 'Pouch of Gems (100)', price: 0.99 },
+        { id: 'iap_r2', name: 'Sack of Gems (550)', price: 4.99 },
+        { id: 'iap_r3', name: 'Chest of Gems (1,200)', price: 9.99 },
+        { id: 'iap_r4', name: 'Vault of Gems (6,500)', price: 49.99 },
+        { id: 'iap_r5', name: 'Hoard of Gems (14,000)', price: 99.99 },
+        { id: 'iap_r6', name: 'Battle Pass Premium', price: 9.99 }
+      ]
+    },
+    saas: {
+      name: 'SaaS / Subscription App',
+      items: [
+        { id: 'iap_s1', name: 'Pro Monthly', price: 4.99 },
+        { id: 'iap_s2', name: 'Pro Annual', price: 39.99 },
+        { id: 'iap_s3', name: 'Lifetime Pass', price: 89.99 },
+        { id: 'iap_s4', name: 'Extra Cloud Storage (100GB)', price: 1.99 }
+      ]
+    }
   };
 
   // Table Column Definitions & Presets
@@ -174,12 +236,17 @@
     elements.btnQuickAdd = document.getElementById('btnQuickAdd');
     elements.btnGenerate = document.getElementById('btnGenerate');
     elements.btnExportAllCsv = document.getElementById('btnExportAllCsv');
+    elements.btnExportApiJson = document.getElementById('btnExportApiJson');
+    elements.btnExportMasterCsv = document.getElementById('btnExportMasterCsv');
     elements.btnExportData = document.getElementById('btnExportData');
     elements.btnImportData = document.getElementById('btnImportData');
     elements.importFileInput = document.getElementById('importFileInput');
     elements.btnExportDataCat = document.getElementById('btnExportDataCat');
     elements.btnImportDataCat = document.getElementById('btnImportDataCat');
     elements.btnCopyPlayConsole = document.getElementById('btnCopyPlayConsole');
+    elements.btnApiSyncModal = document.getElementById('btnApiSyncModal');
+    elements.templateBtns = document.querySelectorAll('.btn-template-pill');
+    elements.regionBtns = document.querySelectorAll('.btn-region-pill');
     elements.columnPickerContainer = document.getElementById('columnPickerContainer');
     elements.btnColumnToggle = document.getElementById('btnColumnToggle');
     elements.columnPickerMenu = document.getElementById('columnPickerMenu');
@@ -193,6 +260,31 @@
     elements.activeProductSelector = document.getElementById('activeProductSelector');
     elements.globalCountrySearch = document.getElementById('globalCountrySearch');
     elements.btnClearSearch = document.getElementById('btnClearSearch');
+
+    // Simulator Elements
+    elements.revenueSimulatorSection = document.getElementById('revenueSimulatorSection');
+    elements.simulatorCard = document.querySelector('.simulator-card');
+    elements.simulatorHeaderToggle = document.getElementById('simulatorHeaderToggle');
+    elements.simChevron = document.getElementById('simChevron');
+    elements.volTier1Input = document.getElementById('volTier1Input');
+    elements.volTier1Range = document.getElementById('volTier1Range');
+    elements.volTier2Input = document.getElementById('volTier2Input');
+    elements.volTier2Range = document.getElementById('volTier2Range');
+    elements.volTier3Input = document.getElementById('volTier3Input');
+    elements.volTier3Range = document.getElementById('volTier3Range');
+    elements.simTotalUnits = document.getElementById('simTotalUnits');
+    elements.simGrossSpend = document.getElementById('simGrossSpend');
+    elements.simGrossInr = document.getElementById('simGrossInr');
+    elements.simTaxTotal = document.getElementById('simTaxTotal');
+    elements.simPlayCutTotal = document.getElementById('simPlayCutTotal');
+    elements.simPlayRateLabel = document.getElementById('simPlayRateLabel');
+    elements.simNetPayoutUsd = document.getElementById('simNetPayoutUsd');
+    elements.simNetPayoutInr = document.getElementById('simNetPayoutInr');
+    elements.simNetMarginPill = document.getElementById('simNetMarginPill');
+    elements.barSegNet = document.getElementById('barSegNet');
+    elements.barSegPlay = document.getElementById('barSegPlay');
+    elements.barSegTax = document.getElementById('barSegTax');
+    elements.barSegBuffer = document.getElementById('barSegBuffer');
 
     // KPI Elements
     elements.kpiActiveItemName = document.getElementById('kpiActiveItemName');
@@ -220,6 +312,18 @@
     elements.logicModalBackdrop = document.getElementById('logicModalBackdrop');
     elements.btnCloseLogicModal = document.getElementById('btnCloseLogicModal');
     elements.btnAcceptLogic = document.getElementById('btnAcceptLogic');
+
+    // API Sync Modal elements
+    elements.apiModalBackdrop = document.getElementById('apiModalBackdrop');
+    elements.btnCloseApiModal = document.getElementById('btnCloseApiModal');
+    elements.btnAcceptApiModal = document.getElementById('btnAcceptApiModal');
+    elements.btnModalDownloadJson = document.getElementById('btnModalDownloadJson');
+    elements.btnModalDownloadScript = document.getElementById('btnModalDownloadScript');
+    elements.btnCopyDryRunCmd = document.getElementById('btnCopyDryRunCmd');
+    elements.btnCopyLiveCmd = document.getElementById('btnCopyLiveCmd');
+    elements.codeDryRunCmd = document.getElementById('codeDryRunCmd');
+    elements.codeLiveCmd = document.getElementById('codeLiveCmd');
+    elements.apiModalActiveSku = document.getElementById('apiModalActiveSku');
 
     // Modal Details elements
     elements.modalFlag = document.getElementById('modalFlag');
@@ -462,6 +566,18 @@
       }
     }
 
+    // Google Play Minimum Price Floor check & enforcement
+    const minFloor = GOOGLE_PLAY_MIN_PRICES[country.currency] || 0.10;
+    let isClampedToMin = false;
+    if (retailPrice < minFloor) {
+      retailPrice = minFloor;
+      isClampedToMin = true;
+    }
+
+    if (state.discountEnabled && discountedPrice < minFloor) {
+      discountedPrice = minFloor;
+    }
+
     // Pricing base to use for tax and cuts (discounted if enabled and active)
     const effectiveRetail = retailPrice;
 
@@ -526,6 +642,7 @@
       country,
       retailPrice,
       discountedPrice,
+      retailInUsd,
       retailInBase,
       taxAmount,
       taxPct,
@@ -540,7 +657,9 @@
       developerNetInInr,
       discountDeveloperNetInInr,
       developerNetPct,
-      effectivePpp
+      effectivePpp,
+      isClampedToMin,
+      minFloor
     };
   }
 
@@ -1125,14 +1244,70 @@
     elements.kpiActiveItemName.textContent = activeProd.name;
     elements.kpiActiveItemPrice.textContent = `${baseCode} ${activeProd.price.toFixed(2)} Base`;
 
-    // Filter countries based on search query
+    // Filter countries based on search query AND regional selection
     const filteredCountries = state.countries.filter(c => {
+      // 1. Regional filter check
+      if (state.selectedRegion === 'ZERO_TAX') {
+        if (c.taxType !== 'none' && c.taxRate > 0) return false;
+      } else if (state.selectedRegion !== 'ALL') {
+        const regionSet = REGIONS[state.selectedRegion];
+        if (regionSet && !regionSet.has(c.code)) return false;
+      }
+
+      // 2. Query search check
       if (!query) return true;
       return (
         c.name.toLowerCase().includes(query) ||
         c.code.toLowerCase().includes(query) ||
         c.currency.toLowerCase().includes(query)
       );
+    });
+
+    // Calculate economics for filtered countries
+    let calculatedList = filteredCountries.map(country => {
+      return calculateCountryPricing(country, activeProd.price, state.baseCurrency);
+    });
+
+    // Apply sorting if active
+    if (state.sortColumn && state.sortDirection) {
+      const dir = state.sortDirection === 'asc' ? 1 : -1;
+      calculatedList.sort((a, b) => {
+        switch (state.sortColumn) {
+          case 'country':
+            return dir * a.country.name.localeCompare(b.country.name);
+          case 'currency':
+            return dir * a.country.currency.localeCompare(b.country.currency);
+          case 'retail':
+            return dir * (a.retailInBase - b.retailInBase);
+          case 'discount':
+            return dir * (a.discountedPrice - b.discountedPrice);
+          case 'tax':
+            return dir * (a.taxPct - b.taxPct);
+          case 'playcut':
+            return dir * (a.playStoreCut - b.playStoreCut);
+          case 'buffercut':
+            return dir * (a.bufferCut - b.bufferCut);
+          case 'netlocal':
+            return dir * (a.developerNetPct - b.developerNetPct);
+          case 'netusd':
+            return dir * (a.developerNetInUsd - b.developerNetInUsd);
+          case 'netinr':
+            return dir * (a.developerNetInInr - b.developerNetInInr);
+          case 'discountnetinr':
+            return dir * (a.discountDeveloperNetInInr - b.discountDeveloperNetInInr);
+          default:
+            return 0;
+        }
+      });
+    }
+
+    // Update active sort indicator on table headers
+    document.querySelectorAll('th[data-sortable="true"]').forEach(th => {
+      const col = th.getAttribute('data-col');
+      th.classList.remove('sort-asc', 'sort-desc');
+      if (col === state.sortColumn && state.sortDirection) {
+        th.classList.add(state.sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+      }
     });
 
     const masterRows = [];
@@ -1144,8 +1319,8 @@
     let t2NetSum = 0, t2Count = 0;
     let t3NetSum = 0, t3Count = 0;
 
-    filteredCountries.forEach(country => {
-      const calc = calculateCountryPricing(country, activeProd.price, state.baseCurrency);
+    calculatedList.forEach(calc => {
+      const country = calc.country;
       const rowHtml = buildTableRow(calc);
 
       masterRows.push(rowHtml);
@@ -1186,6 +1361,9 @@
     elements.kpiTier1Net.textContent = t1Count > 0 ? `${baseCode} ${(t1NetSum / t1Count).toFixed(2)}` : `${baseCode} 0.00`;
     elements.kpiTier2Net.textContent = t2Count > 0 ? `${baseCode} ${(t2NetSum / t2Count).toFixed(2)}` : `${baseCode} 0.00`;
     elements.kpiTier3Net.textContent = t3Count > 0 ? `${baseCode} ${(t3NetSum / t3Count).toFixed(2)}` : `${baseCode} 0.00`;
+
+    // Update Revenue Forecaster simulation
+    updateRevenueForecaster();
   }
 
   function getEmptyTableNotice() {
@@ -1243,6 +1421,7 @@
         <td class="mono-cell" data-col="retail">
           <div class="price-box">
             <span class="retail-price-val">${escapeHTML(c.currency)} ${cleanRetailNum}</span>
+            ${calc.isClampedToMin ? `<span class="min-floor-tag" title="Google Play enforces a minimum transaction limit for ${escapeHTML(c.currency)}">Min Floor</span>` : ''}
             <button class="btn-copy" data-copy-val="${cleanRetailNum}" data-country="${escapeHTML(c.name)}" data-currency="${escapeHTML(c.currency)}" title="Copy retail price to clipboard">
               ${COPY_ICON_SVG}
             </button>
@@ -1255,12 +1434,12 @@
           <div class="cut-sub">${formatMoney(calc.taxAmount, c.currency)}</div>
         </td>
         <td class="mono-cell" data-col="playcut">
-          <div class="cut-val">${formatPct(calc.playCutPct)}</div>
-          <div class="cut-sub">${formatMoney(calc.playStoreCut, c.currency)}</div>
+          <div class="cut-val">${formatPct(state.playFeeRate * 100)} <span class="cut-tag-sub">of net</span></div>
+          <div class="cut-sub">${formatMoney(calc.playStoreCut, c.currency)} <span class="cut-effective-tag" title="Effective share of customer gross retail price after tax">(${formatPct(calc.playCutPct)} gross)</span></div>
         </td>
         <td class="mono-cell" data-col="buffercut">
-          <div class="cut-val">${formatPct(calc.bufferPct)}</div>
-          <div class="cut-sub">${formatMoney(calc.bufferCut, c.currency)}</div>
+          <div class="cut-val">${formatPct(state.bufferRate * 100)} <span class="cut-tag-sub">of net</span></div>
+          <div class="cut-sub">${formatMoney(calc.bufferCut, c.currency)} <span class="cut-effective-tag">(${formatPct(calc.bufferPct)} gross)</span></div>
         </td>
         <td class="mono-cell" data-col="netlocal">
           <div class="net-highlight">${formatMoney(calc.developerNetLocal, c.currency)}</div>
@@ -1789,6 +1968,250 @@
     reader.readAsText(file);
   }
 
+  // 9b. Master CSV Matrix Export (All SKUs across all 176 locations)
+  function exportMasterMatrixCsv() {
+    const baseCode = state.baseCurrency;
+    const items = state.catalogueItems;
+
+    const headers = ['Country Code', 'Country Name', 'Currency', 'Tax Rate (%)'];
+    items.forEach(item => {
+      headers.push(`"${item.name} Retail Price"`);
+      headers.push(`"${item.name} Net Take-Home (USD)"`);
+      headers.push(`"${item.name} Net Take-Home (INR)"`);
+      if (state.discountEnabled) {
+        headers.push(`"${item.name} Promo Price (-${state.discountRate}%)"`);
+        headers.push(`"${item.name} Promo Net (INR)"`);
+      }
+    });
+
+    const rows = [headers];
+
+    state.countries.forEach(c => {
+      const row = [c.code, `"${c.name.replace(/"/g, '""')}"`, c.currency, c.taxRate.toFixed(1)];
+      items.forEach(item => {
+        const calc = calculateCountryPricing(c, item.price, baseCode);
+        row.push(formatCleanNumber(calc.retailPrice, c.currency));
+        row.push(calc.developerNetInUsd.toFixed(2));
+        row.push(calc.developerNetInInr.toFixed(2));
+        if (state.discountEnabled) {
+          row.push(formatCleanNumber(calc.discountedPrice, c.currency));
+          row.push(calc.discountDeveloperNetInInr.toFixed(2));
+        }
+      });
+      rows.push(row);
+    });
+
+    const csvContent = "\uFEFF" + rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `playprice-master-all-skus-${state.appName || 'mygame'}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`Exported Master CSV with ${items.length} SKUs across all 176 locations`, 'success');
+  }
+
+  // 9c. Direct Google Play API JSON Payload Export (androidpublisher:v3 inappproducts format)
+  function exportApiJsonPayload() {
+    const activeProd = getActiveProduct();
+    const ids = generateIapIds(state.appName, activeProd.name, state.discountRate);
+    const skuId = ids.productId;
+    const packageName = `com.${sanitizeSlug(state.appName || 'mygame')}.shop`;
+
+    const pricesPayload = {};
+    let usPriceMicros = '990000';
+
+    state.countries.forEach(c => {
+      // Exclude global fallback pools from standard country dict
+      if (c.code === 'GLOBAL_USD' || c.code === 'GLOBAL_EUR') return;
+
+      const calc = calculateCountryPricing(c, activeProd.price, state.baseCurrency);
+      const priceMicros = String(Math.round(calc.retailPrice * 1000000));
+      pricesPayload[c.code] = {
+        currency: c.currency,
+        priceMicros: priceMicros
+      };
+      if (c.code === 'US') {
+        usPriceMicros = priceMicros;
+      }
+    });
+
+    const payload = {
+      packageName: packageName,
+      sku: skuId,
+      status: 'active',
+      purchaseType: 'managedUser',
+      defaultPrice: {
+        currency: 'USD',
+        priceMicros: usPriceMicros
+      },
+      prices: pricesPayload
+    };
+
+    const jsonStr = JSON.stringify(payload, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `google-play-iap-${skuId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`Exported Google Play API JSON for ${skuId}`, 'success');
+  }
+
+  // 9d. "What-If" Revenue Forecaster & Visual Margin Stacked Bar Engine
+  function updateRevenueForecaster() {
+    if (!elements.simTotalUnits) return;
+    const activeProd = getActiveProduct();
+    const v1 = parseInt(state.simVolumeT1, 10) || 0;
+    const v2 = parseInt(state.simVolumeT2, 10) || 0;
+    const v3 = parseInt(state.simVolumeT3, 10) || 0;
+    const totalUnits = v1 + v2 + v3;
+
+    let t1Spend = 0, t1Tax = 0, t1Play = 0, t1Buf = 0, t1NetUsd = 0;
+    let t2Spend = 0, t2Tax = 0, t2Play = 0, t2Buf = 0, t2NetUsd = 0;
+    let t3Spend = 0, t3Tax = 0, t3Play = 0, t3Buf = 0, t3NetUsd = 0;
+    let t1Count = 0, t2Count = 0, t3Count = 0;
+
+    state.countries.forEach(c => {
+      const calc = calculateCountryPricing(c, activeProd.price, state.baseCurrency);
+      const currRate = getRate(c.currency);
+      if (c.tier === 1) {
+        t1Spend += calc.retailInUsd;
+        t1Tax += (calc.taxAmount / currRate);
+        t1Play += (calc.playStoreCut / currRate);
+        t1Buf += (calc.bufferCut / currRate);
+        t1NetUsd += calc.developerNetInUsd;
+        t1Count++;
+      } else if (c.tier === 2) {
+        t2Spend += calc.retailInUsd;
+        t2Tax += (calc.taxAmount / currRate);
+        t2Play += (calc.playStoreCut / currRate);
+        t2Buf += (calc.bufferCut / currRate);
+        t2NetUsd += calc.developerNetInUsd;
+        t2Count++;
+      } else {
+        t3Spend += calc.retailInUsd;
+        t3Tax += (calc.taxAmount / currRate);
+        t3Play += (calc.playStoreCut / currRate);
+        t3Buf += (calc.bufferCut / currRate);
+        t3NetUsd += calc.developerNetInUsd;
+        t3Count++;
+      }
+    });
+
+    const avgT1Spend = t1Count > 0 ? t1Spend / t1Count : 0;
+    const avgT1Tax = t1Count > 0 ? t1Tax / t1Count : 0;
+    const avgT1Play = t1Count > 0 ? t1Play / t1Count : 0;
+    const avgT1Buf = t1Count > 0 ? t1Buf / t1Count : 0;
+    const avgT1Net = t1Count > 0 ? t1NetUsd / t1Count : 0;
+
+    const avgT2Spend = t2Count > 0 ? t2Spend / t2Count : 0;
+    const avgT2Tax = t2Count > 0 ? t2Tax / t2Count : 0;
+    const avgT2Play = t2Count > 0 ? t2Play / t2Count : 0;
+    const avgT2Buf = t2Count > 0 ? t2Buf / t2Count : 0;
+    const avgT2Net = t2Count > 0 ? t2NetUsd / t2Count : 0;
+
+    const avgT3Spend = t3Count > 0 ? t3Spend / t3Count : 0;
+    const avgT3Tax = t3Count > 0 ? t3Tax / t3Count : 0;
+    const avgT3Play = t3Count > 0 ? t3Play / t3Count : 0;
+    const avgT3Buf = t3Count > 0 ? t3Buf / t3Count : 0;
+    const avgT3Net = t3Count > 0 ? t3NetUsd / t3Count : 0;
+
+    const totalSpend = (v1 * avgT1Spend) + (v2 * avgT2Spend) + (v3 * avgT3Spend);
+    const totalTax = (v1 * avgT1Tax) + (v2 * avgT2Tax) + (v3 * avgT3Tax);
+    const totalPlay = (v1 * avgT1Play) + (v2 * avgT2Play) + (v3 * avgT3Play);
+    const totalBuf = (v1 * avgT1Buf) + (v2 * avgT2Buf) + (v3 * avgT3Buf);
+    const totalNetUsd = (v1 * avgT1Net) + (v2 * avgT2Net) + (v3 * avgT3Net);
+
+    const inrRate = getRate('INR');
+    const totalNetInr = totalNetUsd * inrRate;
+    const totalGrossInr = totalSpend * inrRate;
+
+    const netPct = totalSpend > 0 ? (totalNetUsd / totalSpend) * 100 : 0;
+    const playPct = totalSpend > 0 ? (totalPlay / totalSpend) * 100 : 0;
+    const taxPct = totalSpend > 0 ? (totalTax / totalSpend) * 100 : 0;
+    const bufPct = totalSpend > 0 ? (totalBuf / totalSpend) * 100 : 0;
+
+    elements.simTotalUnits.textContent = totalUnits.toLocaleString();
+    elements.simGrossSpend.textContent = `$${totalSpend.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    elements.simGrossInr.textContent = `INR ${Math.round(totalGrossInr).toLocaleString('en-IN')}`;
+    elements.simTaxTotal.textContent = `-$${totalTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    elements.simPlayCutTotal.textContent = `-$${totalPlay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    if (elements.simPlayRateLabel) elements.simPlayRateLabel.textContent = `${Math.round(state.playFeeRate * 100)}%`;
+    elements.simNetPayoutUsd.textContent = `$${totalNetUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mo`;
+    elements.simNetPayoutInr.textContent = `≈ INR ${Math.round(totalNetInr).toLocaleString('en-IN')} / mo`;
+    elements.simNetMarginPill.textContent = `${netPct.toFixed(1)}% Net Margin`;
+
+    if (elements.barSegNet) {
+      elements.barSegNet.style.width = `${Math.max(4, netPct)}%`;
+      elements.barSegNet.textContent = `${netPct.toFixed(0)}% Net`;
+    }
+    if (elements.barSegPlay) {
+      elements.barSegPlay.style.width = `${Math.max(4, playPct)}%`;
+      elements.barSegPlay.textContent = `${playPct.toFixed(0)}% Play`;
+    }
+    if (elements.barSegTax) {
+      elements.barSegTax.style.width = `${Math.max(4, taxPct)}%`;
+      elements.barSegTax.textContent = `${taxPct.toFixed(0)}% Tax`;
+    }
+    if (elements.barSegBuffer) {
+      elements.barSegBuffer.style.width = `${Math.max(2, bufPct)}%`;
+      elements.barSegBuffer.textContent = `${bufPct.toFixed(0)}% Buf`;
+    }
+  }
+
+  // 9e. Catalogue Presets Loader
+  function loadCataloguePreset(presetKey) {
+    const preset = CATALOGUE_PRESETS[presetKey];
+    if (!preset) return;
+
+    state.catalogueItems = preset.items.map(i => ({ ...i }));
+    state.activeProductId = state.catalogueItems[0].id;
+    saveCatalogueItems();
+    renderCatalogueItems();
+    renderAllTables();
+    showToast(`Loaded "${preset.name}" preset catalogue!`, 'success');
+  }
+
+  // 9f. API Helper Modal Controllers
+  function openApiModal() {
+    if (!elements.apiModalBackdrop) return;
+    const activeProd = getActiveProduct();
+    const ids = generateIapIds(state.appName, activeProd.name, state.discountRate);
+    const sku = ids.productId;
+    const pkg = `com.${sanitizeSlug(state.appName || 'mygame')}.shop`;
+
+    if (elements.apiModalActiveSku) elements.apiModalActiveSku.textContent = sku;
+    if (elements.codeDryRunCmd) {
+      elements.codeDryRunCmd.textContent = `python sync_prices_to_play_console.py --key service-account.json --package ${pkg} --sku ${sku} --csv playprice-matrix.csv --dry-run`;
+    }
+    if (elements.codeLiveCmd) {
+      elements.codeLiveCmd.textContent = `python sync_prices_to_play_console.py --key service-account.json --package ${pkg} --sku ${sku} --csv playprice-matrix.csv`;
+    }
+
+    elements.apiModalBackdrop.classList.add('active');
+  }
+
+  function closeApiModal() {
+    if (elements.apiModalBackdrop) elements.apiModalBackdrop.classList.remove('active');
+  }
+
+  function downloadPythonSyncScript() {
+    const a = document.createElement('a');
+    a.href = 'sync_prices_to_play_console.py';
+    a.download = 'sync_prices_to_play_console.py';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('Downloaded sync_prices_to_play_console.py script', 'success');
+  }
+
   // 10. Toast Notification System
   function showToast(message, type = 'info') {
     if (!elements.toastContainer) return;
@@ -1837,7 +2260,14 @@
   }
 
   function initSliderFills() {
-    [elements.bufferFeeRange, elements.pppStrengthRange, elements.discountRateRange].forEach(slider => {
+    [
+      elements.bufferFeeRange,
+      elements.pppStrengthRange,
+      elements.discountRateRange,
+      elements.volTier1Range,
+      elements.volTier2Range,
+      elements.volTier3Range
+    ].forEach(slider => {
       if (slider) {
         updateSliderFill(slider);
         slider.addEventListener('input', () => updateSliderFill(slider));
@@ -2041,8 +2471,88 @@
       });
     });
 
-    // Export CSV
+    // Export CSV (Single Active SKU)
     elements.btnExportAllCsv.addEventListener('click', exportFullMatrixCsv);
+
+    // Export Master Multi-SKU Catalog CSV
+    if (elements.btnExportMasterCsv) elements.btnExportMasterCsv.addEventListener('click', exportMasterMatrixCsv);
+
+    // Export Google Play Developer API v3 JSON Payload
+    if (elements.btnExportApiJson) elements.btnExportApiJson.addEventListener('click', exportApiJsonPayload);
+
+    // Catalogue Monetization Quick Presets
+    if (elements.templateBtns) {
+      elements.templateBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const presetKey = btn.getAttribute('data-preset');
+          loadCataloguePreset(presetKey);
+        });
+      });
+    }
+
+    // Region / Continent Filter Chips
+    if (elements.regionBtns) {
+      elements.regionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          elements.regionBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.selectedRegion = btn.getAttribute('data-region');
+          renderAllTables();
+          showToast(`Filtered: ${btn.textContent.trim()}`, 'info');
+        });
+      });
+    }
+
+    // Sortable Table Column Headers
+    document.querySelectorAll('th[data-sortable="true"]').forEach(th => {
+      th.addEventListener('click', () => {
+        const col = th.getAttribute('data-col');
+        if (!col) return;
+        if (state.sortColumn === col) {
+          if (state.sortDirection === 'asc') {
+            state.sortDirection = 'desc';
+          } else if (state.sortDirection === 'desc') {
+            state.sortColumn = null;
+            state.sortDirection = null;
+          }
+        } else {
+          state.sortColumn = col;
+          state.sortDirection = 'asc';
+        }
+        renderAllTables();
+        const dirLabel = state.sortDirection ? `(${state.sortDirection.toUpperCase()})` : '(Default order)';
+        showToast(`Sorting by ${col} ${dirLabel}`, 'info');
+      });
+    });
+
+    // Revenue Forecaster Simulator Toggle & Bidirectional Volume Sliders
+    if (elements.simulatorHeaderToggle) {
+      elements.simulatorHeaderToggle.addEventListener('click', () => {
+        state.isSimulatorCollapsed = !state.isSimulatorCollapsed;
+        if (elements.simulatorCard) {
+          elements.simulatorCard.classList.toggle('collapsed', state.isSimulatorCollapsed);
+        }
+      });
+    }
+
+    function bindSimVolume(input, range, stateKey) {
+      if (!input || !range) return;
+      const onValChange = (val) => {
+        const parsed = Math.max(0, Math.min(1000000, parseInt(val, 10) || 0));
+        state[stateKey] = parsed;
+        input.value = parsed;
+        range.value = Math.min(parsed, parseInt(range.max, 10));
+        updateSliderFill(range);
+        updateRevenueForecaster();
+      };
+      input.addEventListener('input', (e) => onValChange(e.target.value));
+      range.addEventListener('input', (e) => onValChange(e.target.value));
+      updateSliderFill(range);
+    }
+
+    bindSimVolume(elements.volTier1Input, elements.volTier1Range, 'simVolumeT1');
+    bindSimVolume(elements.volTier2Input, elements.volTier2Range, 'simVolumeT2');
+    bindSimVolume(elements.volTier3Input, elements.volTier3Range, 'simVolumeT3');
 
     // Export Project Data (JSON)
     if (elements.btnExportData) elements.btnExportData.addEventListener('click', exportProjectDataJson);
@@ -2065,13 +2575,14 @@
     // Copy Play Console
     elements.btnCopyPlayConsole.addEventListener('click', copyPlayConsoleFormat);
 
-    // Modals
+    // Country Strategy Modal
     elements.btnCloseModal.addEventListener('click', closeCountryStrategyModal);
     elements.btnModalCloseAction.addEventListener('click', closeCountryStrategyModal);
     elements.countryModalBackdrop.addEventListener('click', (e) => {
       if (e.target === elements.countryModalBackdrop) closeCountryStrategyModal();
     });
 
+    // Logic Explanation Modal
     elements.btnHelpModal.addEventListener('click', openLogicModal);
     elements.btnCloseLogicModal.addEventListener('click', closeLogicModal);
     elements.btnAcceptLogic.addEventListener('click', closeLogicModal);
@@ -2079,10 +2590,47 @@
       if (e.target === elements.logicModalBackdrop) closeLogicModal();
     });
 
+    // Google Play API Sync Helper Modal
+    if (elements.btnApiSyncModal) {
+      elements.btnApiSyncModal.addEventListener('click', openApiModal);
+    }
+    if (elements.btnCloseApiModal) {
+      elements.btnCloseApiModal.addEventListener('click', closeApiModal);
+    }
+    if (elements.btnAcceptApiModal) {
+      elements.btnAcceptApiModal.addEventListener('click', closeApiModal);
+    }
+    if (elements.apiModalBackdrop) {
+      elements.apiModalBackdrop.addEventListener('click', (e) => {
+        if (e.target === elements.apiModalBackdrop) closeApiModal();
+      });
+    }
+    if (elements.btnModalDownloadJson) {
+      elements.btnModalDownloadJson.addEventListener('click', exportApiJsonPayload);
+    }
+    if (elements.btnModalDownloadScript) {
+      elements.btnModalDownloadScript.addEventListener('click', downloadPythonSyncScript);
+    }
+    if (elements.btnCopyDryRunCmd && elements.codeDryRunCmd) {
+      elements.btnCopyDryRunCmd.addEventListener('click', () => {
+        navigator.clipboard.writeText(elements.codeDryRunCmd.textContent).then(() => {
+          showToast('Dry-run CLI command copied to clipboard!', 'success');
+        });
+      });
+    }
+    if (elements.btnCopyLiveCmd && elements.codeLiveCmd) {
+      elements.btnCopyLiveCmd.addEventListener('click', () => {
+        navigator.clipboard.writeText(elements.codeLiveCmd.textContent).then(() => {
+          showToast('Live API sync CLI command copied to clipboard!', 'success');
+        });
+      });
+    }
+
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeCountryStrategyModal();
         closeLogicModal();
+        closeApiModal();
       }
     });
   }
