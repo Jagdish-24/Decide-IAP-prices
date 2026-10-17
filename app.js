@@ -153,6 +153,8 @@
     elements.discountCharmToggle = document.getElementById('discountCharmToggle');
 
     elements.catalogueItemsList = document.getElementById('catalogueItemsList');
+    elements.skuCountPill = document.getElementById('skuCountPill');
+    elements.promoStatusPill = document.getElementById('promoStatusPill');
     elements.addItemForm = document.getElementById('addItemForm');
     elements.newItemName = document.getElementById('newItemName');
     elements.newItemPrice = document.getElementById('newItemPrice');
@@ -438,6 +440,14 @@
     if (elements.promoBadgeCode) elements.promoBadgeCode.textContent = `...-${state.discountRate}-percent-discount`;
     if (elements.discountOfferSyntaxBadge) {
       elements.discountOfferSyntaxBadge.style.display = state.discountEnabled ? 'inline-flex' : 'none';
+    }
+    if (elements.skuCountPill) {
+      const count = state.catalogueItems.length;
+      elements.skuCountPill.textContent = `${count} ${count === 1 ? 'Product' : 'Products'}`;
+    }
+    if (elements.promoStatusPill) {
+      elements.promoStatusPill.style.display = state.discountEnabled ? 'inline-flex' : 'none';
+      elements.promoStatusPill.textContent = `Promo Offer (-${state.discountRate}%) Active`;
     }
 
     state.catalogueItems.forEach((item) => {

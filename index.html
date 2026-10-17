@@ -225,8 +225,8 @@
         <div class="section-top-bar">
           <div>
             <div class="badge-pill">Catalogue Builder</div>
-            <h2 class="section-title">In-App Purchase (IAP) Products</h2>
-            <p class="section-desc">Manage your game/app SKUs in your base currency. Convert prices across all 176 countries with one click.</p>
+            <h2 class="section-title">In-App Purchase (IAP) Products &amp; ID Generator</h2>
+            <p class="section-desc">Manage game/app SKUs in base currency. Live Google Play Product IDs and Offer IDs with 1-click clipboard copy.</p>
           </div>
           <div class="catalogue-actions">
             <button class="btn btn-secondary btn-sm" id="btnResetCatalogue" title="Restore default mobile game IAP items">
@@ -235,66 +235,103 @@
             </button>
             <button class="btn btn-accent btn-sm" id="btnQuickAdd">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              Add Item
+              + New SKU
             </button>
           </div>
         </div>
 
-        <!-- App Name / Package Identifier for IAP IDs -->
-        <div class="app-id-config-card">
-          <div class="app-id-header">
-            <div class="app-id-title-group">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
-              <div>
-                <h3 class="app-id-title">App Package &amp; IAP ID Generator</h3>
-                <p class="app-id-desc">All IDs will be generated in lowercase. Product IDs use <code>.</code> separator, Offer IDs use <code>-</code> separator with 1-click copy.</p>
+        <!-- Catalogue 2-Column Split Layout -->
+        <div class="catalogue-split-layout">
+
+          <!-- Left Column: Settings, App Identifier & Add Item Form -->
+          <div class="catalogue-left-panel">
+            
+            <!-- App Name / Package Identifier for IAP IDs -->
+            <div class="app-id-config-card">
+              <div class="app-id-header">
+                <div class="app-id-title-group">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+                  <div>
+                    <h3 class="app-id-title">Google Play Package Identifier</h3>
+                    <p class="app-id-desc">All characters lowercase. Dots for Product IDs, dashes for Offer IDs.</p>
+                  </div>
+                </div>
+              </div>
+              <div class="app-id-body">
+                <div class="form-group">
+                  <label for="appNameInput">
+                    <span>App / Game Identifier (Lower Case)</span>
+                    <span class="tooltip-trigger" title="All IDs are automatically converted to lowercase. For example, 'MyGame' or 'space runner' becomes 'mygame' or 'space-runner'.">ℹ️</span>
+                  </label>
+                  <div class="input-addon-box">
+                    <span class="input-addon-tag">com.</span>
+                    <input type="text" id="appNameInput" value="mygame" placeholder="e.g. mygame or space_runner" autocomplete="off" spellcheck="false">
+                    <span class="input-addon-tag">.shop</span>
+                  </div>
+                </div>
+
+                <div class="app-id-syntax-badges">
+                  <span class="syntax-badge"><span class="badge-dot dot-blue"></span>Prod ID: <code>com.{app}.shop.{item}</code></span>
+                  <span class="syntax-badge"><span class="badge-dot dot-emerald"></span>Offer ID: <code>com-{app}-shop-{item}</code></span>
+                  <span class="syntax-badge" id="discountOfferSyntaxBadge" style="display: none;"><span class="badge-dot dot-amber"></span>Promo Offer: <code id="promoBadgeCode">...-25-percent-discount</code></span>
+                </div>
+
+                <div class="preview-syntax-box">
+                  <span class="preview-label">Live Syntax Preview:</span>
+                  <div class="preview-code-row"><span class="code-tag-blue">PROD:</span> <strong id="previewProdId">com.mygame.shop.no-ads</strong></div>
+                  <div class="preview-code-row"><span class="code-tag-emerald">OFFER:</span> <strong id="previewOfferId">com-mygame-shop-no-ads</strong></div>
+                </div>
               </div>
             </div>
-            <div class="app-id-syntax-badges">
-              <span class="syntax-badge"><span class="badge-dot dot-blue"></span>Product ID: <code>com.{app}.shop.{item}</code></span>
-              <span class="syntax-badge"><span class="badge-dot dot-emerald"></span>Offer ID: <code>com-{app}-shop-{item}</code></span>
-              <span class="syntax-badge" id="discountOfferSyntaxBadge" style="display: none;"><span class="badge-dot dot-amber"></span>Promo Offer: <code id="promoBadgeCode">...-25-percent-discount</code></span>
-            </div>
-          </div>
-          <div class="app-id-body">
-            <div class="form-group flex-2">
-              <label for="appNameInput">
-                <span>App / Game Identifier (Lower Case)</span>
-                <span class="tooltip-trigger" title="All IDs are automatically converted to lowercase. For example, 'MyGame' or 'space runner' becomes 'mygame' or 'space-runner'.">ℹ️</span>
-              </label>
-              <div class="input-addon-box">
-                <span class="input-addon-tag">com.</span>
-                <input type="text" id="appNameInput" value="mygame" placeholder="e.g. mygame or space_runner" autocomplete="off" spellcheck="false">
-                <span class="input-addon-tag">.shop</span>
+
+            <!-- Add SKU Form Card -->
+            <div class="add-sku-card">
+              <div class="card-subtitle-bar">
+                <h4 class="subcard-title">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  Add Product / SKU
+                </h4>
               </div>
-              <span class="input-hint">Preview: Product ID: <strong id="previewProdId" style="color: var(--accent-blue);">com.mygame.shop.no-ads</strong> • Offer ID: <strong id="previewOfferId" style="color: var(--accent-emerald);">com-mygame-shop-no-ads</strong></span>
+              <form id="addItemForm" class="add-item-form-vertical">
+                <div class="form-group">
+                  <label for="newItemName">Product Name</label>
+                  <input type="text" id="newItemName" placeholder="e.g. Battle Pass / 500 Gems" required>
+                </div>
+                <div class="form-group">
+                  <label for="newItemPrice">Base Price (<span class="baseCurrCode">USD</span>)</label>
+                  <div class="input-addon-box">
+                    <span class="input-addon-tag baseCurrCode">USD</span>
+                    <input type="number" id="newItemPrice" step="0.01" min="0.01" placeholder="1.50" required>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-accent btn-block" style="height: 42px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  Add Product SKU
+                </button>
+              </form>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Products & Generated IAP / Offer IDs List -->
+          <div class="catalogue-right-panel">
+            <div class="products-list-header">
+              <div class="products-title-group">
+                <h3 class="products-panel-title">Configured Products &amp; IDs</h3>
+                <span class="sku-count-pill" id="skuCountPill">8 Products</span>
+                <span class="promo-status-pill" id="promoStatusPill" style="display: none;">Promo Offer IDs Active</span>
+              </div>
+              <span class="products-header-hint">Click copy icon to copy ID directly to clipboard</span>
+            </div>
+
+            <!-- Catalogue Items Grid (Scrollable Container) -->
+            <div class="items-grid-scroll-wrap">
+              <div class="items-grid" id="catalogueItemsList">
+                <!-- Dynamic Items Injected Here -->
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Add Item Row -->
-        <form id="addItemForm" class="add-item-form">
-          <div class="form-group flex-2">
-            <label for="newItemName">Product Name</label>
-            <input type="text" id="newItemName" placeholder="e.g. Battle Pass / 500 Gems" required>
-          </div>
-          <div class="form-group flex-1">
-            <label for="newItemPrice">Price (<span class="baseCurrCode">USD</span>)</label>
-            <div class="input-addon-box">
-              <span class="input-addon-tag baseCurrCode">USD</span>
-              <input type="number" id="newItemPrice" step="0.01" min="0.01" placeholder="1.50" required>
-            </div>
-          </div>
-          <div class="form-group flex-0 align-end">
-            <button type="submit" class="btn btn-secondary" style="height: 42px;">
-              + Add SKU
-            </button>
-          </div>
-        </form>
-
-        <!-- Catalogue Items Grid -->
-        <div class="items-grid" id="catalogueItemsList">
-          <!-- Dynamic Items Injected Here -->
         </div>
 
         <!-- Generate Button Strip -->
