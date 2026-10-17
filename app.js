@@ -225,22 +225,91 @@
     elements.toastContainer = document.getElementById('toastContainer');
   }
 
-  // 2. Fetch Live Currency Rates
-  async function fetchLiveExchangeRates() {
+  // 2. Fetch Live Currency Rates with LocalStorage Caching & 429 Rate Limit Protection
+  const FX_CACHE_KEY = 'playprice_fx_cache_v1';
+  const FX_CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours (Forex markets update daily)
+
+  function loadCachedExchangeRates() {
     try {
-      elements.fxStatusText.textContent = 'Connecting Rates...';
-      const res = await fetch('https://open.er-api.com/v6/latest/USD');
-      if (!res.ok) throw new Error('Network error');
+      const raw = localStorage.getItem(FX_CACHE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && parsed.timestamp && parsed.rates && typeof parsed.rates === 'object') {
+        const age = Date.now() - parsed.timestamp;
+        if (age < FX_CACHE_TTL_MS && typeof parsed.rates.INR === 'number' && typeof parsed.rates.EUR === 'number') {
+          return parsed.rates;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not read FX cache from localStorage', e);
+    }
+    return null;
+  }
+
+  function saveCachedExchangeRates(rates) {
+    try {
+      localStorage.setItem(FX_CACHE_KEY, JSON.stringify({
+        timestamp: Date.now(),
+        rates
+      }));
+    } catch (e) {
+      console.warn('Could not save FX cache to localStorage', e);
+    }
+  }
+
+  async function fetchLiveExchangeRates() {
+    // 1. Check local cache first to protect external API rate limits
+    const cachedRates = loadCachedExchangeRates();
+    if (cachedRates) {
+      state.exchangeRates = Object.assign({}, window.FALLBACK_EXCHANGE_RATES, cachedRates);
+      if (elements.fxStatusText) {
+        elements.fxStatusText.textContent = 'Live FX Active (Cached)';
+      }
+      return;
+    }
+
+    // 2. Network request with timeout & HTTP 429 rate limit handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    try {
+      if (elements.fxStatusText) elements.fxStatusText.textContent = 'Connecting Rates...';
+      const res = await fetch('https://open.er-api.com/v6/latest/USD', {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (res.status === 429) {
+        console.warn('Exchange rates API rate limit reached (HTTP 429). Using verified fallback rates.');
+        state.exchangeRates = window.FALLBACK_EXCHANGE_RATES || {};
+        if (elements.fxStatusText) elements.fxStatusText.textContent = 'FX Rate Limited (Fallback)';
+        showToast('Forex API rate limited; using verified fallback rates', 'info');
+        return;
+      }
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
       const data = await res.json();
-      if (data && data.rates) {
-        state.exchangeRates = data.rates;
-        elements.fxStatusText.textContent = 'Live FX Active (Synced)';
+      if (data && data.rates && typeof data.rates === 'object' && typeof data.rates.INR === 'number') {
+        // Sanitize rates object to prevent prototype pollution and malformed types
+        const cleanRates = {};
+        for (const [k, v] of Object.entries(data.rates)) {
+          if (typeof k === 'string' && /^[A-Z]{3}$/.test(k) && typeof v === 'number' && isFinite(v) && v > 0) {
+            cleanRates[k] = v;
+          }
+        }
+        state.exchangeRates = Object.assign({}, window.FALLBACK_EXCHANGE_RATES, cleanRates);
+        saveCachedExchangeRates(cleanRates);
+        if (elements.fxStatusText) elements.fxStatusText.textContent = 'Live FX Active (Synced)';
         showToast('Live exchange rates synchronized', 'success');
+      } else {
+        throw new Error('Invalid rates payload');
       }
     } catch (err) {
-      console.warn('Using cached exchange rates fallback:', err);
-      elements.fxStatusText.textContent = 'Cached Rates (Offline Mode)';
-      showToast('Operating on verified cached exchange rates', 'info');
+      clearTimeout(timeoutId);
+      console.warn('Using cached exchange rates fallback:', err.message || err);
+      state.exchangeRates = window.FALLBACK_EXCHANGE_RATES || {};
+      if (elements.fxStatusText) elements.fxStatusText.textContent = 'Cached Rates (Offline Mode)';
     }
   }
 
@@ -463,13 +532,32 @@
       const saved = localStorage.getItem('playprice_catalogue');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
-          state.catalogueItems = parsed.items;
-          if (parsed.activeProductId && (parsed.activeProductId === 'app_price' || state.catalogueItems.some(i => i.id === parsed.activeProductId))) {
-            state.activeProductId = parsed.activeProductId;
+        const rawItems = Array.isArray(parsed?.items) ? parsed.items : (Array.isArray(parsed) ? parsed : null);
+        if (rawItems && rawItems.length > 0) {
+          const validItems = [];
+          for (const raw of rawItems) {
+            if (raw && typeof raw === 'object') {
+              const id = typeof raw.id === 'string' && /^[a-zA-Z0-9_-]+$/.test(raw.id)
+                ? raw.id.slice(0, 40)
+                : `iap_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+              const name = typeof raw.name === 'string' ? raw.name.trim().slice(0, 60) : 'Item';
+              const price = typeof raw.price === 'number' && isFinite(raw.price) && raw.price > 0 && raw.price <= 999999
+                ? raw.price
+                : 1.0;
+              if (name) {
+                validItems.push({ id, name, price });
+              }
+            }
+            if (validItems.length >= 50) break;
           }
-        } else if (Array.isArray(parsed) && parsed.length > 0) {
-          state.catalogueItems = parsed;
+          if (validItems.length > 0) {
+            state.catalogueItems = validItems;
+            if (parsed.activeProductId && (parsed.activeProductId === 'app_price' || validItems.some(i => i.id === parsed.activeProductId))) {
+              state.activeProductId = parsed.activeProductId;
+            } else {
+              state.activeProductId = validItems[0].id;
+            }
+          }
         }
       }
     } catch (e) {
@@ -522,7 +610,7 @@
       const ids = generateIapIds(state.appName, item.name, state.discountRate);
       const card = document.createElement('div');
       card.className = `sku-card ${isActive ? 'is-active-sku' : ''}`;
-      card.setAttribute('data-id', item.id);
+      card.setAttribute('data-id', escapeHTML(item.id));
 
       let discountOfferRowHtml = '';
       if (state.discountEnabled) {
@@ -672,15 +760,15 @@
 
       // Save changes
       function commitEdit() {
-        const newName = nameInput.value.trim();
+        const newName = nameInput.value.trim().slice(0, 60);
         const newPrice = parseFloat(priceInput.value);
         if (!newName) {
           showToast('Product name cannot be empty', 'warning');
           nameInput.focus();
           return;
         }
-        if (isNaN(newPrice) || newPrice <= 0) {
-          showToast('Please enter a valid price greater than 0', 'warning');
+        if (isNaN(newPrice) || !isFinite(newPrice) || newPrice <= 0 || newPrice > 999999) {
+          showToast('Please enter a valid price (0.01 - 999,999)', 'warning');
           priceInput.focus();
           return;
         }
@@ -690,7 +778,7 @@
         saveCatalogueItems();
 
         renderCatalogueItems();
-        renderAllTables();
+        scheduleRenderAllTables();
         showToast(`Updated "${newName}" (${state.baseCurrency} ${newPrice.toFixed(2)})`, 'success');
       }
 
@@ -800,7 +888,12 @@
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && typeof parsed === 'object') {
-          Object.assign(state.visibleColumns, parsed);
+          const allowedIds = new Set(COLUMN_DEFINITIONS.map(c => c.id));
+          for (const key of Object.keys(parsed)) {
+            if (allowedIds.has(key)) {
+              state.visibleColumns[key] = Boolean(parsed[key]);
+            }
+          }
         }
       }
     } catch (e) {
@@ -938,6 +1031,16 @@
     }
   }
 
+  // Render scheduler for high-frequency inputs & zero UI jank
+  let renderRafId = null;
+  function scheduleRenderAllTables() {
+    if (renderRafId) cancelAnimationFrame(renderRafId);
+    renderRafId = requestAnimationFrame(() => {
+      renderRafId = null;
+      renderAllTables();
+    });
+  }
+
   // 6. Table Rendering Engine
   function renderAllTables() {
     const activeProd = getActiveProduct();
@@ -1014,9 +1117,6 @@
     elements.kpiTier1Net.textContent = t1Count > 0 ? `${baseCode} ${(t1NetSum / t1Count).toFixed(2)}` : `${baseCode} 0.00`;
     elements.kpiTier2Net.textContent = t2Count > 0 ? `${baseCode} ${(t2NetSum / t2Count).toFixed(2)}` : `${baseCode} 0.00`;
     elements.kpiTier3Net.textContent = t3Count > 0 ? `${baseCode} ${(t3NetSum / t3Count).toFixed(2)}` : `${baseCode} 0.00`;
-
-    // Reattach listeners
-    attachTableRowListeners();
   }
 
   function getEmptyTableNotice() {
@@ -1038,8 +1138,8 @@
     const discountCellHtml = state.discountEnabled ? `
       <td class="mono-cell col-discount-cell" data-col="discount">
         <div class="price-box">
-          <span class="discount-price-val">${c.currency} ${cleanDiscountNum}</span>
-          <button class="btn-copy" data-copy-val="${cleanDiscountNum}" data-country="${escapeHTML(c.name)}" data-currency="${c.currency}" title="Copy promo price to clipboard">
+          <span class="discount-price-val">${escapeHTML(c.currency)} ${cleanDiscountNum}</span>
+          <button class="btn-copy" data-copy-val="${cleanDiscountNum}" data-country="${escapeHTML(c.name)}" data-currency="${escapeHTML(c.currency)}" title="Copy promo price to clipboard">
             ${COPY_ICON_SVG}
           </button>
         </div>
@@ -1064,17 +1164,17 @@
             <span class="table-flag">${c.flag}</span>
             <div class="country-meta">
               <span class="country-name">${escapeHTML(c.name)}</span>
-              <span class="country-iso">${c.code} • Tier ${c.tier}</span>
+              <span class="country-iso">${escapeHTML(c.code)} • Tier ${c.tier}</span>
             </div>
           </div>
         </td>
         <td class="mono-cell" data-col="currency">
-          <strong>${c.currency}</strong>
+          <strong>${escapeHTML(c.currency)}</strong>
         </td>
         <td class="mono-cell" data-col="retail">
           <div class="price-box">
-            <span class="retail-price-val">${c.currency} ${cleanRetailNum}</span>
-            <button class="btn-copy" data-copy-val="${cleanRetailNum}" data-country="${escapeHTML(c.name)}" data-currency="${c.currency}" title="Copy retail price to clipboard">
+            <span class="retail-price-val">${escapeHTML(c.currency)} ${cleanRetailNum}</span>
+            <button class="btn-copy" data-copy-val="${cleanRetailNum}" data-country="${escapeHTML(c.name)}" data-currency="${escapeHTML(c.currency)}" title="Copy retail price to clipboard">
               ${COPY_ICON_SVG}
             </button>
           </div>
@@ -1118,45 +1218,51 @@
     `;
   }
 
-  function attachTableRowListeners() {
-    // Quick copy button (uses SVG icons)
-    document.querySelectorAll('.btn-copy').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+  // Delegated Table Click Listener (Zero memory leaks & instant response)
+  function setupTableEventDelegation() {
+    const tableContainer = document.querySelector('.sections-accordion-container');
+    if (!tableContainer) return;
+
+    tableContainer.addEventListener('click', (e) => {
+      // 1. Quick copy button
+      const copyBtn = e.target.closest('.btn-copy');
+      if (copyBtn) {
         e.stopPropagation();
-        const valToCopy = btn.getAttribute('data-copy-val');
-        const country = btn.getAttribute('data-country');
-        const currency = btn.getAttribute('data-currency');
+        const valToCopy = copyBtn.getAttribute('data-copy-val');
+        const country = copyBtn.getAttribute('data-country');
+        const currency = copyBtn.getAttribute('data-currency');
+        if (!valToCopy) return;
 
         navigator.clipboard.writeText(valToCopy).then(() => {
-          btn.innerHTML = CHECK_ICON_SVG;
-          btn.classList.add('copied');
+          copyBtn.innerHTML = CHECK_ICON_SVG;
+          copyBtn.classList.add('copied');
           setTimeout(() => {
-            btn.innerHTML = COPY_ICON_SVG;
-            btn.classList.remove('copied');
+            copyBtn.innerHTML = COPY_ICON_SVG;
+            copyBtn.classList.remove('copied');
           }, 1200);
-          showToast(`Copied ${currency} ${valToCopy} (${country}) for Google Play!`, 'success');
+          showToast(`Copied ${currency || ''} ${valToCopy} (${country || ''}) for Google Play!`, 'success');
         }).catch(err => {
           console.error(err);
           showToast('Could not copy to clipboard', 'warning');
         });
-      });
-    });
+        return;
+      }
 
-    // Strategy button
-    document.querySelectorAll('.btn-detail').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      // 2. Strategy detail button
+      const detailBtn = e.target.closest('.btn-detail');
+      if (detailBtn) {
         e.stopPropagation();
-        const countryName = btn.getAttribute('data-country');
-        openCountryStrategyModal(countryName);
-      });
-    });
+        const countryName = detailBtn.getAttribute('data-country');
+        if (countryName) openCountryStrategyModal(countryName);
+        return;
+      }
 
-    // Row click
-    document.querySelectorAll('.pricing-table tbody tr').forEach(row => {
-      row.addEventListener('click', () => {
+      // 3. Row click (when clicking a row, but not buttons/links)
+      const row = e.target.closest('.pricing-table tbody tr');
+      if (row && !e.target.closest('button, input, select, textarea, a')) {
         const countryName = row.getAttribute('data-country-name');
         if (countryName) openCountryStrategyModal(countryName);
-      });
+      }
     });
   }
 
@@ -1236,6 +1342,19 @@
   }
 
   // 9. Export to CSV Engine
+  // RFC 4180 and OWASP Top 10 CSV Formula Injection Sanitizer
+  function escapeCsvCell(val) {
+    if (val === null || val === undefined) return '""';
+    let str = String(val);
+    // Neutralize formula injection if first character is =, +, -, @, tab, or CR
+    if (/^[=+\-@\t\r]/.test(str)) {
+      str = `'${str}`;
+    }
+    // Escape internal double quotes by doubling them (RFC 4180)
+    str = str.replace(/"/g, '""');
+    return `"${str}"`;
+  }
+
   function exportFullMatrixCsv() {
     showToast('Compiling comprehensive pricing matrix...', 'info');
 
@@ -1268,7 +1387,7 @@
       'Pricing Strategy'
     ];
 
-    const rows = [headers];
+    const rows = [headers.map(h => escapeCsvCell(h))];
 
     const productsToExport = [
       { id: 'app_price', name: 'App Price (Download)', price: state.appPrice },
@@ -1279,13 +1398,13 @@
       state.countries.forEach(country => {
         const calc = calculateCountryPricing(country, prod.price, state.baseCurrency);
         rows.push([
-          `"${country.name}"`,
-          `"${country.code}"`,
-          `"Tier ${country.tier}"`,
-          `"${prod.name}"`,
-          `"${state.baseCurrency}"`,
+          escapeCsvCell(country.name),
+          escapeCsvCell(country.code),
+          escapeCsvCell(`Tier ${country.tier}`),
+          escapeCsvCell(prod.name),
+          escapeCsvCell(state.baseCurrency),
           prod.price.toFixed(2),
-          `"${country.currency}"`,
+          escapeCsvCell(country.currency),
           calc.retailPrice.toFixed(2),
           calc.retailInBase.toFixed(2),
           state.discountEnabled ? `${state.discountRate}%` : 'None',
@@ -1302,9 +1421,9 @@
           calc.developerNetInInr.toFixed(2),
           state.discountEnabled ? calc.discountDeveloperNetInInr.toFixed(2) : 'N/A',
           calc.developerNetPct.toFixed(1),
-          `"${country.behavior ? country.behavior.willingness : ''}"`,
-          `"${country.behavior ? country.behavior.popularPayment : ''}"`,
-          `"${country.behavior ? country.behavior.pricingStrategy : ''}"`
+          escapeCsvCell(country.behavior ? country.behavior.willingness : ''),
+          escapeCsvCell(country.behavior ? country.behavior.popularPayment : ''),
+          escapeCsvCell(country.behavior ? country.behavior.pricingStrategy : '')
         ]);
       });
     });
@@ -1342,6 +1461,13 @@
 
   // 10. Toast Notification System
   function showToast(message, type = 'info') {
+    if (!elements.toastContainer) return;
+
+    // Prevent DOM flooding by limiting active toasts to 4 max
+    while (elements.toastContainer.children.length >= 4) {
+      elements.toastContainer.removeChild(elements.toastContainer.firstChild);
+    }
+
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     let icon = 'ℹ️';
@@ -1360,8 +1486,8 @@
   }
 
   function escapeHTML(str) {
-    if (!str) return '';
-    return str.replace(/[&<>'"]/g, 
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>'"]/g, 
       tag => ({
         '&': '&amp;',
         '<': '&lt;',
@@ -1415,9 +1541,9 @@
     // App Price input
     elements.appPriceInput.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      state.appPrice = isNaN(val) ? 0 : Math.max(0, val);
+      state.appPrice = isNaN(val) || !isFinite(val) || val < 0 ? 0 : Math.min(val, 999999);
       updateActiveProductSelector();
-      renderAllTables();
+      scheduleRenderAllTables();
     });
 
     // Play fee toggle
@@ -1435,14 +1561,14 @@
     elements.bufferFeeRange.addEventListener('input', (e) => {
       state.bufferRate = parseFloat(e.target.value) / 100;
       elements.bufferFeeDisplay.textContent = `${e.target.value}%`;
-      renderAllTables();
+      scheduleRenderAllTables();
     });
 
     // PPP strength slider
     elements.pppStrengthRange.addEventListener('input', (e) => {
       state.pppStrength = parseFloat(e.target.value) / 100;
       elements.pppStrengthDisplay.textContent = `${e.target.value}%`;
-      renderAllTables();
+      scheduleRenderAllTables();
     });
 
     // Charm rounding toggle
@@ -1455,7 +1581,7 @@
     // App Name / Package Identifier Input
     if (elements.appNameInput) {
       elements.appNameInput.addEventListener('input', (e) => {
-        state.appName = e.target.value;
+        state.appName = e.target.value.slice(0, 50);
         renderCatalogueItems();
       });
     }
@@ -1484,7 +1610,7 @@
       }
       if (state.discountEnabled) {
         renderCatalogueItems();
-        renderAllTables();
+        scheduleRenderAllTables();
       }
     });
 
@@ -1499,10 +1625,14 @@
     // Add Item Form
     elements.addItemForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = elements.newItemName.value.trim();
+      if (state.catalogueItems.length >= 50) {
+        showToast('Maximum catalogue limit (50 products) reached', 'warning');
+        return;
+      }
+      const name = elements.newItemName.value.trim().slice(0, 60);
       const price = parseFloat(elements.newItemPrice.value);
-      if (!name || isNaN(price) || price <= 0) {
-        showToast('Please provide valid product name and price', 'warning');
+      if (!name || isNaN(price) || !isFinite(price) || price <= 0 || price > 999999) {
+        showToast('Please provide valid product name and price (0.01 - 999,999)', 'warning');
         return;
       }
 
@@ -1563,16 +1693,16 @@
 
     // Search bar
     elements.globalCountrySearch.addEventListener('input', (e) => {
-      state.searchQuery = e.target.value;
+      state.searchQuery = e.target.value.slice(0, 100);
       elements.btnClearSearch.style.display = state.searchQuery ? 'block' : 'none';
-      renderAllTables();
+      scheduleRenderAllTables();
     });
 
     elements.btnClearSearch.addEventListener('click', () => {
       elements.globalCountrySearch.value = '';
       state.searchQuery = '';
       elements.btnClearSearch.style.display = 'none';
-      renderAllTables();
+      scheduleRenderAllTables();
     });
 
     // 4 Accordion collapsible toggles
@@ -1616,6 +1746,7 @@
     initDOMElements();
     loadCatalogueItems();
     setupEventListeners();
+    setupTableEventDelegation();
     setupColumnPicker();
     renderCatalogueItems();
     renderAllTables();
