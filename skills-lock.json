@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "skills": {
+    "apex": {
+      "source": "melvynx/aiblueprint",
+      "sourceType": "github",
+      "skillPath": "agents-config/skills/apex/SKILL.md",
+      "computedHash": "d537f3640e6b4bcb28b5edb53f50a3bd5b9cb7030ab065799bc6bd31ab18ae31"
+    },
+    "backend-development-feature-development": {
+      "source": "sickn33/agentic-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/backend-development-feature-development/SKILL.md",
+      "computedHash": "524c0379ee8009d13e4846d0cd55af927a1d660c2ad2fffdd64c1e26d64ecb8e"
+    },
+    "code-vuln-audit": {
+      "source": "zebbern/claude-code-guide",
+      "sourceType": "github",
+      "skillPath": "skills/code-vuln-audit/SKILL.md",
+      "computedHash": "40a20ed3ee980455eb18a6cff7046387750e9f0537090175184b701baf30c379"
+    },
+    "frontend-designer": {
+      "source": "kozz36/frontend-designer-skill",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-designer/SKILL.md",
+      "computedHash": "290547cf8982d813402118258f2f72f6cdc0c479d01f2dc92925a27a7c4c4700"
+    },
+    "frontend-designer-lite": {
+      "source": "kozz36/frontend-designer-skill",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-designer-lite/SKILL.md",
+      "computedHash": "fda441f2f52d2e17e4547110422df20d32d2db339546eca151ca4ea93ff4b38f"
+    },
+    "grill-me": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/productivity/grill-me/SKILL.md",
+      "computedHash": "5e0c683385eafd83f106ac6c9d67dfbbfe5aa4b3fe65aad114eb1055a99c818f"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "f57225c428f86792ed4fe05029a16c41892c8569523b4212e2f3c7d7067738c9"
+    },
+    "localization-toolkit": {
+      "source": "zebbern/claude-code-guide",
+      "sourceType": "github",
+      "skillPath": "skills/localization-toolkit/SKILL.md",
+      "computedHash": "c13e0a0782c394f8ab726ad2bd3bf8f245a8a22aabc1fd86027bfde10076b09a"
+    },
+    "make-interfaces-feel-better": {
+      "source": "jakubkrehel/make-interfaces-feel-better",
+      "sourceType": "github",
+      "skillPath": "skills/make-interfaces-feel-better/SKILL.md",
+      "computedHash": "ee95073d274bd8f792f917a2b2c2963d46c1b31c81723e6ef3c63ffe33bd681c"
+    },
+    "thermo-nuclear-code-quality-review": {
+      "source": "heyimcarlos/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/thermo-nuclear-code-quality-review/SKILL.md",
+      "computedHash": "57e2bcd09c5391e1bdc31373a48f0a9f13c9cd85cc1467ea4ecb4dd70a1423fe"
+    }
+  }
+}

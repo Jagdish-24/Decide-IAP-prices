@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PlayPrice Engine • Global IAP & App Pricing Optimizer</title>
+  <meta name="description" content="Decide mobile game and app IAP prices across 176+ countries with Purchasing Power Parity (PPP), local VAT/GST tax rates, Google Play commission, and developer net take-home calculation.">
+  
+  <!-- Modern Typography from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">PlayPrice <span class="gradient-text">Engine</span></h1>
+          <p class="brand-subtitle">Global IAP &amp; App Pricing Optimizer • PPP • Tax • Google Play Cuts • Developer Net</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="status-pill" id="fxStatusPill" title="Live exchange rate status">
+          <span class="status-dot"></span>
+          <span id="fxStatusText">Connecting Rates...</span>
+        </div>
+        <button class="btn btn-secondary" id="btnHelpModal" title="Learn the mathematical & behavioural logic">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          Logic Guide
+        </button>
+        <button class="btn btn-primary" id="btnExportAllCsv" title="Export entire pricing matrix to CSV">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Export CSV
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-container">
+    
+    <!-- Top Strategic Parameters Banner -->
+    <section class="config-grid">
+      
+      <!-- Card 1: Base Currency & App Price -->
+      <div class="config-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+          <div>
+            <h3>1. Base Currency</h3>
+            <p>Declare your starting pricing benchmark</p>
+          </div>
+        </div>
+
+        <div class="currency-selector" id="baseCurrencySelector">
+          <button type="button" class="currency-btn active" data-currency="USD">
+            <span class="flag">🇺🇸</span>
+            <span class="curr-code">USD</span>
+            <span class="curr-symbol">$</span>
+          </button>
+          <button type="button" class="currency-btn" data-currency="EUR">
+            <span class="flag">🇪🇺</span>
+            <span class="curr-code">EUR</span>
+            <span class="curr-symbol">€</span>
+          </button>
+          <button type="button" class="currency-btn" data-currency="INR">
+            <span class="flag">🇮🇳</span>
+            <span class="curr-code">INR</span>
+            <span class="curr-symbol">₹</span>
+          </button>
+        </div>
+
+        <div class="input-field-group">
+          <label for="appPriceInput">
+            <span>Base App Price (Paid Download)</span>
+            <span class="tooltip-trigger" title="For free games with only IAP, set this to 0.00">ℹ️</span>
+          </label>
+          <div class="input-with-adornment">
+            <span class="currency-adornment" id="appPriceSymbol">$</span>
+            <input type="number" id="appPriceInput" step="0.01" min="0" value="1.99" placeholder="1.99">
+          </div>
+          <span class="input-hint">Set to 0.00 if this is a Free-to-Play game</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Commission & Developer Deductions -->
+      <div class="config-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+          </div>
+          <div>
+            <h3>2. Google Play Cut &amp; Buffer</h3>
+            <p>Store commission &amp; payment buffers</p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>Google Play Fee Rate</label>
+          <div class="toggle-group" id="googlePlayFeeToggle">
+            <button type="button" class="toggle-btn active" data-fee="0.15">15% (Tier 1 / &lt;$1M)</button>
+            <button type="button" class="toggle-btn" data-fee="0.30">30% (Standard)</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="slider-header">
+            <label for="bufferFeeRange">
+              Developer Buffer / Other Charges
+              <span class="tooltip-trigger" title="Covers Indian 0.1% TDS (Sec 194O), forex conversion margin, or transaction fees">ℹ️</span>
+            </label>
+            <span class="slider-badge" id="bufferFeeDisplay">2.0%</span>
+          </div>
+          <input type="range" id="bufferFeeRange" min="0" max="5" step="0.1" value="2.0">
+          <div class="range-labels">
+            <span>0% (None)</span>
+            <span>2% (Standard FX/TDS)</span>
+            <span>5% (Conservative)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Purchasing Power & Psychology -->
+      <div class="config-card">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path></svg>
+          </div>
+          <div>
+            <h3>3. Pricing Behavior Engine</h3>
+            <p>PPP elasticity &amp; psychological charm</p>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="slider-header">
+            <label for="pppStrengthRange">
+              Purchasing Power Parity (PPP) Discount
+              <span class="tooltip-trigger" title="100% applies full regional purchasing power adjustments. 0% uses raw unadjusted exchange rates.">ℹ️</span>
+            </label>
+            <span class="slider-badge" id="pppStrengthDisplay">100%</span>
+          </div>
+          <input type="range" id="pppStrengthRange" min="0" max="100" step="5" value="100">
+          <div class="range-labels">
+            <span>0% (Raw FX Rate)</span>
+            <span>50% (Balanced)</span>
+            <span>100% (Full PPP)</span>
+          </div>
+        </div>
+
+        <div class="toggle-field">
+          <div>
+            <span class="toggle-label">Psychological Charm Rounding</span>
+            <span class="toggle-desc">Rounds to .99, .49, or authentic local game brackets (e.g. ₹29, ₹49, ₹89)</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="charmRoundingToggle" checked>
+            <span class="slider round"></span>
+          </label>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Catalogue Builder Section -->
+    <section class="catalogue-section">
+      <div class="catalogue-card">
+        <div class="section-top-bar">
+          <div>
+            <div class="badge-pill">Catalogue Builder</div>
+            <h2 class="section-title">In-App Purchase (IAP) Products</h2>
+            <p class="section-desc">Manage your game/app SKUs in your base currency. Convert prices across all 176 countries with one click.</p>
+          </div>
+          <div class="catalogue-actions">
+            <button class="btn btn-secondary btn-sm" id="btnResetCatalogue" title="Restore default mobile game IAP items">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+              Reset to Defaults
+            </button>
+            <button class="btn btn-accent btn-sm" id="btnQuickAdd">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Add Item
+            </button>
+          </div>
+        </div>
+
+        <!-- Add Item Row -->
+        <form id="addItemForm" class="add-item-form">
+          <div class="form-group flex-2">
+            <label for="newItemName">Product Name</label>
+            <input type="text" id="newItemName" placeholder="e.g. Battle Pass / 500 Gems" required>
+          </div>
+          <div class="form-group flex-1">
+            <label for="newItemPrice">Price (<span class="baseCurrCode">USD</span>)</label>
+            <div class="input-with-adornment">
+              <span class="currency-adornment baseCurrSymbol">$</span>
+              <input type="number" id="newItemPrice" step="0.01" min="0.01" placeholder="1.50" required>
+            </div>
+          </div>
+          <div class="form-group flex-0 align-end">
+            <button type="submit" class="btn btn-secondary" style="height: 44px;">
+              + Add SKU
+            </button>
+          </div>
+        </form>
+
+        <!-- Catalogue Items Grid -->
+        <div class="items-grid" id="catalogueItemsList">
+          <!-- Dynamic Items Injected Here -->
+        </div>
+
+        <!-- Generate Button Strip -->
+        <div class="generate-strip">
+          <div class="generate-info">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>Click <strong>Generate</strong> to calculate recommended retail prices, local VAT/GST, Google Play 15%/30% cut, and your net earnings across all 176 countries.</span>
+          </div>
+          <button class="btn btn-cta" id="btnGenerate">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span>Generate Global Pricing Matrix</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Global KPI Summary Strip -->
+    <section class="kpi-strip" id="kpiStrip">
+      <div class="kpi-card">
+        <span class="kpi-label">Base Item Selected</span>
+        <div class="kpi-value" id="kpiActiveItemName">No Ads</div>
+        <span class="kpi-sub" id="kpiActiveItemPrice">$1.50 Base Price</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Tier 1 Avg Net Take-Home</span>
+        <div class="kpi-value text-emerald" id="kpiTier1Net">$1.06</div>
+        <span class="kpi-sub">70.8% Net Margin</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Tier 2 Avg Net Take-Home</span>
+        <div class="kpi-value text-cyan" id="kpiTier2Net">$0.58</div>
+        <span class="kpi-sub">~50% PPP Localized</span>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Tier 3 Avg Net Take-Home</span>
+        <div class="kpi-value text-amber" id="kpiTier3Net">$0.34</div>
+        <span class="kpi-sub">High-Volume Micro-Tier</span>
+      </div>
+    </section>
+
+    <!-- Active Item Selector Bar -->
+    <div class="table-control-bar">
+      <div class="control-item-selector">
+        <label for="activeProductSelector">Preview Pricing For:</label>
+        <select id="activeProductSelector" class="custom-select">
+          <!-- Filled dynamically -->
+        </select>
+      </div>
+      
+      <div class="search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="globalCountrySearch" placeholder="Filter countries by name, currency, or ISO code...">
+        <button class="btn-clear" id="btnClearSearch" title="Clear search">&times;</button>
+      </div>
+
+      <div class="quick-export-group">
+        <button class="btn btn-secondary btn-sm" id="btnCopyPlayConsole" title="Copy Google Play Console friendly format">
+          📋 Copy Play Store Format
+        </button>
+      </div>
+    </div>
+
+    <!-- 4 Collapsible Sections as required: Master List, Tier 1, Tier 2, Tier 3 -->
+    <div class="sections-accordion-container">
+      
+      <!-- Section 1: Master List -->
+      <section class="accordion-section" id="sectionMaster">
+        <div class="accordion-header" data-target="masterContent">
+          <div class="accordion-title-group">
+            <span class="accordion-chevron">▼</span>
+            <div class="accordion-badge badge-master">Master List</div>
+            <h2 class="accordion-title">All Google Play Countries &amp; Regions</h2>
+            <span class="count-badge" id="masterCount">176 Locations</span>
+          </div>
+          <div class="accordion-desc">Complete global distribution roster with tax rates, currency codes, and developer cuts</div>
+        </div>
+        <div class="accordion-content" id="masterContent">
+          <div class="table-responsive">
+            <table class="pricing-table" id="tableMaster">
+              <thead>
+                <tr>
+                  <th>Country</th>
+                  <th>Currency</th>
+                  <th>End-User Retail Price</th>
+                  <th>Tax / VAT Cut</th>
+                  <th>Google Play Cut</th>
+                  <th>Buffer Cut</th>
+                  <th>Developer Net (Local)</th>
+                  <th>Developer Net (<span class="baseCurrCode">USD</span>)</th>
+                  <th>Gamer Profile</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyMaster">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Tier 1 -->
+      <section class="accordion-section" id="sectionTier1">
+        <div class="accordion-header" data-target="tier1Content">
+          <div class="accordion-title-group">
+            <span class="accordion-chevron">▼</span>
+            <div class="accordion-badge badge-t1">Tier 1</div>
+            <h2 class="accordion-title">High-Income &amp; High-ARPU Gaming Markets</h2>
+            <span class="count-badge" id="tier1Count">37 Locations</span>
+          </div>
+          <div class="accordion-desc">USA, UK, Germany, Japan, South Korea, Canada, Australia, etc. High spending ceilings, premium IAP conversion.</div>
+        </div>
+        <div class="accordion-content" id="tier1Content">
+          <div class="table-responsive">
+            <table class="pricing-table" id="tableTier1">
+              <thead>
+                <tr>
+                  <th>Country</th>
+                  <th>Currency</th>
+                  <th>End-User Retail Price</th>
+                  <th>Tax / VAT Cut</th>
+                  <th>Google Play Cut</th>
+                  <th>Buffer Cut</th>
+                  <th>Developer Net (Local)</th>
+                  <th>Developer Net (<span class="baseCurrCode">USD</span>)</th>
+                  <th>Gamer Profile</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyTier1">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Tier 2 -->
+      <section class="accordion-section" id="sectionTier2">
+        <div class="accordion-header" data-target="tier2Content">
+          <div class="accordion-title-group">
+            <span class="accordion-chevron">▼</span>
+            <div class="accordion-badge badge-t2">Tier 2</div>
+            <h2 class="accordion-title">Mid-Income &amp; High-Growth Emerging Markets</h2>
+            <span class="count-badge" id="tier2Count">46 Locations</span>
+          </div>
+          <div class="accordion-desc">Brazil, Mexico, Poland, Czechia, Turkey, Malaysia, Chile, South Africa, etc. ~45-55% PPP discount unlocks maximum conversion.</div>
+        </div>
+        <div class="accordion-content" id="tier2Content">
+          <div class="table-responsive">
+            <table class="pricing-table" id="tableTier2">
+              <thead>
+                <tr>
+                  <th>Country</th>
+                  <th>Currency</th>
+                  <th>End-User Retail Price</th>
+                  <th>Tax / VAT Cut</th>
+                  <th>Google Play Cut</th>
+                  <th>Buffer Cut</th>
+                  <th>Developer Net (Local)</th>
+                  <th>Developer Net (<span class="baseCurrCode">USD</span>)</th>
+                  <th>Gamer Profile</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyTier2">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Tier 3 -->
+      <section class="accordion-section" id="sectionTier3">
+        <div class="accordion-header" data-target="tier3Content">
+          <div class="accordion-title-group">
+            <span class="accordion-chevron">▼</span>
+            <div class="accordion-badge badge-t3">Tier 3</div>
+            <h2 class="accordion-title">High-Volume &amp; Price-Sensitive Markets</h2>
+            <span class="count-badge" id="tier3Count">93 Locations</span>
+          </div>
+          <div class="accordion-desc">India, Indonesia, Philippines, Pakistan, Nigeria, Egypt, Vietnam, etc. Sub-dollar microtransactions (₹29, ₹49, ₹89) bypass resistance.</div>
+        </div>
+        <div class="accordion-content" id="tier3Content">
+          <div class="table-responsive">
+            <table class="pricing-table" id="tableTier3">
+              <thead>
+                <tr>
+                  <th>Country</th>
+                  <th>Currency</th>
+                  <th>End-User Retail Price</th>
+                  <th>Tax / VAT Cut</th>
+                  <th>Google Play Cut</th>
+                  <th>Buffer Cut</th>
+                  <th>Developer Net (Local)</th>
+                  <th>Developer Net (<span class="baseCurrCode">USD</span>)</th>
+                  <th>Gamer Profile</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyTier3">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Country Detail & Strategy Modal -->
+  <div class="modal-backdrop" id="countryModalBackdrop">
+    <div class="modal-card" id="countryModal">
+      <div class="modal-header">
+        <div class="modal-country-identity">
+          <span class="modal-flag" id="modalFlag">🇮🇳</span>
+          <div>
+            <div class="modal-title-row">
+              <h3 id="modalCountryName">India</h3>
+              <span class="modal-tier-badge" id="modalTierBadge">Tier 3</span>
+              <span class="modal-iso" id="modalIsoCode">IN</span>
+            </div>
+            <p class="modal-sub" id="modalCurrencyInfo">Indian Rupee (INR - ₹)</p>
+          </div>
+        </div>
+        <button class="modal-close" id="btnCloseModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Product & Price Overview -->
+        <div class="modal-price-hero">
+          <div class="hero-item">
+            <span class="hero-label">Product Item</span>
+            <span class="hero-val" id="modalItemName">No Ads</span>
+          </div>
+          <div class="hero-item">
+            <span class="hero-label">Recommended Retail Price</span>
+            <span class="hero-val text-accent" id="modalRetailPrice">₹49.00</span>
+          </div>
+          <div class="hero-item">
+            <span class="hero-label">Base Currency Equivalent</span>
+            <span class="hero-val" id="modalBaseEquiv">$0.51 USD</span>
+          </div>
+          <div class="hero-item">
+            <span class="hero-label">PPP Adjustment</span>
+            <span class="hero-val text-amber" id="modalPppDiscount">-68% Discount</span>
+          </div>
+        </div>
+
+        <!-- Revenue Waterfall Breakdown -->
+        <div class="waterfall-container">
+          <h4 class="modal-section-title">Revenue &amp; Cut Waterfall (Per Unit Sold)</h4>
+          <div class="waterfall-bars" id="modalWaterfallBars">
+            <!-- Dynamic waterfall breakdown injected -->
+          </div>
+        </div>
+
+        <!-- Gamer Mindset & Monetization Strategy -->
+        <div class="strategy-container">
+          <h4 class="modal-section-title">Consumer Behavior &amp; Monetization Strategy</h4>
+          <div class="strategy-grid">
+            <div class="strategy-item">
+              <span class="strat-label">Willingness to Pay</span>
+              <p class="strat-val" id="modalWillingness">Volume-Driven (High UPI adoption)</p>
+            </div>
+            <div class="strategy-item">
+              <span class="strat-label">Dominant Payment Channels</span>
+              <p class="strat-val" id="modalPaymentMethods">UPI (Google Pay, PhonePe, Paytm), NetBanking, RuPay</p>
+            </div>
+            <div class="strategy-item full-width">
+              <span class="strat-label">Player Mindset &amp; Price Resistance</span>
+              <p class="strat-val" id="modalMindset">Enormous mobile gaming audience (90%+ mobile-first). Extreme resistance to &gt;₹100 ($1.20+) unlocalized pricing. ₹29, ₹49, and ₹89 are the holy grail impulse micro-transaction brackets.</p>
+            </div>
+            <div class="strategy-item full-width">
+              <span class="strat-label">Strategic Recommendation</span>
+              <p class="strat-val text-emerald" id="modalRecommendation">High volume, sub-dollar charm pricing (₹29 - ₹89). Massive conversion lift when priced below ₹50.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnModalCloseAction">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logic & Mathematical Guide Modal -->
+  <div class="modal-backdrop" id="logicModalBackdrop">
+    <div class="modal-card logic-modal">
+      <div class="modal-header">
+        <div class="modal-country-identity">
+          <div class="card-icon" style="background: rgba(0, 242, 254, 0.15); color: #00f2fe;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </div>
+          <div>
+            <h3>PlayPrice Logic &amp; Mathematical Engine</h3>
+            <p>Why direct currency conversion fails and how this tool maximizes developer revenue</p>
+          </div>
+        </div>
+        <button class="modal-close" id="btnCloseLogicModal">&times;</button>
+      </div>
+      <div class="modal-body logic-body">
+        <div class="logic-block">
+          <h4>1. The 1 EUR vs 110 Rupees Problem</h4>
+          <p>A €1.00 or $1.50 microtransaction is casual pocket change in Europe or the US. But translated naively through raw exchange rates, that becomes ₹110 to ₹140 in India, 1,700 ARS in Argentina, or 7.50 BRL in Brazil. In these economies, average daily mobile gamer disposable income is dramatically lower. Conversion collapses by over 80% because the price crosses the "luxury psychological barrier".</p>
+        </div>
+
+        <div class="logic-block">
+          <h4>2. Purchasing Power Parity (PPP) Calculation</h4>
+          <p>This engine computes a local target price based on World Bank &amp; IMF PPP factors:</p>
+          <code>Local Target = Base Price (USD) &times; Local FX Rate &times; PPP Multiplier</code>
+          <p>For example, with Indian PPP multiplier ~0.28, a $1.50 item targets ~₹39 - ₹49 rather than ₹140. Conversion jumps by 400%+, generating far higher aggregate net revenue for the developer.</p>
+        </div>
+
+        <div class="logic-block">
+          <h4>3. Google Play Tax (VAT/GST) Handling</h4>
+          <p>In most countries (Europe, UK, Australia, Japan, etc.), Google Play requires the listed customer price to <strong>include</strong> local VAT/GST. The engine backs out the tax according to:</p>
+          <code>Tax Cut = Retail Price &times; [VAT% / (100 + VAT%)]</code>
+          <code>Net Revenue Base = Retail Price - Tax Cut</code>
+        </div>
+
+        <div class="logic-block">
+          <h4>4. Google Play Commission &amp; Developer Take-Home</h4>
+          <p>Google Play takes 15% (for your first $1,000,000 in annual earnings) or 30% from the <strong>Net Revenue Base</strong> (not the gross retail price). An optional 1-5% buffer is reserved for bank forex spread, credit card processing, and Indian Section 194O 0.1% TDS:</p>
+          <code>Google Play Cut = Net Revenue Base &times; (15% or 30%)</code>
+          <code>Buffer Cut = Net Revenue Base &times; Buffer%</code>
+          <code>Developer Net Proceeds = Net Revenue Base - Google Play Cut - Buffer Cut</code>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnAcceptLogic">Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="countries_data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
