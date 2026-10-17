@@ -31,6 +31,7 @@
       netlocal: true,
       netusd: true,
       netinr: true,
+      discountnetinr: true,
       mindset: true,
       action: true
     },
@@ -60,6 +61,7 @@
     { id: 'netlocal', name: 'Developer Net (Local)', category: 'earnings' },
     { id: 'netusd', name: 'Developer Net (USD)', category: 'earnings' },
     { id: 'netinr', name: 'Developer Net (INR)', category: 'earnings' },
+    { id: 'discountnetinr', name: 'Discount Net (INR)', category: 'earnings', isPromo: true },
     { id: 'mindset', name: 'Gamer Profile', category: 'insights' },
     { id: 'action', name: 'Action (Strategy)', category: 'insights' }
   ];
@@ -68,22 +70,22 @@
     all: {
       country: true, currency: true, retail: true, discount: true,
       tax: true, playcut: true, buffercut: true,
-      netlocal: true, netusd: true, netinr: true, mindset: true, action: true
+      netlocal: true, netusd: true, netinr: true, discountnetinr: true, mindset: true, action: true
     },
     essential: {
       country: true, currency: true, retail: true, discount: true,
       tax: false, playcut: false, buffercut: false,
-      netlocal: false, netusd: true, netinr: true, mindset: false, action: true
+      netlocal: false, netusd: true, netinr: true, discountnetinr: true, mindset: false, action: true
     },
     earnings: {
       country: true, currency: true, retail: true, discount: true,
       tax: false, playcut: false, buffercut: false,
-      netlocal: true, netusd: true, netinr: true, mindset: false, action: false
+      netlocal: true, netusd: true, netinr: true, discountnetinr: true, mindset: false, action: false
     },
     cuts: {
       country: true, currency: true, retail: true, discount: false,
       tax: true, playcut: true, buffercut: true,
-      netlocal: false, netusd: true, netinr: false, mindset: false, action: false
+      netlocal: false, netusd: true, netinr: false, discountnetinr: false, mindset: false, action: false
     }
   };
 
@@ -369,6 +371,22 @@
     const inrRate = getRate('INR');
     const developerNetInInr = developerNetInUsd * inrRate;
 
+    // Calculate Developer Net after promotional discount (in INR)
+    let discountDeveloperNetInInr = 0;
+    if (state.discountEnabled) {
+      let discountTaxAmount = 0;
+      let discountNetRevenueBase = discountedPrice;
+      if (country.taxType === 'included' && country.taxRate > 0) {
+        discountTaxAmount = discountedPrice * (country.taxRate / (100 + country.taxRate));
+        discountNetRevenueBase = discountedPrice - discountTaxAmount;
+      }
+      const discountPlayStoreCut = discountNetRevenueBase * state.playFeeRate;
+      const discountBufferCut = discountNetRevenueBase * state.bufferRate;
+      const discountDeveloperNetLocal = discountNetRevenueBase - discountPlayStoreCut - discountBufferCut;
+      const discountDeveloperNetInUsd = country.currency === 'USD' ? discountDeveloperNetLocal : (discountDeveloperNetLocal / localRate);
+      discountDeveloperNetInInr = discountDeveloperNetInUsd * inrRate;
+    }
+
     // Converted Developer Net in Selected Base Currency
     const developerNetInBase = baseCurr === 'USD' ? developerNetInUsd : (developerNetInUsd * baseToUsdRate);
 
@@ -398,6 +416,7 @@
       developerNetInBase,
       developerNetInUsd,
       developerNetInInr,
+      discountDeveloperNetInInr,
       developerNetPct,
       effectivePpp
     };
@@ -925,8 +944,8 @@
     const query = state.searchQuery.toLowerCase().trim();
     const baseCode = state.baseCurrency;
 
-    // Toggle visibility of the discount header in all tables
-    document.querySelectorAll('.col-discount-header').forEach(th => {
+    // Toggle visibility of the discount headers in all tables
+    document.querySelectorAll('.col-discount-header, .col-discount-netinr-header').forEach(th => {
       th.style.display = state.discountEnabled ? 'table-cell' : 'none';
     });
 
@@ -1001,7 +1020,7 @@
   }
 
   function getEmptyTableNotice() {
-    const colSpan = state.discountEnabled ? 12 : 11;
+    const colSpan = state.discountEnabled ? 13 : 11;
     return `<tr><td colspan="${colSpan}" style="text-align: center; padding: 28px; color: var(--text-muted);">No matching countries found for query "${escapeHTML(state.searchQuery)}".</td></tr>`;
   }
 
@@ -1028,6 +1047,13 @@
           <span class="original-price-strike">${cleanRetailNum}</span>
           <span class="discount-badge">-${state.discountRate}%</span>
         </div>
+      </td>
+    ` : '';
+
+    const discountNetInrCellHtml = state.discountEnabled ? `
+      <td class="mono-cell col-discount-netinr-cell" data-col="discountnetinr">
+        <div class="net-highlight discount-net-highlight">INR ${calc.discountDeveloperNetInInr.toFixed(2)}</div>
+        <div class="cut-sub">after promo</div>
       </td>
     ` : '';
 
@@ -1079,6 +1105,7 @@
           <div class="net-highlight">INR ${calc.developerNetInInr.toFixed(2)}</div>
           <div class="cut-sub">take-home</div>
         </td>
+        ${discountNetInrCellHtml}
         <td data-col="mindset">
           <span class="mindset-pill ${mindsetClass}">${c.behavior ? escapeHTML(c.behavior.willingness) : 'Normal'}</span>
         </td>
@@ -1234,6 +1261,7 @@
       'Developer Net Take-Home (Local)',
       'Developer Net Take-Home (USD)',
       'Developer Net Take-Home (INR)',
+      'Discount Net Take-Home (INR)',
       'Developer Net Margin %',
       'Willingness To Pay',
       'Popular Payment Methods',
@@ -1272,6 +1300,7 @@
           calc.developerNetLocal.toFixed(2),
           calc.developerNetInUsd.toFixed(2),
           calc.developerNetInInr.toFixed(2),
+          state.discountEnabled ? calc.discountDeveloperNetInInr.toFixed(2) : 'N/A',
           calc.developerNetPct.toFixed(1),
           `"${country.behavior ? country.behavior.willingness : ''}"`,
           `"${country.behavior ? country.behavior.popularPayment : ''}"`,

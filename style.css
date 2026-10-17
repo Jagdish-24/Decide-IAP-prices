@@ -1741,6 +1741,7 @@ body.hide-col-buffercut [data-col="buffercut"],
 body.hide-col-netlocal [data-col="netlocal"],
 body.hide-col-netusd [data-col="netusd"],
 body.hide-col-netinr [data-col="netinr"],
+body.hide-col-discountnetinr [data-col="discountnetinr"],
 body.hide-col-mindset [data-col="mindset"],
 body.hide-col-action [data-col="action"] {
   display: none !important;
@@ -2003,6 +2004,11 @@ body.hide-col-action [data-col="action"] {
   font-weight: 800;
   font-size: 0.9rem;
   color: var(--accent-emerald);
+}
+
+.discount-net-highlight {
+  color: var(--accent-amber);
+  font-weight: 800;
 }
 
 .net-pct-badge {
