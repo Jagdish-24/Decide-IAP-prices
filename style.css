@@ -755,6 +755,8 @@ input:checked + .slider.round:before {
 .catalogue-actions {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 /* Catalogue Split Layout */

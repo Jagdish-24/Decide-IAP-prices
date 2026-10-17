@@ -164,6 +164,11 @@
     elements.btnQuickAdd = document.getElementById('btnQuickAdd');
     elements.btnGenerate = document.getElementById('btnGenerate');
     elements.btnExportAllCsv = document.getElementById('btnExportAllCsv');
+    elements.btnExportData = document.getElementById('btnExportData');
+    elements.btnImportData = document.getElementById('btnImportData');
+    elements.importFileInput = document.getElementById('importFileInput');
+    elements.btnExportDataCat = document.getElementById('btnExportDataCat');
+    elements.btnImportDataCat = document.getElementById('btnImportDataCat');
     elements.btnCopyPlayConsole = document.getElementById('btnCopyPlayConsole');
     elements.columnPickerContainer = document.getElementById('columnPickerContainer');
     elements.btnColumnToggle = document.getElementById('btnColumnToggle');
@@ -1459,6 +1464,267 @@
     });
   }
 
+  // 9b. Export Project & Settings (JSON Backup)
+  function exportProjectDataJson() {
+    try {
+      const backupData = {
+        app: 'PlayPrice Engine',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        settings: {
+          baseCurrency: state.baseCurrency,
+          appPrice: state.appPrice,
+          playFeeRate: state.playFeeRate,
+          bufferRate: state.bufferRate,
+          pppStrength: state.pppStrength,
+          charmRounding: state.charmRounding,
+          discountEnabled: state.discountEnabled,
+          discountRate: state.discountRate,
+          discountCharm: state.discountCharm,
+          appName: state.appName || 'mygame',
+          activeProductId: state.activeProductId,
+          visibleColumns: Object.assign({}, state.visibleColumns)
+        },
+        catalogueItems: state.catalogueItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price
+        }))
+      };
+
+      const jsonStr = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const safeAppName = sanitizeSlug(state.appName) || 'mygame';
+      a.download = `PlayPrice_Backup_${safeAppName}_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast(`Exported ${state.catalogueItems.length} products and all settings to JSON!`, 'success');
+    } catch (err) {
+      console.error('Export failed:', err);
+      showToast('Could not export project data', 'warning');
+    }
+  }
+
+  // 9c. Import Project & Settings (JSON Restore)
+  function importProjectDataJson(file) {
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      showToast('File size too large (maximum 2MB allowed)', 'warning');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target.result;
+        const data = JSON.parse(text);
+
+        if (!data || typeof data !== 'object') {
+          throw new Error('Invalid JSON format');
+        }
+
+        let importedSettingsCount = 0;
+        let importedProductsCount = 0;
+
+        // 1. Process Settings if present
+        const s = data.settings || (data.catalogueItems ? null : data);
+        if (s && typeof s === 'object') {
+          // Base Currency
+          if (['USD', 'EUR', 'INR'].includes(s.baseCurrency)) {
+            state.baseCurrency = s.baseCurrency;
+            importedSettingsCount++;
+          }
+
+          // App Price
+          if (typeof s.appPrice === 'number' && isFinite(s.appPrice) && s.appPrice >= 0 && s.appPrice <= 999999) {
+            state.appPrice = s.appPrice;
+            importedSettingsCount++;
+          }
+
+          // Play Fee Rate
+          if (typeof s.playFeeRate === 'number' && isFinite(s.playFeeRate) && s.playFeeRate >= 0 && s.playFeeRate <= 1) {
+            state.playFeeRate = s.playFeeRate;
+            importedSettingsCount++;
+          }
+
+          // Buffer Rate
+          if (typeof s.bufferRate === 'number' && isFinite(s.bufferRate) && s.bufferRate >= 0 && s.bufferRate <= 0.5) {
+            state.bufferRate = s.bufferRate;
+            importedSettingsCount++;
+          }
+
+          // PPP Strength
+          if (typeof s.pppStrength === 'number' && isFinite(s.pppStrength) && s.pppStrength >= 0 && s.pppStrength <= 1) {
+            state.pppStrength = s.pppStrength;
+            importedSettingsCount++;
+          }
+
+          // Charm Rounding
+          if (typeof s.charmRounding === 'boolean') {
+            state.charmRounding = s.charmRounding;
+            importedSettingsCount++;
+          }
+
+          // Discount Settings
+          if (typeof s.discountEnabled === 'boolean') {
+            state.discountEnabled = s.discountEnabled;
+            importedSettingsCount++;
+          }
+          if (typeof s.discountRate === 'number' && isFinite(s.discountRate) && s.discountRate >= 1 && s.discountRate <= 99) {
+            state.discountRate = Math.round(s.discountRate);
+            importedSettingsCount++;
+          }
+          if (typeof s.discountCharm === 'boolean') {
+            state.discountCharm = s.discountCharm;
+            importedSettingsCount++;
+          }
+
+          // App Name
+          if (typeof s.appName === 'string') {
+            state.appName = s.appName.trim().slice(0, 50);
+            importedSettingsCount++;
+          }
+
+          // Visible Columns
+          if (s.visibleColumns && typeof s.visibleColumns === 'object') {
+            const allowedIds = new Set(COLUMN_DEFINITIONS.map(c => c.id));
+            for (const key of Object.keys(s.visibleColumns)) {
+              if (allowedIds.has(key)) {
+                state.visibleColumns[key] = Boolean(s.visibleColumns[key]);
+              }
+            }
+            saveColumnPreferences();
+          }
+        }
+
+        // 2. Process Catalogue Items
+        const rawItems = Array.isArray(data.catalogueItems) ? data.catalogueItems : (Array.isArray(data) ? data : null);
+        if (rawItems && rawItems.length > 0) {
+          const validItems = [];
+          for (const raw of rawItems) {
+            if (raw && typeof raw === 'object') {
+              const id = typeof raw.id === 'string' && /^[a-zA-Z0-9_-]+$/.test(raw.id)
+                ? raw.id.slice(0, 40)
+                : `iap_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+              const name = typeof raw.name === 'string' ? raw.name.trim().slice(0, 60) : 'Imported Item';
+              const price = typeof raw.price === 'number' && isFinite(raw.price) && raw.price > 0 && raw.price <= 999999
+                ? raw.price
+                : 1.0;
+              if (name) {
+                validItems.push({ id, name, price });
+              }
+            }
+            if (validItems.length >= 50) break;
+          }
+
+          if (validItems.length > 0) {
+            state.catalogueItems = validItems;
+            importedProductsCount = validItems.length;
+
+            if (s && s.activeProductId && (s.activeProductId === 'app_price' || validItems.some(i => i.id === s.activeProductId))) {
+              state.activeProductId = s.activeProductId;
+            } else {
+              state.activeProductId = validItems[0].id;
+            }
+            saveCatalogueItems();
+          }
+        }
+
+        // 3. Sync All UI Elements to Match Imported State
+        // Base Currency
+        elements.baseCurrencyBtns.forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-currency') === state.baseCurrency);
+        });
+        if (elements.appPriceSymbol) elements.appPriceSymbol.textContent = state.baseCurrency;
+        document.querySelectorAll('.baseCurrCode').forEach(el => el.textContent = state.baseCurrency);
+
+        // App Price
+        if (elements.appPriceInput) elements.appPriceInput.value = state.appPrice.toFixed(2);
+
+        // Google Play Fee
+        elements.googlePlayFeeBtns.forEach(btn => {
+          btn.classList.toggle('active', Math.abs(parseFloat(btn.getAttribute('data-fee')) - state.playFeeRate) < 0.001);
+        });
+
+        // Buffer Fee Range & Display
+        if (elements.bufferFeeRange) {
+          const bufferVal = Math.round(state.bufferRate * 100);
+          elements.bufferFeeRange.value = bufferVal;
+          if (elements.bufferFeeDisplay) elements.bufferFeeDisplay.textContent = `${bufferVal}%`;
+          updateSliderFill(elements.bufferFeeRange);
+        }
+
+        // PPP Strength Range & Display
+        if (elements.pppStrengthRange) {
+          const pppVal = Math.round(state.pppStrength * 100);
+          elements.pppStrengthRange.value = pppVal;
+          if (elements.pppStrengthDisplay) elements.pppStrengthDisplay.textContent = `${pppVal}%`;
+          updateSliderFill(elements.pppStrengthRange);
+        }
+
+        // Charm Rounding Toggle
+        if (elements.charmRoundingToggle) {
+          elements.charmRoundingToggle.checked = Boolean(state.charmRounding);
+        }
+
+        // App Name Input
+        if (elements.appNameInput) {
+          elements.appNameInput.value = state.appName || 'mygame';
+        }
+
+        // Discount Controls
+        if (elements.discountEnableToggle) {
+          elements.discountEnableToggle.checked = Boolean(state.discountEnabled);
+          elements.discountControlsRow.style.opacity = state.discountEnabled ? '1' : '0.4';
+          elements.discountControlsRow.style.pointerEvents = state.discountEnabled ? 'auto' : 'none';
+        }
+        if (elements.discountOfferSyntaxBadge) {
+          elements.discountOfferSyntaxBadge.style.display = state.discountEnabled ? 'inline-flex' : 'none';
+        }
+        if (elements.discountRateRange) {
+          elements.discountRateRange.value = state.discountRate;
+          if (elements.discountRateDisplay) elements.discountRateDisplay.textContent = `${state.discountRate}% OFF`;
+          if (elements.promoBadgeCode) elements.promoBadgeCode.textContent = `...-${state.discountRate}-percent-discount`;
+          updateSliderFill(elements.discountRateRange);
+        }
+        if (elements.discountCharmToggle) {
+          elements.discountCharmToggle.checked = Boolean(state.discountCharm);
+        }
+
+        // Columns UI
+        renderColumnCheckboxes();
+        applyColumnVisibility();
+
+        // Catalogue UI
+        renderCatalogueItems();
+
+        // Tables UI
+        renderAllTables();
+
+        showToast(`Successfully imported ${importedProductsCount} products and settings!`, 'success');
+      } catch (err) {
+        console.error('Import parse error:', err);
+        showToast('Invalid JSON file format. Could not import data.', 'warning');
+      } finally {
+        if (elements.importFileInput) elements.importFileInput.value = '';
+      }
+    };
+
+    reader.onerror = () => {
+      showToast('Could not read the selected file', 'warning');
+      if (elements.importFileInput) elements.importFileInput.value = '';
+    };
+
+    reader.readAsText(file);
+  }
+
   // 10. Toast Notification System
   function showToast(message, type = 'info') {
     if (!elements.toastContainer) return;
@@ -1715,6 +1981,24 @@
 
     // Export CSV
     elements.btnExportAllCsv.addEventListener('click', exportFullMatrixCsv);
+
+    // Export Project Data (JSON)
+    if (elements.btnExportData) elements.btnExportData.addEventListener('click', exportProjectDataJson);
+    if (elements.btnExportDataCat) elements.btnExportDataCat.addEventListener('click', exportProjectDataJson);
+
+    // Import Project Data (JSON)
+    const triggerImport = () => {
+      if (elements.importFileInput) elements.importFileInput.click();
+    };
+    if (elements.btnImportData) elements.btnImportData.addEventListener('click', triggerImport);
+    if (elements.btnImportDataCat) elements.btnImportDataCat.addEventListener('click', triggerImport);
+
+    if (elements.importFileInput) {
+      elements.importFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) importProjectDataJson(file);
+      });
+    }
 
     // Copy Play Console
     elements.btnCopyPlayConsole.addEventListener('click', copyPlayConsoleFormat);
