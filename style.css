@@ -1076,6 +1076,199 @@ input:checked + .slider.round:before {
 }
 
 /* ==========================================================================
+   Column Visibility Controller & Dropdown (Strictly 0 Border-Radius)
+   ========================================================================== */
+.column-picker-container {
+  position: relative;
+  display: inline-block;
+}
+
+.column-count-tag {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: rgba(56, 189, 248, 0.12);
+  color: var(--accent-blue);
+  padding: 1px 5px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  margin-left: 4px;
+  border-radius: 0;
+}
+
+.dropdown-chevron-icon {
+  margin-left: 2px;
+  transition: transform var(--transition-fast);
+}
+
+.column-picker-container.open .dropdown-chevron-icon {
+  transform: rotate(180deg);
+}
+
+.column-picker-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  width: 380px;
+  max-width: 90vw;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  box-shadow: var(--shadow-lg);
+  z-index: 500;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.column-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
+}
+
+.column-menu-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #fff;
+  display: block;
+}
+
+.column-menu-desc {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  display: block;
+  margin-top: 1px;
+}
+
+.btn-menu-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.btn-menu-close:hover {
+  color: #fff;
+}
+
+.column-presets-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.presets-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 2px;
+}
+
+.btn-preset-pill {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-preset-pill:hover {
+  background: var(--bg-surface-hover);
+  color: #fff;
+  border-color: var(--border-strong);
+}
+
+.btn-preset-pill.active {
+  background: rgba(56, 189, 248, 0.14);
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+}
+
+.column-checkbox-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.col-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 5px 7px;
+  background: rgba(10, 14, 23, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 0;
+  user-select: none;
+  transition: all var(--transition-fast);
+}
+
+.col-checkbox-label:hover {
+  background: var(--bg-surface-hover);
+  color: #fff;
+  border-color: var(--border-subtle);
+}
+
+.col-checkbox-label input[type="checkbox"] {
+  accent-color: var(--accent-blue);
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.col-checkbox-label.is-checked {
+  color: #fff;
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+.col-indicator {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 0;
+}
+.indicator-general { background: var(--accent-blue); }
+.indicator-pricing { background: var(--accent-indigo); }
+.indicator-deductions { background: var(--accent-rose); }
+.indicator-earnings { background: var(--accent-emerald); }
+.indicator-insights { background: var(--accent-amber); }
+
+/* Column Hiding Rules (Applies to all tables) */
+body.hide-col-country [data-col="country"],
+body.hide-col-currency [data-col="currency"],
+body.hide-col-retail [data-col="retail"],
+body.hide-col-discount [data-col="discount"],
+body.hide-col-tax [data-col="tax"],
+body.hide-col-playcut [data-col="playcut"],
+body.hide-col-buffercut [data-col="buffercut"],
+body.hide-col-netlocal [data-col="netlocal"],
+body.hide-col-netusd [data-col="netusd"],
+body.hide-col-netinr [data-col="netinr"],
+body.hide-col-mindset [data-col="mindset"],
+body.hide-col-action [data-col="action"] {
+  display: none !important;
+}
+
+/* ==========================================================================
    4 Accordion Sections (Master, Tier 1, Tier 2, Tier 3)
    ========================================================================== */
 .sections-accordion-container {

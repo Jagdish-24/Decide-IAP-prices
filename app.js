@@ -20,6 +20,20 @@
     discountCharm: true,
     activeProductId: 'iap_1', // default selected product
     searchQuery: '',
+    visibleColumns: {
+      country: true,
+      currency: true,
+      retail: true,
+      discount: true,
+      tax: true,
+      playcut: true,
+      buffercut: true,
+      netlocal: true,
+      netusd: true,
+      netinr: true,
+      mindset: true,
+      action: true
+    },
     exchangeRates: window.FALLBACK_EXCHANGE_RATES || {},
     countries: window.PLAY_STORE_COUNTRIES || [],
     catalogueItems: [
@@ -32,6 +46,45 @@
       { id: 'iap_7', name: 'Gold 5', price: 19.99 },
       { id: 'iap_8', name: 'Gold 6', price: 49.99 }
     ]
+  };
+
+  // Table Column Definitions & Presets
+  const COLUMN_DEFINITIONS = [
+    { id: 'country', name: 'Country & Tier', category: 'general' },
+    { id: 'currency', name: 'Currency (ISO)', category: 'general' },
+    { id: 'retail', name: 'End-User Retail Price', category: 'pricing' },
+    { id: 'discount', name: 'Discounted Price', category: 'pricing', isPromo: true },
+    { id: 'tax', name: 'Tax / VAT Cut', category: 'deductions' },
+    { id: 'playcut', name: 'Google Play Fee', category: 'deductions' },
+    { id: 'buffercut', name: 'Buffer Cut (FX/TDS)', category: 'deductions' },
+    { id: 'netlocal', name: 'Developer Net (Local)', category: 'earnings' },
+    { id: 'netusd', name: 'Developer Net (USD)', category: 'earnings' },
+    { id: 'netinr', name: 'Developer Net (INR)', category: 'earnings' },
+    { id: 'mindset', name: 'Gamer Profile', category: 'insights' },
+    { id: 'action', name: 'Action (Strategy)', category: 'insights' }
+  ];
+
+  const COLUMN_PRESETS = {
+    all: {
+      country: true, currency: true, retail: true, discount: true,
+      tax: true, playcut: true, buffercut: true,
+      netlocal: true, netusd: true, netinr: true, mindset: true, action: true
+    },
+    essential: {
+      country: true, currency: true, retail: true, discount: true,
+      tax: false, playcut: false, buffercut: false,
+      netlocal: false, netusd: true, netinr: true, mindset: false, action: true
+    },
+    earnings: {
+      country: true, currency: true, retail: true, discount: true,
+      tax: false, playcut: false, buffercut: false,
+      netlocal: true, netusd: true, netinr: true, mindset: false, action: false
+    },
+    cuts: {
+      country: true, currency: true, retail: true, discount: false,
+      tax: true, playcut: true, buffercut: true,
+      netlocal: false, netusd: true, netinr: false, mindset: false, action: false
+    }
   };
 
   // Vector SVG Icons for Copy & Checkmark (Strictly no emojis)
@@ -108,6 +161,13 @@
     elements.btnGenerate = document.getElementById('btnGenerate');
     elements.btnExportAllCsv = document.getElementById('btnExportAllCsv');
     elements.btnCopyPlayConsole = document.getElementById('btnCopyPlayConsole');
+    elements.columnPickerContainer = document.getElementById('columnPickerContainer');
+    elements.btnColumnToggle = document.getElementById('btnColumnToggle');
+    elements.columnPickerMenu = document.getElementById('columnPickerMenu');
+    elements.btnCloseColMenu = document.getElementById('btnCloseColMenu');
+    elements.visibleColumnsCount = document.getElementById('visibleColumnsCount');
+    elements.columnCheckboxGrid = document.getElementById('columnCheckboxGrid');
+    elements.presetBtns = document.querySelectorAll('.column-presets-bar .btn-preset-pill');
     elements.btnHelpModal = document.getElementById('btnHelpModal');
     elements.fxStatusPill = document.getElementById('fxStatusPill');
     elements.fxStatusText = document.getElementById('fxStatusText');
@@ -498,6 +558,151 @@
     showToast('Product removed', 'info');
   }
 
+  // 5b. Table Column Visibility Management
+  function loadColumnPreferences() {
+    try {
+      const saved = localStorage.getItem('playprice_columns');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          Object.assign(state.visibleColumns, parsed);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load column preferences', e);
+    }
+  }
+
+  function saveColumnPreferences() {
+    try {
+      localStorage.setItem('playprice_columns', JSON.stringify(state.visibleColumns));
+    } catch (e) {
+      console.warn('Could not save column preferences', e);
+    }
+  }
+
+  function applyColumnVisibility() {
+    let visibleCount = 0;
+    let totalCount = 0;
+
+    COLUMN_DEFINITIONS.forEach(col => {
+      // If promo-only and discount is disabled, skip from counting
+      if (col.isPromo && !state.discountEnabled) {
+        document.body.classList.remove('hide-col-' + col.id);
+        return;
+      }
+
+      totalCount++;
+      const isVisible = state.visibleColumns[col.id] !== false;
+      if (isVisible) {
+        visibleCount++;
+        document.body.classList.remove('hide-col-' + col.id);
+      } else {
+        document.body.classList.add('hide-col-' + col.id);
+      }
+
+      // Sync checkbox state in dropdown menu
+      const cb = document.getElementById(`col-cb-${col.id}`);
+      if (cb) {
+        cb.checked = isVisible;
+        const parentLabel = cb.closest('.col-checkbox-label');
+        if (parentLabel) parentLabel.classList.toggle('is-checked', isVisible);
+      }
+    });
+
+    if (elements.visibleColumnsCount) {
+      elements.visibleColumnsCount.textContent = `${visibleCount}/${totalCount}`;
+    }
+
+    saveColumnPreferences();
+  }
+
+  function renderColumnCheckboxes() {
+    if (!elements.columnCheckboxGrid) return;
+    elements.columnCheckboxGrid.innerHTML = '';
+
+    COLUMN_DEFINITIONS.forEach(col => {
+      // Don't show discount column checkbox if discount section is disabled
+      if (col.isPromo && !state.discountEnabled) return;
+
+      const isChecked = state.visibleColumns[col.id] !== false;
+      const label = document.createElement('label');
+      label.className = `col-checkbox-label ${isChecked ? 'is-checked' : ''}`;
+      label.innerHTML = `
+        <input type="checkbox" id="col-cb-${col.id}" data-col="${col.id}" ${isChecked ? 'checked' : ''}>
+        <span class="col-indicator indicator-${col.category}"></span>
+        <span>${escapeHTML(col.name)}</span>
+      `;
+
+      label.querySelector('input').addEventListener('change', (e) => {
+        state.visibleColumns[col.id] = e.target.checked;
+        applyColumnVisibility();
+      });
+
+      elements.columnCheckboxGrid.appendChild(label);
+    });
+  }
+
+  function setupColumnPicker() {
+    loadColumnPreferences();
+    renderColumnCheckboxes();
+    applyColumnVisibility();
+
+    // Toggle dropdown menu
+    if (elements.btnColumnToggle && elements.columnPickerMenu) {
+      elements.btnColumnToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = elements.columnPickerMenu.style.display !== 'none';
+        elements.columnPickerMenu.style.display = isOpen ? 'none' : 'flex';
+        elements.columnPickerContainer.classList.toggle('open', !isOpen);
+        elements.btnColumnToggle.setAttribute('aria-expanded', !isOpen);
+      });
+    }
+
+    // Close menu button
+    if (elements.btnCloseColMenu && elements.columnPickerMenu) {
+      elements.btnCloseColMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+        elements.columnPickerMenu.style.display = 'none';
+        elements.columnPickerContainer.classList.remove('open');
+        elements.btnColumnToggle.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+      if (elements.columnPickerContainer && !elements.columnPickerContainer.contains(e.target)) {
+        if (elements.columnPickerMenu && elements.columnPickerMenu.style.display !== 'none') {
+          elements.columnPickerMenu.style.display = 'none';
+          elements.columnPickerContainer.classList.remove('open');
+          elements.btnColumnToggle.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+
+    // Preset buttons
+    if (elements.presetBtns) {
+      elements.presetBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const presetKey = btn.getAttribute('data-preset');
+          const preset = COLUMN_PRESETS[presetKey];
+          if (preset) {
+            elements.presetBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            Object.keys(preset).forEach(colId => {
+              state.visibleColumns[colId] = preset[colId];
+            });
+
+            applyColumnVisibility();
+            showToast(`Applied "${btn.textContent.trim()}" columns preset`, 'info');
+          }
+        });
+      });
+    }
+  }
+
   // 6. Table Rendering Engine
   function renderAllTables() {
     const activeProd = getActiveProduct();
@@ -596,7 +801,7 @@
     const cleanDiscountNum = formatCleanNumber(calc.discountedPrice, c.currency);
 
     const discountCellHtml = state.discountEnabled ? `
-      <td class="mono-cell col-discount-cell">
+      <td class="mono-cell col-discount-cell" data-col="discount">
         <div class="price-box">
           <span class="discount-price-val">${c.currency} ${cleanDiscountNum}</span>
           <button class="btn-copy" data-copy-val="${cleanDiscountNum}" data-country="${escapeHTML(c.name)}" data-currency="${c.currency}" title="Copy promo price to clipboard">
@@ -612,7 +817,7 @@
 
     return `
       <tr data-country-name="${escapeHTML(c.name)}">
-        <td>
+        <td data-col="country">
           <div class="col-country">
             <span class="table-flag">${c.flag}</span>
             <div class="country-meta">
@@ -621,10 +826,10 @@
             </div>
           </div>
         </td>
-        <td class="mono-cell">
+        <td class="mono-cell" data-col="currency">
           <strong>${c.currency}</strong>
         </td>
-        <td class="mono-cell">
+        <td class="mono-cell" data-col="retail">
           <div class="price-box">
             <span class="retail-price-val">${c.currency} ${cleanRetailNum}</span>
             <button class="btn-copy" data-copy-val="${cleanRetailNum}" data-country="${escapeHTML(c.name)}" data-currency="${c.currency}" title="Copy retail price to clipboard">
@@ -634,34 +839,34 @@
           <div class="base-price-val">≈ ${baseCode} ${calc.retailInBase.toFixed(2)}</div>
         </td>
         ${discountCellHtml}
-        <td class="mono-cell">
+        <td class="mono-cell" data-col="tax">
           <div class="cut-val">${formatPct(calc.taxPct)}</div>
           <div class="cut-sub">${formatMoney(calc.taxAmount, c.currency)}</div>
         </td>
-        <td class="mono-cell">
+        <td class="mono-cell" data-col="playcut">
           <div class="cut-val">${formatPct(calc.playCutPct)}</div>
           <div class="cut-sub">${formatMoney(calc.playStoreCut, c.currency)}</div>
         </td>
-        <td class="mono-cell">
+        <td class="mono-cell" data-col="buffercut">
           <div class="cut-val">${formatPct(calc.bufferPct)}</div>
           <div class="cut-sub">${formatMoney(calc.bufferCut, c.currency)}</div>
         </td>
-        <td class="mono-cell">
+        <td class="mono-cell" data-col="netlocal">
           <div class="net-highlight">${formatMoney(calc.developerNetLocal, c.currency)}</div>
           <span class="net-pct-badge">${formatPct(calc.developerNetPct)} margin</span>
         </td>
-        <td class="mono-cell">
+        <td class="mono-cell" data-col="netusd">
           <div class="net-highlight">USD ${calc.developerNetInUsd.toFixed(2)}</div>
           <div class="cut-sub">take-home</div>
         </td>
-        <td class="mono-cell">
+        <td class="mono-cell" data-col="netinr">
           <div class="net-highlight">INR ${calc.developerNetInInr.toFixed(2)}</div>
           <div class="cut-sub">take-home</div>
         </td>
-        <td>
+        <td data-col="mindset">
           <span class="mindset-pill ${mindsetClass}">${c.behavior ? escapeHTML(c.behavior.willingness) : 'Normal'}</span>
         </td>
-        <td>
+        <td data-col="action">
           <button class="btn-detail" data-country="${escapeHTML(c.name)}">
             Strategy
           </button>
@@ -997,6 +1202,8 @@
       if (elements.discountOfferSyntaxBadge) {
         elements.discountOfferSyntaxBadge.style.display = state.discountEnabled ? 'inline-flex' : 'none';
       }
+      renderColumnCheckboxes();
+      applyColumnVisibility();
       renderCatalogueItems();
       renderAllTables();
       showToast(`Promotional discount ${state.discountEnabled ? 'Enabled (' + state.discountRate + '% OFF)' : 'Disabled'}`, 'info');
@@ -1140,6 +1347,7 @@
   async function init() {
     initDOMElements();
     setupEventListeners();
+    setupColumnPicker();
     renderCatalogueItems();
     renderAllTables();
 

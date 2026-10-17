@@ -351,6 +351,39 @@
       </div>
 
       <div class="quick-export-group">
+        <!-- Column Visibility Dropdown -->
+        <div class="column-picker-container" id="columnPickerContainer">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnColumnToggle" aria-haspopup="true" aria-expanded="false" title="Customize visible table columns">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7m0-18H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7m0-18v18"></path></svg>
+            <span>Columns</span>
+            <span class="column-count-tag" id="visibleColumnsCount">11/11</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="dropdown-chevron-icon"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+
+          <!-- Dropdown Popover Menu -->
+          <div class="column-picker-menu" id="columnPickerMenu" style="display: none;">
+            <div class="column-menu-header">
+              <div>
+                <span class="column-menu-title">Toggle Columns</span>
+                <span class="column-menu-desc">Select metrics to display across all tables</span>
+              </div>
+              <button type="button" class="btn-menu-close" id="btnCloseColMenu" title="Close menu">&times;</button>
+            </div>
+
+            <div class="column-presets-bar">
+              <span class="presets-label">Presets:</span>
+              <button type="button" class="btn-preset-pill active" data-preset="all">All</button>
+              <button type="button" class="btn-preset-pill" data-preset="essential">Essential</button>
+              <button type="button" class="btn-preset-pill" data-preset="earnings">Earnings</button>
+              <button type="button" class="btn-preset-pill" data-preset="cuts">Cuts &amp; Tax</button>
+            </div>
+
+            <div class="column-checkbox-grid" id="columnCheckboxGrid">
+              <!-- Dynamically populated via JS -->
+            </div>
+          </div>
+        </div>
+
         <button class="btn btn-secondary btn-sm" id="btnCopyPlayConsole" title="Copy Google Play Console friendly format">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
           Copy Play Store Format
@@ -377,18 +410,18 @@
             <table class="pricing-table" id="tableMaster">
               <thead>
                 <tr>
-                  <th>Country</th>
-                  <th>Currency</th>
-                  <th>End-User Retail Price</th>
-                  <th class="col-discount-header" style="display: none;">Discounted Price</th>
-                  <th>Tax / VAT Cut</th>
-                  <th>Google Play Cut</th>
-                  <th>Buffer Cut</th>
-                  <th>Developer Net (Local)</th>
-                  <th>Developer Net (USD)</th>
-                  <th>Developer Net (INR)</th>
-                  <th>Gamer Profile</th>
-                  <th>Action</th>
+                  <th data-col="country">Country</th>
+                  <th data-col="currency">Currency</th>
+                  <th data-col="retail">End-User Retail Price</th>
+                  <th data-col="discount" class="col-discount-header" style="display: none;">Discounted Price</th>
+                  <th data-col="tax">Tax / VAT Cut</th>
+                  <th data-col="playcut">Google Play Cut</th>
+                  <th data-col="buffercut">Buffer Cut</th>
+                  <th data-col="netlocal">Developer Net (Local)</th>
+                  <th data-col="netusd">Developer Net (USD)</th>
+                  <th data-col="netinr">Developer Net (INR)</th>
+                  <th data-col="mindset">Gamer Profile</th>
+                  <th data-col="action">Action</th>
                 </tr>
               </thead>
               <tbody id="tbodyMaster">
@@ -415,18 +448,18 @@
             <table class="pricing-table" id="tableTier1">
               <thead>
                 <tr>
-                  <th>Country</th>
-                  <th>Currency</th>
-                  <th>End-User Retail Price</th>
-                  <th class="col-discount-header" style="display: none;">Discounted Price</th>
-                  <th>Tax / VAT Cut</th>
-                  <th>Google Play Cut</th>
-                  <th>Buffer Cut</th>
-                  <th>Developer Net (Local)</th>
-                  <th>Developer Net (USD)</th>
-                  <th>Developer Net (INR)</th>
-                  <th>Gamer Profile</th>
-                  <th>Action</th>
+                  <th data-col="country">Country</th>
+                  <th data-col="currency">Currency</th>
+                  <th data-col="retail">End-User Retail Price</th>
+                  <th data-col="discount" class="col-discount-header" style="display: none;">Discounted Price</th>
+                  <th data-col="tax">Tax / VAT Cut</th>
+                  <th data-col="playcut">Google Play Cut</th>
+                  <th data-col="buffercut">Buffer Cut</th>
+                  <th data-col="netlocal">Developer Net (Local)</th>
+                  <th data-col="netusd">Developer Net (USD)</th>
+                  <th data-col="netinr">Developer Net (INR)</th>
+                  <th data-col="mindset">Gamer Profile</th>
+                  <th data-col="action">Action</th>
                 </tr>
               </thead>
               <tbody id="tbodyTier1">
@@ -453,18 +486,18 @@
             <table class="pricing-table" id="tableTier2">
               <thead>
                 <tr>
-                  <th>Country</th>
-                  <th>Currency</th>
-                  <th>End-User Retail Price</th>
-                  <th class="col-discount-header" style="display: none;">Discounted Price</th>
-                  <th>Tax / VAT Cut</th>
-                  <th>Google Play Cut</th>
-                  <th>Buffer Cut</th>
-                  <th>Developer Net (Local)</th>
-                  <th>Developer Net (USD)</th>
-                  <th>Developer Net (INR)</th>
-                  <th>Gamer Profile</th>
-                  <th>Action</th>
+                  <th data-col="country">Country</th>
+                  <th data-col="currency">Currency</th>
+                  <th data-col="retail">End-User Retail Price</th>
+                  <th data-col="discount" class="col-discount-header" style="display: none;">Discounted Price</th>
+                  <th data-col="tax">Tax / VAT Cut</th>
+                  <th data-col="playcut">Google Play Cut</th>
+                  <th data-col="buffercut">Buffer Cut</th>
+                  <th data-col="netlocal">Developer Net (Local)</th>
+                  <th data-col="netusd">Developer Net (USD)</th>
+                  <th data-col="netinr">Developer Net (INR)</th>
+                  <th data-col="mindset">Gamer Profile</th>
+                  <th data-col="action">Action</th>
                 </tr>
               </thead>
               <tbody id="tbodyTier2">
@@ -491,18 +524,18 @@
             <table class="pricing-table" id="tableTier3">
               <thead>
                 <tr>
-                  <th>Country</th>
-                  <th>Currency</th>
-                  <th>End-User Retail Price</th>
-                  <th class="col-discount-header" style="display: none;">Discounted Price</th>
-                  <th>Tax / VAT Cut</th>
-                  <th>Google Play Cut</th>
-                  <th>Buffer Cut</th>
-                  <th>Developer Net (Local)</th>
-                  <th>Developer Net (USD)</th>
-                  <th>Developer Net (INR)</th>
-                  <th>Gamer Profile</th>
-                  <th>Action</th>
+                  <th data-col="country">Country</th>
+                  <th data-col="currency">Currency</th>
+                  <th data-col="retail">End-User Retail Price</th>
+                  <th data-col="discount" class="col-discount-header" style="display: none;">Discounted Price</th>
+                  <th data-col="tax">Tax / VAT Cut</th>
+                  <th data-col="playcut">Google Play Cut</th>
+                  <th data-col="buffercut">Buffer Cut</th>
+                  <th data-col="netlocal">Developer Net (Local)</th>
+                  <th data-col="netusd">Developer Net (USD)</th>
+                  <th data-col="netinr">Developer Net (INR)</th>
+                  <th data-col="mindset">Gamer Profile</th>
+                  <th data-col="action">Action</th>
                 </tr>
               </thead>
               <tbody id="tbodyTier3">
