@@ -133,6 +133,9 @@
     599, 799, 899, 999, 1199, 1499, 1999, 2499, 2999, 3999, 4999
   ];
 
+  // Standard sub-dollar psychological price points for USD, EUR, GBP, CAD, AUD, NZD
+  const SUB_DOLLAR_LADDER = [0.09, 0.19, 0.29, 0.39, 0.49, 0.59, 0.69, 0.79, 0.89, 0.99];
+
   // DOM Elements Cache
   const elements = {};
 
@@ -367,11 +370,22 @@
     }
 
     if (['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD'].includes(currencyCode)) {
-      if (rawPrice < 0.70) return 0.49;
-      if (rawPrice < 1.25) return 0.99;
+      if (rawPrice <= 0.05) return 0.05;
+      if (rawPrice < 1.00) {
+        let closest = SUB_DOLLAR_LADDER[0];
+        let minDiff = Math.abs(rawPrice - closest);
+        for (const step of SUB_DOLLAR_LADDER) {
+          const diff = Math.abs(rawPrice - step);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closest = step;
+          }
+        }
+        return closest;
+      }
       const floor = Math.floor(rawPrice);
       const frac = rawPrice - floor;
-      if (frac < 0.35) return Math.max(0.49, floor - 0.01);
+      if (frac < 0.25) return Math.max(0.99, floor - 0.01);
       if (frac < 0.75) return floor + 0.49;
       return floor + 0.99;
     }
@@ -416,8 +430,35 @@
       const rawDiscounted = retailPrice * (1 - state.discountRate / 100);
       if (state.discountCharm) {
         discountedPrice = applyCharmPricing(rawDiscounted, country.currency);
+        // Safety guard: A promotional discount must always be strictly lower than the retail price
+        if (discountedPrice >= retailPrice) {
+          if (['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD'].includes(country.currency) && retailPrice <= 1.00) {
+            const lowerTiers = SUB_DOLLAR_LADDER.filter(t => t < retailPrice);
+            if (lowerTiers.length > 0) {
+              discountedPrice = lowerTiers[lowerTiers.length - 1];
+            } else {
+              discountedPrice = Math.max(0.01, Math.round(rawDiscounted * 100) / 100);
+            }
+          } else if (country.currency === 'INR') {
+            const lowerTiers = INR_LADDER.filter(t => t < retailPrice);
+            if (lowerTiers.length > 0) {
+              discountedPrice = lowerTiers[lowerTiers.length - 1];
+            } else {
+              discountedPrice = Math.max(1, Math.round(rawDiscounted));
+            }
+          } else {
+            discountedPrice = Math.max(0.01, Math.round(rawDiscounted * 100) / 100);
+          }
+          // Strict fallback guarantee
+          if (discountedPrice >= retailPrice) {
+            discountedPrice = Math.max(0.01, Math.round((retailPrice - 0.01) * 100) / 100);
+          }
+        }
       } else {
         discountedPrice = Math.round(rawDiscounted * 100) / 100;
+        if (discountedPrice >= retailPrice) {
+          discountedPrice = Math.max(0.01, Math.round((retailPrice - 0.01) * 100) / 100);
+        }
       }
     }
 
