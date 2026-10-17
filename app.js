@@ -1343,8 +1343,29 @@
     );
   }
 
+  // Dynamic fill tracker for 0 border-radius range sliders
+  function updateSliderFill(slider) {
+    if (!slider) return;
+    const min = parseFloat(slider.min) || 0;
+    const max = parseFloat(slider.max) || 100;
+    const val = parseFloat(slider.value) || 0;
+    const pct = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
+    slider.style.setProperty('--range-progress', `${pct}%`);
+  }
+
+  function initSliderFills() {
+    [elements.bufferFeeRange, elements.pppStrengthRange, elements.discountRateRange].forEach(slider => {
+      if (slider) {
+        updateSliderFill(slider);
+        slider.addEventListener('input', () => updateSliderFill(slider));
+      }
+    });
+  }
+
   // 11. Event Listeners Setup
   function setupEventListeners() {
+    initSliderFills();
+
     // Base Currency selection
     elements.baseCurrencyBtns.forEach(btn => {
       btn.addEventListener('click', () => {
