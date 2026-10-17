@@ -427,7 +427,37 @@
     return `${val.toFixed(1)}%`;
   }
 
-  // 5. Render Catalogue Items in UI
+  // 5. Catalogue Items Persistence & Seamless Editing
+  function saveCatalogueItems() {
+    try {
+      localStorage.setItem('playprice_catalogue', JSON.stringify({
+        items: state.catalogueItems,
+        activeProductId: state.activeProductId
+      }));
+    } catch (e) {
+      console.warn('Could not save catalogue to localStorage', e);
+    }
+  }
+
+  function loadCatalogueItems() {
+    try {
+      const saved = localStorage.getItem('playprice_catalogue');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
+          state.catalogueItems = parsed.items;
+          if (parsed.activeProductId && (parsed.activeProductId === 'app_price' || state.catalogueItems.some(i => i.id === parsed.activeProductId))) {
+            state.activeProductId = parsed.activeProductId;
+          }
+        } else if (Array.isArray(parsed) && parsed.length > 0) {
+          state.catalogueItems = parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load catalogue from localStorage', e);
+    }
+  }
+
   function renderCatalogueItems() {
     elements.catalogueItemsList.innerHTML = '';
     const baseCode = state.baseCurrency;
@@ -450,10 +480,30 @@
       elements.promoStatusPill.textContent = `Promo Offer (-${state.discountRate}%) Active`;
     }
 
+    if (state.catalogueItems.length === 0) {
+      elements.catalogueItemsList.innerHTML = `
+        <div class="empty-catalogue-box">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-muted"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          <p>No products in catalogue.</p>
+          <button class="btn btn-secondary btn-sm" id="btnEmptyReset">Restore Default SKUs</button>
+        </div>
+      `;
+      const btnEmptyReset = document.getElementById('btnEmptyReset');
+      if (btnEmptyReset) {
+        btnEmptyReset.addEventListener('click', () => {
+          elements.btnResetCatalogue.click();
+        });
+      }
+      updateActiveProductSelector();
+      return;
+    }
+
     state.catalogueItems.forEach((item) => {
+      const isActive = state.activeProductId === item.id;
       const ids = generateIapIds(state.appName, item.name, state.discountRate);
       const card = document.createElement('div');
-      card.className = 'sku-card';
+      card.className = `sku-card ${isActive ? 'is-active-sku' : ''}`;
+      card.setAttribute('data-id', item.id);
 
       let discountOfferRowHtml = '';
       if (state.discountEnabled) {
@@ -471,15 +521,44 @@
       }
 
       card.innerHTML = `
-        <div class="sku-card-top">
-          <div class="sku-info">
+        <!-- View Mode Top Bar -->
+        <div class="sku-card-top view-mode">
+          <div class="sku-info" title="Click to preview this item in pricing tables">
             <span class="sku-name">${escapeHTML(item.name)}</span>
             <span class="sku-price">${baseCode} ${item.price.toFixed(2)}</span>
+            ${isActive ? '<span class="sku-active-tag">PREVIEW</span>' : ''}
           </div>
-          <button class="sku-delete-btn" title="Delete product SKU" data-id="${item.id}">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-          </button>
+          <div class="sku-top-actions">
+            <button class="sku-action-btn sku-edit-btn" title="Edit product name &amp; price" data-id="${item.id}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="sku-action-btn sku-delete-btn" title="Delete product SKU" data-id="${item.id}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </div>
         </div>
+
+        <!-- Inline Edit Mode Bar -->
+        <div class="sku-card-top edit-mode" style="display: none;">
+          <div class="sku-inline-edit-fields">
+            <input type="text" class="sku-edit-name-input" value="${escapeHTML(item.name)}" placeholder="Product Name" spellcheck="false" autocomplete="off" required>
+            <div class="sku-edit-price-box">
+              <span class="sku-edit-curr-tag">${baseCode}</span>
+              <input type="number" step="0.01" min="0.01" class="sku-edit-price-input" value="${item.price.toFixed(2)}" placeholder="1.50" required>
+            </div>
+          </div>
+          <div class="sku-edit-actions">
+            <button type="button" class="sku-btn-save" title="Save changes (Enter)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              <span>Save</span>
+            </button>
+            <button type="button" class="sku-btn-cancel" title="Cancel (Esc)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              <span>Cancel</span>
+            </button>
+          </div>
+        </div>
+
         <div class="sku-ids-group">
           <div class="sku-id-row">
             <div class="sku-id-left">
@@ -503,7 +582,133 @@
         </div>
       `;
 
-      card.querySelector('.sku-delete-btn').addEventListener('click', (e) => {
+      const viewMode = card.querySelector('.view-mode');
+      const editMode = card.querySelector('.edit-mode');
+      const editBtn = card.querySelector('.sku-edit-btn');
+      const deleteBtn = card.querySelector('.sku-delete-btn');
+      const saveBtn = card.querySelector('.sku-btn-save');
+      const cancelBtn = card.querySelector('.sku-btn-cancel');
+      const nameInput = card.querySelector('.sku-edit-name-input');
+      const priceInput = card.querySelector('.sku-edit-price-input');
+      const skuInfo = card.querySelector('.sku-info');
+
+      // Click on sku-info selects this item as active preview
+      skuInfo.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state.activeProductId = item.id;
+        saveCatalogueItems();
+        renderCatalogueItems();
+        renderAllTables();
+        showToast(`Selected "${item.name}" for global pricing preview`, 'info');
+      });
+
+      // Enter edit mode
+      function startEditing() {
+        card.classList.add('is-editing');
+        viewMode.style.display = 'none';
+        editMode.style.display = 'flex';
+        nameInput.focus();
+        nameInput.select();
+      }
+
+      // Exit edit mode
+      function stopEditing() {
+        card.classList.remove('is-editing');
+        editMode.style.display = 'none';
+        viewMode.style.display = 'flex';
+        nameInput.value = item.name;
+        priceInput.value = item.price.toFixed(2);
+        updateCardIds(item.name);
+      }
+
+      // Real-time dynamic sync of IDs while typing
+      function updateCardIds(liveName) {
+        const liveIds = generateIapIds(state.appName, liveName, state.discountRate);
+        const prodCodeEl = card.querySelector('.product-code');
+        const offerCodeEl = card.querySelector('.offer-code');
+        const discountOfferCodeEl = card.querySelector('.discount-offer-code');
+        if (prodCodeEl) {
+          prodCodeEl.textContent = liveIds.productId;
+          prodCodeEl.title = liveIds.productId;
+          const copyBtn = prodCodeEl.closest('.sku-id-row')?.querySelector('.btn-icon-copy');
+          if (copyBtn) copyBtn.setAttribute('data-copy-val', liveIds.productId);
+        }
+        if (offerCodeEl) {
+          offerCodeEl.textContent = liveIds.offerId;
+          offerCodeEl.title = liveIds.offerId;
+          const copyBtn = offerCodeEl.closest('.sku-id-row')?.querySelector('.btn-icon-copy');
+          if (copyBtn) copyBtn.setAttribute('data-copy-val', liveIds.offerId);
+        }
+        if (discountOfferCodeEl) {
+          discountOfferCodeEl.textContent = liveIds.discountOfferId;
+          discountOfferCodeEl.title = liveIds.discountOfferId;
+          const copyBtn = discountOfferCodeEl.closest('.sku-id-row')?.querySelector('.btn-icon-copy');
+          if (copyBtn) copyBtn.setAttribute('data-copy-val', liveIds.discountOfferId);
+        }
+      }
+
+      nameInput.addEventListener('input', () => {
+        updateCardIds(nameInput.value);
+      });
+
+      // Save changes
+      function commitEdit() {
+        const newName = nameInput.value.trim();
+        const newPrice = parseFloat(priceInput.value);
+        if (!newName) {
+          showToast('Product name cannot be empty', 'warning');
+          nameInput.focus();
+          return;
+        }
+        if (isNaN(newPrice) || newPrice <= 0) {
+          showToast('Please enter a valid price greater than 0', 'warning');
+          priceInput.focus();
+          return;
+        }
+
+        item.name = newName;
+        item.price = newPrice;
+        saveCatalogueItems();
+
+        renderCatalogueItems();
+        renderAllTables();
+        showToast(`Updated "${newName}" (${state.baseCurrency} ${newPrice.toFixed(2)})`, 'success');
+      }
+
+      editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startEditing();
+      });
+
+      // Double-click on info also opens edit mode
+      skuInfo.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        startEditing();
+      });
+
+      saveBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        commitEdit();
+      });
+
+      cancelBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        stopEditing();
+      });
+
+      [nameInput, priceInput].forEach(inp => {
+        inp.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            commitEdit();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            stopEditing();
+          }
+        });
+      });
+
+      deleteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         deleteCatalogueItem(item.id);
       });
@@ -563,6 +768,7 @@
     if (state.activeProductId === id) {
       state.activeProductId = state.catalogueItems[0].id;
     }
+    saveCatalogueItems();
     renderCatalogueItems();
     renderAllTables();
     showToast('Product removed', 'info');
@@ -1258,6 +1464,7 @@
 
       state.catalogueItems.push(newItem);
       state.activeProductId = newItem.id;
+      saveCatalogueItems();
 
       elements.newItemName.value = '';
       elements.newItemPrice.value = '';
@@ -1280,6 +1487,7 @@
         { id: 'iap_8', name: 'Gold 6', price: 49.99 }
       ];
       state.activeProductId = 'iap_1';
+      saveCatalogueItems();
       renderCatalogueItems();
       renderAllTables();
       showToast('Reset catalogue to staggered game IAP tiers', 'info');
@@ -1356,6 +1564,7 @@
   // 12. Application Initialization
   async function init() {
     initDOMElements();
+    loadCatalogueItems();
     setupEventListeners();
     setupColumnPicker();
     renderCatalogueItems();

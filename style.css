@@ -987,6 +987,17 @@ input:checked + .slider.round:before {
   border-color: var(--border-strong);
 }
 
+.sku-card.is-active-sku {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(14, 25, 45, 0.85);
+}
+
+.sku-card.is-editing {
+  border-color: var(--accent-blue) !important;
+  box-shadow: 0 0 0 1px var(--accent-blue), 0 4px 16px rgba(0, 0, 0, 0.4);
+  background: rgba(15, 23, 42, 0.95);
+}
+
 .sku-card-top {
   display: flex;
   align-items: center;
@@ -996,14 +1007,22 @@ input:checked + .slider.round:before {
 
 .sku-info {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  flex-wrap: wrap;
+}
+
+.sku-info:hover .sku-name {
+  color: var(--accent-blue);
 }
 
 .sku-name {
   font-weight: 700;
   font-size: 0.88rem;
   color: #fff;
+  transition: color var(--transition-fast);
 }
 
 .sku-price {
@@ -1016,12 +1035,52 @@ input:checked + .slider.round:before {
   border-radius: 0;
 }
 
+.sku-active-tag {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: var(--accent-blue);
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 1px 5px;
+  border-radius: 0;
+  letter-spacing: 0.05em;
+}
+
+.sku-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sku-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 0;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sku-action-btn:hover {
+  color: #fff;
+  background: var(--bg-surface);
+}
+
+.sku-edit-btn:hover {
+  color: var(--accent-blue);
+  background: rgba(56, 189, 248, 0.15);
+}
+
 .sku-delete-btn {
   background: transparent;
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  padding: 4px;
+  padding: 4px 6px;
   border-radius: 0;
   transition: all var(--transition-fast);
   display: flex;
@@ -1032,6 +1091,126 @@ input:checked + .slider.round:before {
 .sku-delete-btn:hover {
   color: var(--accent-rose);
   background: rgba(248, 113, 113, 0.12);
+}
+
+/* Inline Edit Form Controls on SKU Card */
+.sku-card-top.edit-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding-bottom: 2px;
+}
+
+.sku-inline-edit-fields {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.sku-edit-name-input {
+  flex: 2;
+  min-width: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--accent-blue);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 8px;
+  border-radius: 0;
+  font-family: inherit;
+}
+
+.sku-edit-name-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+}
+
+.sku-edit-price-box {
+  flex: 1;
+  min-width: 95px;
+  display: flex;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--accent-blue);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.sku-edit-curr-tag {
+  padding: 6px 8px;
+  background: var(--bg-surface-elevated);
+  border-right: 1px solid var(--border-subtle);
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+.sku-edit-price-input {
+  width: 100%;
+  border: none !important;
+  background: transparent !important;
+  color: #fff;
+  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  padding: 6px 8px !important;
+  box-shadow: none !important;
+}
+
+.sku-edit-price-input:focus {
+  outline: none !important;
+}
+
+.sku-edit-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  width: 100%;
+}
+
+.sku-btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--accent-emerald);
+  color: #052e16;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 4px 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all var(--transition-fast);
+}
+
+.sku-btn-save:hover {
+  background: #34d399;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.4);
+}
+
+.sku-btn-cancel {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all var(--transition-fast);
+}
+
+.sku-btn-cancel:hover {
+  color: #fff;
+  border-color: var(--border-strong);
+  background: var(--bg-surface);
 }
 
 /* SKU IAP ID & Offer ID List */
