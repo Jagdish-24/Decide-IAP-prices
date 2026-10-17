@@ -89,9 +89,16 @@
     }
   };
 
-  // Vector SVG Icons for Copy & Checkmark (Strictly no emojis)
-  const COPY_ICON_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="copy-svg"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+  // Vector SVG Icons for Copy & Checkmark (Strictly zero border-radius & no emojis)
+  const COPY_ICON_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="copy-svg"><rect x="9" y="9" width="13" height="13"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
   const CHECK_ICON_SVG = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="check-svg"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+
+  // Vector SVG Icons for Toast Notifications
+  const TOAST_ICONS = {
+    info: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
+    success: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>',
+    warning: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
+  };
 
   // Slug & IAP Identifier Sanitizer
   function sanitizeSlug(text) {
@@ -1736,11 +1743,9 @@
 
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    let icon = 'ℹ️';
-    if (type === 'success') icon = '✅';
-    if (type === 'warning') icon = '⚠️';
+    const iconSvg = TOAST_ICONS[type] || TOAST_ICONS.info;
 
-    toast.innerHTML = `<span>${icon}</span><span>${escapeHTML(message)}</span>`;
+    toast.innerHTML = `<span class="toast-icon">${iconSvg}</span><span class="toast-msg">${escapeHTML(message)}</span>`;
     elements.toastContainer.appendChild(toast);
 
     setTimeout(() => {
@@ -1960,7 +1965,7 @@
     // Search bar
     elements.globalCountrySearch.addEventListener('input', (e) => {
       state.searchQuery = e.target.value.slice(0, 100);
-      elements.btnClearSearch.style.display = state.searchQuery ? 'block' : 'none';
+      elements.btnClearSearch.style.display = state.searchQuery ? 'inline-flex' : 'none';
       scheduleRenderAllTables();
     });
 
