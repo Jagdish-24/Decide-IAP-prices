@@ -348,7 +348,32 @@
   }
 
   function findSetPricingElement() {
-    const all = Array.from(document.querySelectorAll('button, [role="button"], material-button, a, div, span'));
+    // 1. Direct high-precision selectors from Google Play Console Angular / Material 3 layout
+    const directSelectors = [
+      'bulk-price-edit-button[debug-id="bulk-price-edit-button"] button',
+      '[debug-id="bulk-price-edit-button"] button',
+      'bulk-price-edit-button button',
+      'bulk-price-edit-button [role="button"]',
+      'console-button-set bulk-price-edit-button button',
+      'console-button button'
+    ];
+
+    for (const sel of directSelectors) {
+      const btn = document.querySelector(sel);
+      if (btn && !btn.closest('#play-price-automator-root')) {
+        const txt = (btn.textContent || '').replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase();
+        if (txt.includes('set pricing') || txt.includes('set price')) {
+          const isDisabled = btn.disabled || 
+                             btn.getAttribute('aria-disabled') === 'true' || 
+                             btn.classList.contains('disabled') ||
+                             btn.classList.contains('mdc-button--disabled');
+          return { clickable: btn, innerEl: btn.querySelector('.mdc-button__label') || btn, isDisabled };
+        }
+      }
+    }
+
+    // 2. Fallback: Search all interactive candidates across DOM
+    const all = Array.from(document.querySelectorAll('button, [role="button"], material-button, a, bulk-price-edit-button, div, span'));
     
     for (const el of all) {
       if (el.closest('#play-price-automator-root')) continue;
@@ -363,11 +388,12 @@
 
       if (isTarget) {
         // Resolve to outermost interactive element
-        const clickable = el.closest('button, [role="button"], material-button, a') || el;
+        const clickable = el.closest('button, [role="button"], material-button, console-button, bulk-price-edit-button, a') || el;
         if (isElementReallyVisible(clickable)) {
           const isDisabled = clickable.disabled || 
                              clickable.getAttribute('aria-disabled') === 'true' || 
-                             clickable.classList.contains('disabled');
+                             clickable.classList.contains('disabled') ||
+                             clickable.classList.contains('mdc-button--disabled');
           return { clickable, innerEl: el, isDisabled };
         }
       }
