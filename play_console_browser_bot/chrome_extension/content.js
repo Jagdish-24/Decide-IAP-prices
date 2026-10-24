@@ -320,58 +320,123 @@
     return false;
   }
 
-  function isSelectionModeActive() {
-    // Check if table rows have checkboxes OR if the bottom action bar with Continue/Cancel is present
-    const hasRowCheckbox = !!document.querySelector(
-      'table input[type="checkbox"], [role="row"] input[type="checkbox"], [role="row"] [role="checkbox"], material-checkbox'
-    );
-    const hasContinueBar = Array.from(document.querySelectorAll('button, [role="button"]')).some(b => {
-      const txt = b.textContent.trim().toLowerCase();
-      return (txt === 'continue' || txt === 'cancel') && b.offsetParent !== null && !b.closest('#play-price-automator-root');
-    });
-    return hasRowCheckbox || hasContinueBar;
+  function isElementReallyVisible(el) {
+    if (!el) return false;
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return false;
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
   }
 
-  async function clickSetPricingButton(timeoutMs = 5000) {
-    if (isSelectionModeActive()) {
-      return true;
-    }
+  function simulateFullClick(el) {
+    if (!el) return;
+    el.scrollIntoView({ block: 'center', inline: 'center' });
+    
+    const rect = el.getBoundingClientRect();
+    const clientX = rect.left + rect.width / 2;
+    const clientY = rect.top + rect.height / 2;
+    const opts = { bubbles: true, cancelable: true, view: window, clientX, clientY };
 
-    log('🔍 Finding "Set pricing" button in Google Play Console...');
+    el.dispatchEvent(new PointerEvent('pointerdown', opts));
+    el.dispatchEvent(new MouseEvent('mousedown', opts));
+    el.dispatchEvent(new PointerEvent('pointerup', opts));
+    el.dispatchEvent(new MouseEvent('mouseup', opts));
+    el.dispatchEvent(new MouseEvent('click', opts));
+    if (typeof el.click === 'function') {
+      try { el.click(); } catch (e) { /* ignore */ }
+    }
+  }
+
+  function findSetPricingElement() {
+    const all = Array.from(document.querySelectorAll('button, [role="button"], material-button, a, div, span'));
+    
+    for (const el of all) {
+      if (el.closest('#play-price-automator-root')) continue;
+
+      const txt = (el.textContent || '').replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase();
+      const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
+      
+      const isTarget = txt === 'set pricing' || 
+                       txt === 'set price' || 
+                       ariaLabel === 'set pricing' || 
+                       ariaLabel === 'set price';
+
+      if (isTarget) {
+        // Resolve to outermost interactive element
+        const clickable = el.closest('button, [role="button"], material-button, a') || el;
+        if (isElementReallyVisible(clickable)) {
+          const isDisabled = clickable.disabled || 
+                             clickable.getAttribute('aria-disabled') === 'true' || 
+                             clickable.classList.contains('disabled');
+          return { clickable, innerEl: el, isDisabled };
+        }
+      }
+    }
+    return null;
+  }
+
+  function isPricingTableInSelectionMode() {
+    // Only consider selection mode active if pricing table rows explicitly contain row checkboxes
+    const tableCheckboxes = Array.from(document.querySelectorAll(
+      'table tbody input[type="checkbox"], [role="rowgroup"] [role="row"] [role="checkbox"], [role="rowgroup"] [role="row"] input[type="checkbox"], material-table material-checkbox'
+    )).filter(chk => !chk.closest('#play-price-automator-root') && isElementReallyVisible(chk));
+
+    return tableCheckboxes.length > 0;
+  }
+
+  async function clickSetPricingButton(timeoutMs = 6000) {
+    log('🔍 Locating "Set pricing" button in Google Play Console...');
     const start = Date.now();
+
     while (Date.now() - start < timeoutMs) {
       if (!state.isRunning) return false;
 
-      const candidates = Array.from(document.querySelectorAll('button, [role="button"], a, div, span'));
-      const btn = candidates.find(el => {
-        if (el.closest('#play-price-automator-root')) return false;
-        const txt = el.textContent.trim().toLowerCase();
-        const isVisible = el.offsetParent !== null;
-        return (txt === 'set pricing' || txt === 'set price') && isVisible;
-      });
+      const target = findSetPricingElement();
 
-      if (btn) {
-        btn.scrollIntoView({ block: 'center' });
-        await humanMicroPause(120, 240);
-        btn.click();
-        log('👆 Clicked "Set pricing" button. Waiting for selection state...');
+      if (target) {
+        if (target.isDisabled) {
+          // If the button is disabled, selection mode is already active
+          log('ℹ️ "Set pricing" button is currently disabled (selection mode active).');
+          return true;
+        }
 
-        // Wait for checkboxes or continue bar to appear
+        log('👆 Clicking "Set pricing" button...');
+        // Click both the clickable wrapper and the inner element with full event simulation
+        simulateFullClick(target.clickable);
+        if (target.innerEl && target.innerEl !== target.clickable) {
+          simulateFullClick(target.innerEl);
+        }
+
+        // Wait for selection mode or row checkboxes to appear
         const waitStart = Date.now();
         while (Date.now() - waitStart < 3500) {
-          if (isSelectionModeActive()) {
+          if (isPricingTableInSelectionMode()) {
             log('✅ "Set pricing" selection state active.');
             await humanMicroPause(150, 300);
             return true;
           }
-          await sleep(100);
+          await sleep(120);
+        }
+
+        // If target became disabled, it was accepted
+        const recheck = findSetPricingElement();
+        if (recheck && recheck.isDisabled) {
+          log('✅ "Set pricing" accepted.');
+          return true;
         }
         return true;
       }
+
+      // Check if table already has active row checkboxes
+      if (isPricingTableInSelectionMode()) {
+        log('✅ Table already in selection state with checkboxes.');
+        return true;
+      }
+
       await sleep(200);
     }
 
-    log('⚠️ Could not find "Set pricing" button.');
+    log('⚠️ Could not locate or click active "Set pricing" button.');
     return false;
   }
 
@@ -471,29 +536,28 @@
 
     if (!isChecked) {
       const clickTarget = chk.closest('material-checkbox, label') || chk;
-      clickTarget.scrollIntoView({ block: 'center', inline: 'nearest' });
-      await humanMicroPause(120, 240);
-      clickTarget.click();
+      simulateFullClick(clickTarget);
       await humanMicroPause(150, 300);
     }
     return true;
   }
 
-  async function clickBottomContinueButton(timeoutMs = 4000) {
+  async function clickBottomContinueButton(timeoutMs = 4500) {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
       if (!state.isRunning) return false;
-      const btns = Array.from(document.querySelectorAll('button, [role="button"], a'));
+      const btns = Array.from(document.querySelectorAll('button, [role="button"], a, material-button'));
       const continueBtn = btns.find(b => {
-        const txt = b.textContent.trim().toLowerCase();
-        const isVisible = b.offsetParent !== null;
+        if (b.closest('#play-price-automator-root')) return false;
+        const txt = (b.textContent || '').replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase();
+        const isVisible = isElementReallyVisible(b);
         const isNotDisabled = !b.disabled && b.getAttribute('aria-disabled') !== 'true' && !b.classList.contains('disabled');
-        return (txt === 'continue' || txt === 'next') && isVisible && isNotDisabled && !b.closest('#play-price-automator-root');
+        return (txt === 'continue' || txt === 'next') && isVisible && isNotDisabled;
       });
       if (continueBtn) {
         continueBtn.scrollIntoView({ block: 'nearest' });
         await humanMicroPause(120, 260);
-        continueBtn.click();
+        simulateFullClick(continueBtn);
         return true;
       }
       await sleep(120);
@@ -628,23 +692,22 @@
 
   async function clickModalUpdateButton(dialog) {
     if (!dialog) return false;
-    const btns = Array.from(dialog.querySelectorAll('button, [role="button"]'));
+    const btns = Array.from(dialog.querySelectorAll('button, [role="button"], material-button, a'));
     const updateBtn = btns.find(b => {
-      const txt = b.textContent.trim().toLowerCase();
-      const isVisible = b.offsetParent !== null;
-      const isNotDisabled = !b.disabled && b.getAttribute('aria-disabled') !== 'true';
+      const txt = (b.textContent || '').replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase();
+      const isVisible = isElementReallyVisible(b);
+      const isNotDisabled = !b.disabled && b.getAttribute('aria-disabled') !== 'true' && !b.classList.contains('disabled');
       return (txt === 'update' || txt === 'apply' || txt === 'save') && isVisible && isNotDisabled;
     });
 
     if (updateBtn) {
-      updateBtn.scrollIntoView({ block: 'nearest' });
       await humanMicroPause(150, 300);
-      updateBtn.click();
+      simulateFullClick(updateBtn);
       
       // Wait for dialog to disappear
       const start = Date.now();
       while (Date.now() - start < 3500) {
-        if (!document.body.contains(dialog) || dialog.offsetParent === null) {
+        if (!document.body.contains(dialog) || !isElementReallyVisible(dialog)) {
           return true;
         }
         await sleep(100);
