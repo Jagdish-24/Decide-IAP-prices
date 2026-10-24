@@ -1,0 +1,1058 @@
+[
+  {
+    "name": "Albania",
+    "code": "AL",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Algeria",
+    "code": "DZ",
+    "currency": "DZD",
+    "tier": 3
+  },
+  {
+    "name": "Angola",
+    "code": "AO",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Antigua & Barbuda",
+    "code": "AG",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Argentina",
+    "code": "AR",
+    "currency": "ARS",
+    "tier": 2
+  },
+  {
+    "name": "Armenia",
+    "code": "AM",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Aruba",
+    "code": "AW",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Australia",
+    "code": "AU",
+    "currency": "AUD",
+    "tier": 1
+  },
+  {
+    "name": "Austria",
+    "code": "AT",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "Azerbaijan",
+    "code": "AZ",
+    "currency": "AZN",
+    "tier": 2
+  },
+  {
+    "name": "Bahamas",
+    "code": "BS",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Bahrain",
+    "code": "BH",
+    "currency": "USD",
+    "tier": 1
+  },
+  {
+    "name": "Bangladesh",
+    "code": "BD",
+    "currency": "BDT",
+    "tier": 3
+  },
+  {
+    "name": "Belarus",
+    "code": "BY",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Belgium",
+    "code": "BE",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "Belize",
+    "code": "BZ",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Benin",
+    "code": "BJ",
+    "currency": "EUR",
+    "tier": 3
+  },
+  {
+    "name": "Bermuda",
+    "code": "BM",
+    "currency": "USD",
+    "tier": 1
+  },
+  {
+    "name": "Bolivia",
+    "code": "BO",
+    "currency": "BOB",
+    "tier": 3
+  },
+  {
+    "name": "Bosnia & Herzegovina",
+    "code": "BA",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Botswana",
+    "code": "BW",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Brazil",
+    "code": "BR",
+    "currency": "BRL",
+    "tier": 2
+  },
+  {
+    "name": "British Virgin Islands",
+    "code": "VG",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Bulgaria",
+    "code": "BG",
+    "currency": "EUR",
+    "tier": 2
+  },
+  {
+    "name": "Burkina Faso",
+    "code": "BF",
+    "currency": "EUR",
+    "tier": 3
+  },
+  {
+    "name": "Cambodia",
+    "code": "KH",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Cameroon",
+    "code": "CM",
+    "currency": "XAF",
+    "tier": 3
+  },
+  {
+    "name": "Canada",
+    "code": "CA",
+    "currency": "CAD",
+    "tier": 1
+  },
+  {
+    "name": "Cape Verde",
+    "code": "CV",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Cayman Islands",
+    "code": "KY",
+    "currency": "USD",
+    "tier": 1
+  },
+  {
+    "name": "Central African Republic",
+    "code": "CF",
+    "currency": "EUR",
+    "tier": 3
+  },
+  {
+    "name": "Chad",
+    "code": "TD",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Chile",
+    "code": "CL",
+    "currency": "CLP",
+    "tier": 2
+  },
+  {
+    "name": "Colombia",
+    "code": "CO",
+    "currency": "COP",
+    "tier": 2
+  },
+  {
+    "name": "Comoros",
+    "code": "KM",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Congo - Brazzaville",
+    "code": "CG",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Congo - Kinshasa",
+    "code": "CD",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Costa Rica",
+    "code": "CR",
+    "currency": "CRC",
+    "tier": 2
+  },
+  {
+    "name": "Croatia",
+    "code": "HR",
+    "currency": "EUR",
+    "tier": 2
+  },
+  {
+    "name": "Cyprus",
+    "code": "CY",
+    "currency": "EUR",
+    "tier": 2
+  },
+  {
+    "name": "Czechia",
+    "code": "CZ",
+    "currency": "CZK",
+    "tier": 2
+  },
+  {
+    "name": "Côte d’Ivoire",
+    "code": "CI",
+    "currency": "XOF",
+    "tier": 3
+  },
+  {
+    "name": "Denmark",
+    "code": "DK",
+    "currency": "DKK",
+    "tier": 1
+  },
+  {
+    "name": "Djibouti",
+    "code": "DJ",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Dominica",
+    "code": "DM",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Dominican Republic",
+    "code": "DO",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Ecuador",
+    "code": "EC",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Egypt",
+    "code": "EG",
+    "currency": "EGP",
+    "tier": 3
+  },
+  {
+    "name": "El Salvador",
+    "code": "SV",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Eritrea",
+    "code": "ER",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Estonia",
+    "code": "EE",
+    "currency": "EUR",
+    "tier": 2
+  },
+  {
+    "name": "Ethiopia",
+    "code": "ET",
+    "currency": "ETB",
+    "tier": 3
+  },
+  {
+    "name": "Fiji",
+    "code": "FJ",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Finland",
+    "code": "FI",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "France",
+    "code": "FR",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "Gabon",
+    "code": "GA",
+    "currency": "EUR",
+    "tier": 3
+  },
+  {
+    "name": "Gambia",
+    "code": "GM",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Georgia",
+    "code": "GE",
+    "currency": "GEL",
+    "tier": 2
+  },
+  {
+    "name": "Germany",
+    "code": "DE",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "Ghana",
+    "code": "GH",
+    "currency": "GHS",
+    "tier": 3
+  },
+  {
+    "name": "Gibraltar",
+    "code": "GI",
+    "currency": "GBP",
+    "tier": 2
+  },
+  {
+    "name": "Greece",
+    "code": "GR",
+    "currency": "EUR",
+    "tier": 2
+  },
+  {
+    "name": "Grenada",
+    "code": "GD",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Guatemala",
+    "code": "GT",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Guinea",
+    "code": "GN",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Guinea-Bissau",
+    "code": "GW",
+    "currency": "EUR",
+    "tier": 3
+  },
+  {
+    "name": "Haiti",
+    "code": "HT",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Honduras",
+    "code": "HN",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Hong Kong",
+    "code": "HK",
+    "currency": "HKD",
+    "tier": 1
+  },
+  {
+    "name": "Hungary",
+    "code": "HU",
+    "currency": "HUF",
+    "tier": 2
+  },
+  {
+    "name": "Iceland",
+    "code": "IS",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "India",
+    "code": "IN",
+    "currency": "INR",
+    "tier": 3
+  },
+  {
+    "name": "Indonesia",
+    "code": "ID",
+    "currency": "IDR",
+    "tier": 3
+  },
+  {
+    "name": "Iraq",
+    "code": "IQ",
+    "currency": "IQD",
+    "tier": 3
+  },
+  {
+    "name": "Ireland",
+    "code": "IE",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "Israel",
+    "code": "IL",
+    "currency": "ILS",
+    "tier": 1
+  },
+  {
+    "name": "Italy",
+    "code": "IT",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "Jamaica",
+    "code": "JM",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Japan",
+    "code": "JP",
+    "currency": "JPY",
+    "tier": 1
+  },
+  {
+    "name": "Jordan",
+    "code": "JO",
+    "currency": "JOD",
+    "tier": 2
+  },
+  {
+    "name": "Kazakhstan",
+    "code": "KZ",
+    "currency": "KZT",
+    "tier": 2
+  },
+  {
+    "name": "Kenya",
+    "code": "KE",
+    "currency": "KES",
+    "tier": 3
+  },
+  {
+    "name": "Kuwait",
+    "code": "KW",
+    "currency": "USD",
+    "tier": 1
+  },
+  {
+    "name": "Kyrgyzstan",
+    "code": "KG",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Laos",
+    "code": "LA",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Latvia",
+    "code": "LV",
+    "currency": "EUR",
+    "tier": 2
+  },
+  {
+    "name": "Lebanon",
+    "code": "LB",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Liberia",
+    "code": "LR",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Libya",
+    "code": "LY",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Liechtenstein",
+    "code": "LI",
+    "currency": "CHF",
+    "tier": 1
+  },
+  {
+    "name": "Lithuania",
+    "code": "LT",
+    "currency": "EUR",
+    "tier": 2
+  },
+  {
+    "name": "Luxembourg",
+    "code": "LU",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "Macao",
+    "code": "MO",
+    "currency": "MOP",
+    "tier": 2
+  },
+  {
+    "name": "Malaysia",
+    "code": "MY",
+    "currency": "MYR",
+    "tier": 2
+  },
+  {
+    "name": "Maldives",
+    "code": "MV",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Mali",
+    "code": "ML",
+    "currency": "EUR",
+    "tier": 3
+  },
+  {
+    "name": "Malta",
+    "code": "MT",
+    "currency": "EUR",
+    "tier": 2
+  },
+  {
+    "name": "Mauritius",
+    "code": "MU",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Mexico",
+    "code": "MX",
+    "currency": "MXN",
+    "tier": 2
+  },
+  {
+    "name": "Micronesia",
+    "code": "FM",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Moldova",
+    "code": "MD",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Monaco",
+    "code": "MC",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "Mongolia",
+    "code": "MN",
+    "currency": "MNT",
+    "tier": 3
+  },
+  {
+    "name": "Morocco",
+    "code": "MA",
+    "currency": "MAD",
+    "tier": 3
+  },
+  {
+    "name": "Mozambique",
+    "code": "MZ",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Myanmar (Burma)",
+    "code": "MM",
+    "currency": "MMK",
+    "tier": 3
+  },
+  {
+    "name": "Namibia",
+    "code": "NA",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Nepal",
+    "code": "NP",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Netherlands",
+    "code": "NL",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "New Zealand",
+    "code": "NZ",
+    "currency": "NZD",
+    "tier": 1
+  },
+  {
+    "name": "Nicaragua",
+    "code": "NI",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Niger",
+    "code": "NE",
+    "currency": "EUR",
+    "tier": 3
+  },
+  {
+    "name": "Nigeria",
+    "code": "NG",
+    "currency": "NGN",
+    "tier": 3
+  },
+  {
+    "name": "North Macedonia",
+    "code": "MK",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Norway",
+    "code": "NO",
+    "currency": "NOK",
+    "tier": 1
+  },
+  {
+    "name": "Oman",
+    "code": "OM",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Pakistan",
+    "code": "PK",
+    "currency": "PKR",
+    "tier": 3
+  },
+  {
+    "name": "Panama",
+    "code": "PA",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Papua New Guinea",
+    "code": "PG",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Paraguay",
+    "code": "PY",
+    "currency": "PYG",
+    "tier": 3
+  },
+  {
+    "name": "Peru",
+    "code": "PE",
+    "currency": "PEN",
+    "tier": 2
+  },
+  {
+    "name": "Philippines",
+    "code": "PH",
+    "currency": "PHP",
+    "tier": 3
+  },
+  {
+    "name": "Poland",
+    "code": "PL",
+    "currency": "PLN",
+    "tier": 2
+  },
+  {
+    "name": "Portugal",
+    "code": "PT",
+    "currency": "EUR",
+    "tier": 2
+  },
+  {
+    "name": "Qatar",
+    "code": "QA",
+    "currency": "QAR",
+    "tier": 1
+  },
+  {
+    "name": "Romania",
+    "code": "RO",
+    "currency": "RON",
+    "tier": 2
+  },
+  {
+    "name": "Russia",
+    "code": "RU",
+    "currency": "RUB",
+    "tier": 2
+  },
+  {
+    "name": "Rwanda",
+    "code": "RW",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Samoa",
+    "code": "WS",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "San Marino",
+    "code": "SM",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "Saudi Arabia",
+    "code": "SA",
+    "currency": "SAR",
+    "tier": 1
+  },
+  {
+    "name": "Senegal",
+    "code": "SN",
+    "currency": "XOF",
+    "tier": 3
+  },
+  {
+    "name": "Serbia",
+    "code": "RS",
+    "currency": "RSD",
+    "tier": 2
+  },
+  {
+    "name": "Seychelles",
+    "code": "SC",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Sierra Leone",
+    "code": "SL",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Singapore",
+    "code": "SG",
+    "currency": "SGD",
+    "tier": 1
+  },
+  {
+    "name": "Slovakia",
+    "code": "SK",
+    "currency": "EUR",
+    "tier": 2
+  },
+  {
+    "name": "Slovenia",
+    "code": "SI",
+    "currency": "EUR",
+    "tier": 2
+  },
+  {
+    "name": "Solomon Islands",
+    "code": "SB",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Somalia",
+    "code": "SO",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "South Africa",
+    "code": "ZA",
+    "currency": "ZAR",
+    "tier": 2
+  },
+  {
+    "name": "South Korea",
+    "code": "KR",
+    "currency": "KRW",
+    "tier": 1
+  },
+  {
+    "name": "Spain",
+    "code": "ES",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "Sri Lanka",
+    "code": "LK",
+    "currency": "LKR",
+    "tier": 3
+  },
+  {
+    "name": "St Kitts & Nevis",
+    "code": "KN",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "St Lucia",
+    "code": "LC",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Suriname",
+    "code": "SR",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Sweden",
+    "code": "SE",
+    "currency": "SEK",
+    "tier": 1
+  },
+  {
+    "name": "Switzerland",
+    "code": "CH",
+    "currency": "CHF",
+    "tier": 1
+  },
+  {
+    "name": "Taiwan",
+    "code": "TW",
+    "currency": "TWD",
+    "tier": 1
+  },
+  {
+    "name": "Tajikistan",
+    "code": "TJ",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Tanzania",
+    "code": "TZ",
+    "currency": "TZS",
+    "tier": 3
+  },
+  {
+    "name": "Thailand",
+    "code": "TH",
+    "currency": "THB",
+    "tier": 2
+  },
+  {
+    "name": "Togo",
+    "code": "TG",
+    "currency": "EUR",
+    "tier": 3
+  },
+  {
+    "name": "Tonga",
+    "code": "TO",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Trinidad & Tobago",
+    "code": "TT",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Tunisia",
+    "code": "TN",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Turkmenistan",
+    "code": "TM",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Turks & Caicos Islands",
+    "code": "TC",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Türkiye",
+    "code": "TR",
+    "currency": "TRY",
+    "tier": 2
+  },
+  {
+    "name": "Uganda",
+    "code": "UG",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Ukraine",
+    "code": "UA",
+    "currency": "UAH",
+    "tier": 3
+  },
+  {
+    "name": "United Arab Emirates",
+    "code": "AE",
+    "currency": "AED",
+    "tier": 1
+  },
+  {
+    "name": "United Kingdom",
+    "code": "GB",
+    "currency": "GBP",
+    "tier": 1
+  },
+  {
+    "name": "United States",
+    "code": "US",
+    "currency": "USD",
+    "tier": 1
+  },
+  {
+    "name": "Uruguay",
+    "code": "UY",
+    "currency": "USD",
+    "tier": 2
+  },
+  {
+    "name": "Uzbekistan",
+    "code": "UZ",
+    "currency": "UZS",
+    "tier": 3
+  },
+  {
+    "name": "Vanuatu",
+    "code": "VU",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Vatican City",
+    "code": "VA",
+    "currency": "EUR",
+    "tier": 1
+  },
+  {
+    "name": "Venezuela",
+    "code": "VE",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Vietnam",
+    "code": "VN",
+    "currency": "VND",
+    "tier": 3
+  },
+  {
+    "name": "Yemen",
+    "code": "YE",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Zambia",
+    "code": "ZM",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "Zimbabwe",
+    "code": "ZW",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "New countries/regions (USD)",
+    "code": "GLOBAL_USD",
+    "currency": "USD",
+    "tier": 3
+  },
+  {
+    "name": "New countries/regions (EUR)",
+    "code": "GLOBAL_EUR",
+    "currency": "EUR",
+    "tier": 3
+  }
+]

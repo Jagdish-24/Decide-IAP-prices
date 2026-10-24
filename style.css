@@ -1616,6 +1616,32 @@ input:checked + .slider.round:before {
   width: 100%;
 }
 
+.quick-export-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-bot-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--transition-fast);
+}
+
+.btn-bot-export.is-sale {
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.btn-bot-export.is-sale:hover {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: #fbbf24;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+}
+
 .control-item-selector {
   display: flex;
   align-items: center;

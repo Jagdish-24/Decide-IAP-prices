@@ -1,0 +1,175 @@
+Country Name,Country Code,Country Tier,Currency,Retail Price,Discounted Price
+"Albania",AL,3,USD,0.99,0.19
+"Algeria",DZ,3,DZD,100,30
+"Angola",AO,3,USD,0.99,0.19
+"Antigua & Barbuda",AG,2,USD,0.99,0.29
+"Argentina",AR,2,ARS,419,209
+"Armenia",AM,3,USD,0.99,0.19
+"Aruba",AW,2,USD,0.99,0.29
+"Australia",AU,1,AUD,1.49,0.79
+"Austria",AT,1,EUR,0.99,0.49
+"Azerbaijan",AZ,2,AZN,1,0.49
+"Bahamas",BS,2,USD,0.99,0.29
+"Bahrain",BH,1,USD,0.99,0.49
+"Bangladesh",BD,3,BDT,29,19
+"Belarus",BY,3,USD,0.99,0.19
+"Belgium",BE,1,EUR,0.99,0.49
+"Belize",BZ,3,USD,0.99,0.19
+"Benin",BJ,3,EUR,0.99,0.19
+"Bermuda",BM,1,USD,0.99,0.49
+"Bolivia",BO,3,BOB,6,1.99
+"Bosnia & Herzegovina",BA,2,USD,0.99,0.29
+"Botswana",BW,3,USD,0.99,0.19
+"Brazil",BR,2,BRL,2.9,1.49
+"British Virgin Islands",VG,3,USD,0.99,0.19
+"Bulgaria",BG,2,EUR,0.99,0.29
+"Burkina Faso",BF,3,EUR,0.99,0.19
+"Cambodia",KH,3,USD,0.99,0.19
+"Cameroon",CM,3,XAF,500,100
+"Canada",CA,1,CAD,1.49,0.79
+"Cape Verde",CV,3,USD,0.99,0.19
+"Cayman Islands",KY,1,USD,0.99,0.49
+"Central African Republic",CF,3,EUR,0.99,0.19
+"Chad",TD,3,USD,0.99,0.19
+"Chile",CL,2,CLP,569,289
+"Colombia",CO,2,COP,3000,899
+"Comoros",KM,3,USD,0.99,0.19
+"Congo - Brazzaville",CG,3,USD,0.99,0.19
+"Congo - Kinshasa",CD,3,USD,0.99,0.19
+"Costa Rica",CR,2,CRC,500,129
+"Croatia",HR,2,EUR,0.99,0.29
+"Cyprus",CY,2,EUR,0.99,0.29
+"Czechia",CZ,2,CZK,19,9.49
+"Côte d’Ivoire",CI,3,XOF,500,100
+"Denmark",DK,1,DKK,8.49,3.99
+"Djibouti",DJ,3,USD,0.99,0.19
+"Dominica",DM,3,USD,0.99,0.19
+"Dominican Republic",DO,2,USD,0.99,0.29
+"Ecuador",EC,3,USD,0.99,0.19
+"Egypt",EG,3,EGP,19,9.49
+"El Salvador",SV,3,USD,0.99,0.19
+"Eritrea",ER,3,USD,0.99,0.19
+"Estonia",EE,2,EUR,0.99,0.29
+"Ethiopia",ET,3,ETB,59,29
+"Fiji",FJ,3,USD,0.99,0.19
+"Finland",FI,1,EUR,0.99,0.49
+"France",FR,1,EUR,0.99,0.49
+"Gabon",GA,3,EUR,0.99,0.19
+"Gambia",GM,3,USD,0.99,0.19
+"Georgia",GE,2,GEL,2.5,0.79
+"Germany",DE,1,EUR,0.99,0.49
+"Ghana",GH,3,GHS,10,2
+"Gibraltar",GI,2,GBP,0.79,0.19
+"Greece",GR,2,EUR,0.99,0.29
+"Grenada",GD,3,USD,0.99,0.19
+"Guatemala",GT,3,USD,0.99,0.19
+"Guinea",GN,3,USD,0.99,0.19
+"Guinea-Bissau",GW,3,EUR,0.99,0.19
+"Haiti",HT,3,USD,0.99,0.19
+"Honduras",HN,3,USD,0.99,0.19
+"Hong Kong",HK,1,HKD,8.49,3.99
+"Hungary",HU,2,HUF,300,99
+"Iceland",IS,1,EUR,0.99,0.49
+"India",IN,3,INR,29,10
+"Indonesia",ID,3,IDR,6399,3199
+"Iraq",IQ,3,IQD,539,269
+"Ireland",IE,1,EUR,0.99,0.49
+"Israel",IL,1,ILS,3.9,1.49
+"Italy",IT,1,EUR,0.99,0.49
+"Jamaica",JM,3,USD,0.99,0.19
+"Japan",JP,1,JPY,170,90
+"Jordan",JO,2,JOD,0.7,0.19
+"Kazakhstan",KZ,2,KZT,400,129
+"Kenya",KE,3,KES,100,29
+"Kuwait",KW,1,USD,0.99,0.49
+"Kyrgyzstan",KG,3,USD,0.99,0.19
+"Laos",LA,3,USD,0.99,0.19
+"Latvia",LV,2,EUR,0.99,0.29
+"Lebanon",LB,3,USD,0.99,0.19
+"Liberia",LR,3,USD,0.99,0.19
+"Libya",LY,3,USD,0.99,0.19
+"Liechtenstein",LI,1,CHF,1,0.49
+"Lithuania",LT,2,EUR,0.99,0.29
+"Luxembourg",LU,1,EUR,0.99,0.49
+"Macao",MO,2,MOP,8,1.99
+"Malaysia",MY,2,MYR,4,0.99
+"Maldives",MV,3,USD,0.99,0.19
+"Mali",ML,3,EUR,0.99,0.19
+"Malta",MT,2,EUR,0.99,0.29
+"Mauritius",MU,2,USD,0.99,0.29
+"Mexico",MX,2,MXN,10,4.99
+"Micronesia",FM,3,USD,0.99,0.19
+"Moldova",MD,3,USD,0.99,0.19
+"Monaco",MC,1,EUR,0.99,0.49
+"Mongolia",MN,3,MNT,3000,649
+"Morocco",MA,3,MAD,10,1.49
+"Mozambique",MZ,3,USD,0.99,0.19
+"Myanmar (Burma)",MM,3,MMK,749,379
+"Namibia",NA,3,USD,0.99,0.19
+"Nepal",NP,3,USD,0.99,0.19
+"Netherlands",NL,1,EUR,0.99,0.49
+"New Zealand",NZ,1,NZD,1.99,0.99
+"Nicaragua",NI,3,USD,0.99,0.19
+"Niger",NE,3,EUR,0.99,0.19
+"Nigeria",NG,3,NGN,500,189
+"North Macedonia",MK,2,USD,0.99,0.29
+"Norway",NO,1,NOK,19,9.49
+"Oman",OM,2,USD,0.99,0.29
+"Pakistan",PK,3,PKR,100,39
+"Panama",PA,2,USD,0.99,0.29
+"Papua New Guinea",PG,3,USD,0.99,0.19
+"Paraguay",PY,3,PYG,1999,999
+"Peru",PE,2,PEN,3,0.99
+"Philippines",PH,3,PHP,50,15
+"Poland",PL,2,PLN,2.49,0.99
+"Portugal",PT,2,EUR,0.99,0.29
+"Qatar",QA,1,QAR,3.99,1.99
+"Romania",RO,2,RON,4,1
+"Russia",RU,2,RUB,49,29
+"Rwanda",RW,3,USD,0.99,0.19
+"Samoa",WS,3,USD,0.99,0.19
+"San Marino",SM,1,EUR,0.99,0.49
+"Saudi Arabia",SA,1,SAR,3.99,1.99
+"Senegal",SN,3,XOF,500,100
+"Serbia",RS,2,RSD,100,29
+"Seychelles",SC,2,USD,0.99,0.29
+"Sierra Leone",SL,3,USD,0.99,0.19
+"Singapore",SG,1,SGD,1.49,0.79
+"Slovakia",SK,2,EUR,0.99,0.29
+"Slovenia",SI,2,EUR,0.99,0.29
+"Solomon Islands",SB,3,USD,0.99,0.19
+"Somalia",SO,3,USD,0.99,0.19
+"South Africa",ZA,2,ZAR,10,4.49
+"South Korea",KR,1,KRW,1399,699
+"Spain",ES,1,EUR,0.99,0.49
+"Sri Lanka",LK,3,LKR,200,59
+"St Kitts & Nevis",KN,3,USD,0.99,0.19
+"St Lucia",LC,3,USD,0.99,0.19
+"Suriname",SR,3,USD,0.99,0.19
+"Sweden",SE,1,SEK,10,4.99
+"Switzerland",CH,1,CHF,1,0.49
+"Taiwan",TW,1,TWD,30,19
+"Tajikistan",TJ,3,USD,0.99,0.19
+"Tanzania",TZ,3,TZS,939,469
+"Thailand",TH,2,THB,30,10
+"Togo",TG,3,EUR,0.99,0.19
+"Tonga",TO,3,USD,0.99,0.19
+"Trinidad & Tobago",TT,2,USD,0.99,0.29
+"Tunisia",TN,3,USD,0.99,0.19
+"Turkmenistan",TM,3,USD,0.99,0.19
+"Turks & Caicos Islands",TC,3,USD,0.99,0.19
+"Türkiye",TR,2,TRY,19,9.49
+"Uganda",UG,3,USD,0.99,0.19
+"Ukraine",UA,3,UAH,25,9.49
+"United Arab Emirates",AE,1,AED,3.99,1.99
+"United Kingdom",GB,1,GBP,0.79,0.39
+"United States",US,1,USD,0.99,0.49
+"Uruguay",UY,2,USD,0.99,0.29
+"Uzbekistan",UZ,3,UZS,4299,2199
+"Vanuatu",VU,3,USD,0.99,0.19
+"Vatican City",VA,1,EUR,0.99,0.49
+"Venezuela",VE,3,USD,0.99,0.19
+"Vietnam",VN,3,VND,20000,4599
+"Yemen",YE,3,USD,0.99,0.19
+"Zambia",ZM,3,USD,0.99,0.19
+"Zimbabwe",ZW,3,USD,0.99,0.19

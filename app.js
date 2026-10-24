@@ -262,6 +262,8 @@
     elements.btnExportAllCsv = document.getElementById('btnExportAllCsv');
     elements.btnExportApiJson = document.getElementById('btnExportApiJson');
     elements.btnExportMasterCsv = document.getElementById('btnExportMasterCsv');
+    elements.btnExportBotCsv = document.getElementById('btnExportBotCsv');
+    elements.btnExportBotCsvLabel = document.getElementById('btnExportBotCsvLabel');
     elements.btnExportData = document.getElementById('btnExportData');
     elements.btnImportData = document.getElementById('btnImportData');
     elements.importFileInput = document.getElementById('importFileInput');
@@ -2147,6 +2149,7 @@
         if (elements.discountOfferSyntaxBadge) {
           elements.discountOfferSyntaxBadge.style.display = state.discountEnabled ? 'inline-flex' : 'none';
         }
+        updateBotExportButton();
         if (elements.discountRateRange) {
           elements.discountRateRange.value = state.discountRate;
           if (elements.discountRateDisplay) elements.discountRateDisplay.textContent = `${state.discountRate}% OFF`;
@@ -2231,7 +2234,86 @@
     showToast(`Exported Master CSV with ${items.length} SKUs across all 176 locations`, 'success');
   }
 
-  // 9c. Direct Google Play API JSON Payload Export (androidpublisher:v3 inappproducts format)
+  // 9c. Dynamic Bot Export Button state handler
+  function updateBotExportButton() {
+    if (!elements.btnExportBotCsv || !elements.btnExportBotCsvLabel) return;
+    if (state.discountEnabled) {
+      elements.btnExportBotCsvLabel.textContent = 'Bot CSV (Sale Prices)';
+      elements.btnExportBotCsv.title = `Export clean CSV of Country and Sale Prices (-${state.discountRate}%) for Bot Automation (Mode 2: Set app sale prices)`;
+      elements.btnExportBotCsv.classList.add('is-sale');
+    } else {
+      elements.btnExportBotCsvLabel.textContent = 'Bot CSV (App Prices)';
+      elements.btnExportBotCsv.title = 'Export clean CSV of Country and Base Retail Prices for Bot Automation (Mode 1: Set app prices)';
+      elements.btnExportBotCsv.classList.remove('is-sale');
+    }
+  }
+
+  // 9d. Export App / Sale Prices CSV for Single-Window Bot Automation
+  function exportBotCsv() {
+    const activeProd = getActiveProduct();
+    const isPaidApp = activeProd.id === 'app_price';
+    const isSaleMode = Boolean(state.discountEnabled);
+
+    // Headers mapped directly to file_parser.py in play_sale_automation
+    const headers = isSaleMode
+      ? ['Country Name', 'Country Code', 'Currency', 'Discounted Price', 'Retail Price', 'Discount Rate']
+      : ['Country Name', 'Country Code', 'Currency', 'Retail Price'];
+
+    const rows = [headers];
+
+    // Export all 174 real countries (skipping virtual GLOBAL_USD / GLOBAL_EUR fallback entries)
+    state.countries.forEach(country => {
+      if (country.code === 'GLOBAL_USD' || country.code === 'GLOBAL_EUR') return;
+
+      const calc = calculateCountryPricing(country, activeProd.price, state.baseCurrency, isPaidApp);
+      const cleanRetail = formatCleanNumber(calc.retailPrice, country.currency);
+      const cleanSale = formatCleanNumber(calc.discountedPrice, country.currency);
+      const safeName = `"${country.name.replace(/"/g, '""')}"`;
+
+      if (isSaleMode) {
+        rows.push([
+          safeName,
+          country.code,
+          country.currency,
+          cleanSale,
+          cleanRetail,
+          `"-${state.discountRate}%"`
+        ]);
+      } else {
+        rows.push([
+          safeName,
+          country.code,
+          country.currency,
+          cleanRetail
+        ]);
+      }
+    });
+
+    const csvContent = "\uFEFF" + rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+
+    const baseName = sanitizeSlug(state.appName || 'mygame') || 'mygame';
+    const prodSlug = sanitizeSlug(activeProd.name || 'app_price') || 'price';
+    const fileName = isSaleMode
+      ? `bot_sale_prices_${baseName}_${prodSlug}_${state.discountRate}pct_off.csv`
+      : `bot_app_prices_${baseName}_${prodSlug}.csv`;
+
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    const modeDesc = isSaleMode
+      ? `Bot CSV (Sale Prices -${state.discountRate}%)`
+      : 'Bot CSV (Base App Prices)';
+    showToast(`Exported ${modeDesc} (${rows.length - 1} countries) for Bot Automation!`, 'success');
+  }
+
+  // 9e. Direct Google Play API JSON Payload Export (androidpublisher:v3 inappproducts format)
   function exportApiJsonPayload() {
     const activeProd = getActiveProduct();
     const isPaidApp = activeProd.id === 'app_price';
@@ -2580,6 +2662,7 @@
       if (elements.discountOfferSyntaxBadge) {
         elements.discountOfferSyntaxBadge.style.display = state.discountEnabled ? 'inline-flex' : 'none';
       }
+      updateBotExportButton();
       renderColumnCheckboxes();
       applyColumnVisibility();
       renderCatalogueItems();
@@ -2594,6 +2677,7 @@
       if (elements.promoBadgeCode) {
         elements.promoBadgeCode.textContent = `...-${state.discountRate}-percent-discount`;
       }
+      updateBotExportButton();
       if (state.discountEnabled) {
         renderCatalogueItems();
         scheduleRenderAllTables();
@@ -2718,6 +2802,9 @@
 
     // Export Master Multi-SKU Catalog CSV
     if (elements.btnExportMasterCsv) elements.btnExportMasterCsv.addEventListener('click', exportMasterMatrixCsv);
+
+    // Export Bot Automation CSV (Single-Window Play Console Automator)
+    if (elements.btnExportBotCsv) elements.btnExportBotCsv.addEventListener('click', exportBotCsv);
 
     // Export Google Play Developer API v3 JSON Payload
     if (elements.btnExportApiJson) elements.btnExportApiJson.addEventListener('click', exportApiJsonPayload);
@@ -2905,6 +2992,7 @@
     setupEventListeners();
     setupTableEventDelegation();
     setupColumnPicker();
+    updateBotExportButton();
     renderCatalogueItems();
     renderAllTables();
 

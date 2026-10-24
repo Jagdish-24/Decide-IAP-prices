@@ -1,1 +1,8 @@
 *.cmd
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+play_sale_automation/cache/
+play_sale_automation/*.log
+play_sale_automation/screenshots/
