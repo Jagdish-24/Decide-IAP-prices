@@ -25,6 +25,8 @@ from mouse_detector import MouseInterventionDetector
 from automator_engine import PlaySaleAutomatorEngine, AutomatorState
 from window_locator import WindowLocator
 from file_parser import parse_pricing_file
+from visual_calibrator import capture_desktop_image, generate_point_crop, ScreenPinOverlay
+from PIL import Image, ImageTk
 
 # Attempt global hotkeys with pynput
 try:
@@ -404,6 +406,16 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self.notebook.add(self.log_tab, text="  📝 Activity Log  ")
         self._build_log_tab()
 
+        self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
+
+    def _on_tab_changed(self, event):
+        try:
+            selected_tab = self.notebook.tab(self.notebook.select(), "text")
+            if "Screen Calibration" in selected_tab:
+                self.after(50, self._refresh_live_calibration_crops)
+        except Exception:
+            pass
+
     def _build_queue_tab(self):
         top_bar = tk.Frame(self.queue_tab, bg=self.colors["card_bg"], padx=12, pady=7)
         top_bar.pack(fill="x")
@@ -586,93 +598,154 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self._on_engine_log("🔄 Queue reset to country #1.")
 
     def _build_calibration_tab(self):
-        container = tk.Frame(self.calib_tab, bg=self.colors["card_bg"], padx=16, pady=12)
+        container = tk.Frame(self.calib_tab, bg=self.colors["card_bg"], padx=14, pady=10)
         container.pack(fill="both", expand=True)
 
-        desc = tk.Label(container,
-                        text="Calibration Assistant: Click '🎯 Pick' to capture a coordinate with a 3s countdown.\n"
-                             "Click '👁️ Preview' to glide mouse to verify exact positioning before running automation.",
-                        font=("Segoe UI", 8), fg=self.colors["text_muted"], bg=self.colors["card_bg"], justify="left")
-        desc.pack(anchor="w", pady=(0, 10))
+        # Top Action & Status Toolbar
+        top_bar = tk.Frame(container, bg=self.colors["card_bg"])
+        top_bar.pack(fill="x", pady=(0, 8))
 
-        points = [
-            ("left_search_box", "1. Country Search Box", "Google Play Console 'Search by country or region' input"),
-            ("left_row_pencil", "2. Edit Pencil Icon", "Edit price pencil icon in filtered country row"),
-            ("left_popup_input", "3. Popup Price Input", "Price value entry field inside the Edit Price popup dialog"),
-            ("left_popup_cancel", "4. Popup Cancel Button", "'Cancel' button in Edit Price popup (to exit without saving)"),
-            ("left_popup_save", "5. Popup Save Button", "Blue 'Save' button in Edit Price popup")
+        btn_capture = tk.Button(top_bar, text="📸 Capture Live Screen & Update Crops", font=("Segoe UI", 9, "bold"),
+                                bg=self.colors["success"], fg="#FFFFFF", activebackground=self.colors["success_hover"],
+                                activeforeground="#FFFFFF", relief="flat", padx=12, pady=4, cursor="hand2",
+                                command=self._refresh_live_calibration_crops)
+        btn_capture.pack(side="left", padx=(0, 10))
+
+        self.desktop_status_lbl = tk.Label(top_bar, text="● Live Screen: 2560x1440 • Ready",
+                                           font=("Segoe UI", 8, "bold"), fg=self.colors["accent"], bg=self.colors["card_bg"])
+        self.desktop_status_lbl.pack(side="left")
+
+        desc = tk.Label(container,
+                        text="Live Visual Calibration Studio: Verify that each crosshair is centered squarely on the target element below.\n"
+                             "Click '🎯 Pin on Screen' to open the interactive live overlay with 4x zoom loupe to pin with single-pixel accuracy!",
+                        font=("Segoe UI", 8), fg=self.colors["text_muted"], bg=self.colors["card_bg"], justify="left")
+        desc.pack(anchor="w", pady=(0, 8))
+
+        # Target Points configuration with distinct accent colors
+        self.points_config = [
+            ("left_search_box", "1. Country Search Box", "Google Play Console 'Search by country or region' input", "#38BDF8"),
+            ("left_row_pencil", "2. Edit Pencil Icon", "Edit price pencil icon in filtered country row", "#F59E0B"),
+            ("left_popup_input", "3. Popup Price Input", "Price value entry field inside the Edit Price popup dialog", "#10B981"),
+            ("left_popup_cancel", "4. Popup Cancel Button", "'Cancel' button in Edit Price popup (to exit without saving)", "#F43F5E"),
+            ("left_popup_save", "5. Popup Save Button", "Blue 'Save' button in Edit Price popup", "#3B82F6")
         ]
 
         self.coord_labels = {}
+        self.crop_labels = {}
+        self.crop_image_refs = {}
 
         grid_frame = tk.Frame(container, bg=self.colors["card_bg"])
-        grid_frame.pack(fill="x")
+        grid_frame.pack(fill="both", expand=True)
 
         coords = self.config_data.get("coordinates", {})
 
-        for row_idx, (key, title, subtitle) in enumerate(points):
+        for row_idx, (key, title, subtitle, color) in enumerate(self.points_config):
+            row_card = tk.Frame(grid_frame, bg="#090D16", padx=8, pady=4,
+                                highlightbackground=self.colors["card_border"], highlightthickness=1)
+            row_card.pack(fill="x", pady=3)
+
+            # 1. Live Crop Thumbnail Box (72x72)
+            crop_lbl = tk.Label(row_card, bg="#060911", width=72, height=72, relief="flat",
+                                highlightbackground=color, highlightthickness=1)
+            crop_lbl.pack(side="left", padx=(0, 12))
+            self.crop_labels[key] = (crop_lbl, color)
+
+            # 2. Details Column
+            details = tk.Frame(row_card, bg="#090D16")
+            details.pack(side="left", fill="both", expand=True)
+
+            tk.Label(details, text=title, font=("Segoe UI", 8, "bold"),
+                     fg=self.colors["text"], bg="#090D16", anchor="w").pack(anchor="w")
+            tk.Label(details, text=subtitle, font=("Segoe UI", 7),
+                     fg=self.colors["text_dim"], bg="#090D16", anchor="w").pack(anchor="w", pady=(1, 0))
+
+            # 3. Actions Column (right aligned)
+            act_col = tk.Frame(row_card, bg="#090D16")
+            act_col.pack(side="right")
+
             pt = coords.get(key, {"x": 0, "y": 0})
-
-            title_col = tk.Label(grid_frame, text=title, font=("Segoe UI", 8, "bold"),
-                                 fg=self.colors["text"], bg=self.colors["card_bg"], anchor="w")
-            title_col.grid(row=row_idx, column=0, sticky="w", pady=4, padx=(0, 12))
-
-            sub_col = tk.Label(grid_frame, text=subtitle, font=("Segoe UI", 8),
-                               fg=self.colors["text_dim"], bg=self.colors["card_bg"], anchor="w")
-            sub_col.grid(row=row_idx, column=1, sticky="w", pady=4, padx=(0, 16))
-
-            val_col = tk.Label(grid_frame, text=f"X: {pt['x']}  |  Y: {pt['y']}",
-                               font=("Consolas", 9, "bold"), fg=self.colors["accent"],
-                               bg=self.colors["input_bg"], padx=8, pady=2, relief="flat",
+            val_col = tk.Label(act_col, text=f"X: {pt['x']}  |  Y: {pt['y']}",
+                               font=("Consolas", 8, "bold"), fg=color,
+                               bg="#0F172A", padx=8, pady=2, relief="flat",
                                highlightthickness=1, highlightbackground=self.colors["card_border"])
-            val_col.grid(row=row_idx, column=2, sticky="e", pady=4, padx=(0, 8))
+            val_col.pack(side="left", padx=(0, 8))
             self.coord_labels[key] = val_col
 
-            pick_btn = tk.Button(grid_frame, text="🎯 Pick", font=("Segoe UI", 8, "bold"),
-                                 bg="#1E293B", fg=self.colors["text"], activebackground="#334155",
-                                 activeforeground="#FFFFFF", relief="flat", padx=10, pady=2,
-                                 cursor="hand2", command=lambda k=key, t=title: self._pick_coordinate(k, t))
-            pick_btn.grid(row=row_idx, column=3, pady=4, padx=(0, 4))
+            pin_btn = tk.Button(act_col, text="🎯 Pin on Screen", font=("Segoe UI", 8, "bold"),
+                                bg="#1E293B", fg="#FFFFFF", activebackground="#334155",
+                                activeforeground="#FFFFFF", relief="flat", padx=9, pady=2,
+                                cursor="hand2", command=lambda k=key, t=title: self._launch_screen_pin(k, t))
+            pin_btn.pack(side="left", padx=(0, 4))
 
-            preview_btn = tk.Button(grid_frame, text="👁️ Preview", font=("Segoe UI", 8),
+            preview_btn = tk.Button(act_col, text="👁️ Preview", font=("Segoe UI", 8),
                                    bg="#090D16", fg=self.colors["accent"], activebackground="#1E293B",
                                    activeforeground="#FFFFFF", relief="flat", padx=8, pady=2,
                                    cursor="hand2", command=lambda k=key: self._preview_coordinate(k))
-            preview_btn.grid(row=row_idx, column=4, pady=4)
+            preview_btn.pack(side="left")
 
-        # Reset button
-        btn_reset = tk.Button(container, text="Restore Default Coordinates (2560x1440 Proportional)",
+        # Bottom Bar: Restore Defaults
+        bottom_bar = tk.Frame(container, bg=self.colors["card_bg"])
+        bottom_bar.pack(fill="x", pady=(6, 0))
+
+        btn_reset = tk.Button(bottom_bar, text="Restore Default Coordinates (2560x1440 Proportional)",
                               font=("Segoe UI", 8), bg="#1E293B", fg=self.colors["text_muted"],
-                              relief="flat", padx=12, pady=4, cursor="hand2", command=self._restore_default_coords)
-        btn_reset.pack(anchor="w", pady=(12, 0))
+                              relief="flat", padx=10, pady=3, cursor="hand2", command=self._restore_default_coords)
+        btn_reset.pack(side="left")
+
+    def _refresh_live_calibration_crops(self, cached_img=None):
+        """Captures live screen and refreshes all thumbnail crops."""
+        img = cached_img or capture_desktop_image()
+        if not img:
+            self._on_engine_log("⚠️ Could not capture live desktop for crop refresh.")
+            return
+
+        self.desktop_screenshot = img
+        coords = self.config_data.get("coordinates", {})
+
+        for key, (lbl, color) in self.crop_labels.items():
+            pt = coords.get(key, {"x": 0, "y": 0})
+            crop = generate_point_crop(img, pt.get("x", 0), pt.get("y", 0), size=72, color=color)
+            photo = ImageTk.PhotoImage(crop)
+            self.crop_image_refs[key] = photo
+            lbl.config(image=photo)
+
+        if hasattr(self, "desktop_status_lbl"):
+            self.desktop_status_lbl.config(text=f"● Live Screen: {img.size[0]}x{img.size[1]} • Updated {time.strftime('%H:%M:%S')}")
+
+    def _launch_screen_pin(self, key, title):
+        """Launches interactive full-screen visual pin overlay with 4x zoom loupe."""
+        time.sleep(0.12)
+        shot = capture_desktop_image()
+        if not shot:
+            messagebox.showerror("Capture Error", "Could not capture desktop image for calibration.")
+            return
+
+        def on_picked(picked_key, new_pt):
+            coords = self.config_data.setdefault("coordinates", {})
+            coords[picked_key] = new_pt
+            save_config(self.config_data)
+
+            lbl = self.coord_labels.get(picked_key)
+            if lbl:
+                lbl.config(text=f"X: {new_pt['x']}  |  Y: {new_pt['y']}")
+
+            self._refresh_live_calibration_crops(cached_img=shot)
+            self._on_engine_log(f"✅ Calibrated point [{title}] to ({new_pt['x']}, {new_pt['y']})")
+
+        ScreenPinOverlay(self, key, title, shot, on_picked)
 
     def _preview_coordinate(self, key):
         coords = self.config_data.get("coordinates", {})
         pt = coords.get(key)
         if pt and pt.get("x") and pt.get("y"):
             def glide():
-                orig_pos = pyautogui.position()
-                pyautogui.moveTo(pt["x"], pt["y"], duration=0.4)
-                time.sleep(1.2)
-                pyautogui.moveTo(orig_pos[0], orig_pos[1], duration=0.3)
+                with self.mouse_detector.bot_movement():
+                    orig_pos = pyautogui.position()
+                    pyautogui.moveTo(pt["x"], pt["y"], duration=0.35)
+                    time.sleep(1.2)
+                    pyautogui.moveTo(orig_pos[0], orig_pos[1], duration=0.25)
             threading.Thread(target=glide, daemon=True).start()
             self._on_engine_log(f"👁️ Previewing cursor position for [{key}]: ({pt['x']}, {pt['y']})")
-
-    def _pick_coordinate(self, key, title):
-        def worker():
-            captured = WindowLocator.capture_point_with_countdown(
-                title, countdown_sec=3, on_tick=lambda msg: self._on_engine_log(f"🎯 {msg}")
-            )
-            coords = self.config_data.setdefault("coordinates", {})
-            coords[key] = captured
-            save_config(self.config_data)
-
-            lbl = self.coord_labels.get(key)
-            if lbl:
-                lbl.config(text=f"X: {captured['x']}  |  Y: {captured['y']}")
-            self._on_engine_log(f"✅ Saved coordinate for [{title}]: {captured}")
-
-        threading.Thread(target=worker, daemon=True).start()
 
     def _restore_default_coords(self):
         defaults = get_default_coordinates()
@@ -681,6 +754,7 @@ class PlaySaleAutomatorGUI(tk.Tk):
         for key, lbl in self.coord_labels.items():
             pt = defaults.get(key, {"x": 0, "y": 0})
             lbl.config(text=f"X: {pt['x']}  |  Y: {pt['y']}")
+        self._refresh_live_calibration_crops()
         self._on_engine_log("🔄 Restored default proportional coordinates.")
 
     def _build_timing_tab(self):

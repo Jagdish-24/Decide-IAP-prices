@@ -66,7 +66,7 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.3.1</span>
+          <span class="version-tag" id="appVersionText">v1.4.0</span>
           <span class="version-sep">•</span>
           <span class="version-date" id="lastUpdatedDateText">Updated 24 Oct 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -1063,7 +1063,7 @@
           <div>
             <div class="modal-title-row">
               <h3>PlayPrice Engine Version History</h3>
-              <span class="version-tag-pill">v1.3.1 (Latest)</span>
+              <span class="version-tag-pill">v1.4.0 (Latest)</span>
             </div>
             <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 24 Oct 2026</p>
           </div>
@@ -1082,8 +1082,25 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.3.1 -->
+          <!-- Release v1.4.0 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.4.0</span>
+                <span class="changelog-tag tag-minor">Minor Release</span>
+                <span class="changelog-date">24 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Live Visual Screen Calibration Studio:</strong> Added real-time screenshot capture with visual crop thumbnails for all 5 target points and an interactive 4x zoom loupe overlay to pin coordinates with 1-click precision.</li>
+                <li><strong>Fixed Mouse Movement Detection:</strong> Implemented synchronized <code>bot_movement</code> execution locks to prevent automated cursor movements from triggering false-positive user intervention pauses.</li>
+                <li><strong>Safe Input Focus &amp; Anti-Select-All Protection:</strong> Eliminated dangerous full-page <code>Ctrl+A</code> document selections; replaced with targeted double-click selection and boundary-safe backspacing.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.3.1 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">

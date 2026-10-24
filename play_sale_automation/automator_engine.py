@@ -138,15 +138,11 @@ class PlaySaleAutomatorEngine:
         timing = self.config.get("timing", {})
         dur = move_duration or timing.get("mouse_move_duration", 0.25)
 
-        # Notify detector that bot is moving cursor to target
-        self.mouse_detector.register_bot_action((x, y))
-        pyautogui.moveTo(x, y, duration=dur)
+        # Synchronized bot movement context ensures mouse detector never triggers false positive
+        with self.mouse_detector.bot_movement():
+            pyautogui.moveTo(x, y, duration=dur)
+            pyautogui.click(x=x, y=y, clicks=clicks, button=button)
 
-        if not self._safe_sleep(0.08):
-            return False
-
-        self.mouse_detector.register_bot_action((x, y))
-        pyautogui.click(x=x, y=y, clicks=clicks, button=button)
         return True
 
     def _safe_write(self, text):
@@ -155,8 +151,9 @@ class PlaySaleAutomatorEngine:
             return False
         # Using clipboard paste is 100% reliable across all locales and special characters
         try:
-            pyperclip.copy(text)
-            pyautogui.hotkey("ctrl", "v")
+            with self.mouse_detector.bot_movement():
+                pyperclip.copy(text)
+                pyautogui.hotkey("ctrl", "v")
         except Exception as e:
             self.log(f"⚠️ Clipboard paste warning: {e}")
         self._safe_sleep(0.1)
@@ -297,8 +294,13 @@ class PlaySaleAutomatorEngine:
         if not self._safe_click(l_search["x"], l_search["y"]):
             return False, copied_price
 
-        pyautogui.hotkey("ctrl", "a")
-        self._safe_sleep(0.08)
+        # Focus input and clear text safely without global full-page Ctrl+A
+        if not self._safe_sleep(0.12):
+            return False, copied_price
+        pyautogui.press("end")
+        for _ in range(25):
+            pyautogui.press("backspace")
+        self._safe_sleep(0.05)
         self._safe_write(c_name)
         pyautogui.press("enter")
 
@@ -325,14 +327,16 @@ class PlaySaleAutomatorEngine:
         self.set_state(AutomatorState.RUNNING, f"[{c_name}] Checking existing price in popup...")
 
         l_input = coords.get("left_popup_input", {"x": 600, "y": 1150})
+        # Double-click selects the value inside the HTML <input> field safely without full-page selection
         if not self._safe_click(l_input["x"], l_input["y"], clicks=2):
             return False, copied_price
 
+        if not self._safe_sleep(0.1):
+            return False, copied_price
+
         # Read existing value currently inside the popup box
-        pyautogui.hotkey("ctrl", "a")
-        self._safe_sleep(0.05)
         pyautogui.hotkey("ctrl", "c")
-        self._safe_sleep(0.1)
+        self._safe_sleep(0.08)
 
         try:
             existing_text = pyperclip.paste().strip()
@@ -370,12 +374,16 @@ class PlaySaleAutomatorEngine:
 
         self.set_state(AutomatorState.RUNNING, f"[{c_name}] Overwriting with {copied_price}...")
         
-        # Clear existing text
-        pyautogui.hotkey("ctrl", "a")
+        # Safely clear price field without full-page Ctrl+A
+        self._safe_click(l_input["x"], l_input["y"], clicks=2)
+        self._safe_sleep(0.05)
         pyautogui.press("backspace")
+        pyautogui.press("end")
+        for _ in range(15):
+            pyautogui.press("backspace")
         self._safe_sleep(0.05)
         
-        # Enter correct value from right window
+        # Enter correct value from memory/file
         self._safe_write(copied_price)
         if not self._safe_sleep(0.35):
             return False, copied_price
