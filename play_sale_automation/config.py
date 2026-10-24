@@ -11,7 +11,7 @@ CONFIG_DIR = os.path.join(os.path.dirname(__file__), "cache")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 
 # Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-APP_VERSION = "1.6.1"
+APP_VERSION = "1.7.0"
 APP_LAST_UPDATED = "24 Oct 2026"
 
 def get_default_coordinates():

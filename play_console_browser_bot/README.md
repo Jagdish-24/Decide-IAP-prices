@@ -56,10 +56,23 @@ The **PlayPrice In-Browser Automator** is a lightweight, zero-dependency in-brow
    - You will see: `176 Countries Loaded`.
    - Click **`▶ Start`**!
 
-5. **Watch it Fly:**
-   - The robot searches each country, opens the edit modal, checks the existing price/percentage, skips exact matches, types the new value, and saves.
-   - Live dual timers show both elapsed time and an adaptive estimated completion countdown (ETA).
-   - **Your mouse remains completely free!** You can use other programs or continue browsing.
+5. **Dual Multi-Step Robot Workflows:**
+   - **When in `🏷️ App Price` Mode (Pricing Tab):**
+     1. Automatically clicks **"Set pricing"** to enter checkbox selection mode.
+     2. Queries the country name in the **"Search by country or region"** bar.
+     3. Selects the row checkbox for that specific filtered country.
+     4. Clicks the bottom action bar's blue **"Continue"** button.
+     5. Waits for the **"Set price for selected countries and regions"** modal to appear.
+     6. Verifies current price & currency; if already identical, cleanly dismisses the modal.
+     7. Inputs the new retail price and selects the matching 3-letter ISO currency (e.g. `USD`, `EUR`, `ARS`, `DZD`) in the currency selector.
+     8. Clicks the blue **"Update"** button and waits for the table to refresh.
+     9. Clears the search bar and unchecks row checkboxes before advancing to the next country with randomized human jitter delays.
+   - **When in `🔥 App Sale Price` Mode (Edit Sale Page):**
+     1. Filters the country in the search bar.
+     2. Opens the country row's edit modal (pencil button / cell).
+     3. Compares and sets the discounted price or discount percentage.
+     4. Clicks **"Save"** in the modal.
+   - **Mouse Free:** In both workflows, your mouse remains completely free to browse or use other applications.
 
 6. **Save Changes:**
    - When finished, review the summary.

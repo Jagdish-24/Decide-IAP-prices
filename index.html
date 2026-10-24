@@ -66,7 +66,7 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.6.1</span>
+          <span class="version-tag" id="appVersionText">v1.7.0</span>
           <span class="version-sep">•</span>
           <span class="version-date" id="lastUpdatedDateText">Updated 24 Oct 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -1091,8 +1091,24 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.6.1 -->
+          <!-- Release v1.7.0 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.7.0</span>
+                <span class="changelog-tag tag-minor">Minor Release</span>
+                <span class="changelog-date">24 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Multi-Step DOM Automation for Google Play Console App Pricing:</strong> Implemented complete end-to-end multi-step robot workflow for standard App Pricing (<code>.../pricing-sales/pricing</code>). The robot activates "Set pricing" mode, queries each country by name in the search bar, selects the row checkbox, clicks the bottom action bar's "Continue" button, inputs retail prices in the modal dialog, dynamically selects target ISO currencies, clicks "Update", and cleans up the search for the next country.</li>
+                <li><strong>Intelligent Dual-Mode Switching &amp; Safeguards:</strong> Added seamless contextual execution branching between <code>🏷️ App Price</code> (retail pricing) and <code>🔥 App Sale Price</code> (promotional sales with Fixed Price vs Discount % sub-modes), featuring automated selection clearing, modal dismissal on identical prices, and rate-limiting jitter protection.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.6.1 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">

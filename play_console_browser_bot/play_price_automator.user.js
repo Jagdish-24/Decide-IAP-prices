@@ -1,7 +1,7 @@
-﻿// ==UserScript==
+// ==UserScript==
 // @name         Google Play Console Sale Price Automator (PlayPrice Engine)
 // @namespace    https://github.com/Jagdish-24/Decide-IAP-prices
-// @version      1.6.1
+// @version      1.7.0
 // @description  Automates setting country sale prices and app prices in Google Play Console with 1-click DOM injection and zero mouse movement.
 // @author       PlayPrice Engine Team
 // @match        https://play.google.com/console/*
@@ -15,7 +15,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.6.1...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.0...');
 
   // State Management
   const state = {
@@ -167,7 +167,7 @@
   }
 
   function getHumanizedDelay(baseDelay) {
-    // Proportional natural human jitter (Â±15% to 25%) ensuring EVERY cadence profile
+    // Proportional natural human jitter (±15% to 25%) ensuring EVERY cadence profile
     // (Moderate 1000ms, Safe & Steady 1600ms, Ultra-Safe 2500ms, Maximum Caution 3500ms)
     // has realistic non-periodic variance between each action.
     const variance = Math.max(160, Math.round(baseDelay * 0.18));
@@ -290,6 +290,267 @@
   }
 
   // -------------------------------------------------------------
+  // App Pricing Multi-Step DOM Automation Helpers
+  // -------------------------------------------------------------
+
+  function isSetPricingActive() {
+    // Check if table rows have checkboxes OR if the bottom action bar with Continue is present
+    const hasRowCheckbox = !!document.querySelector(
+      'table input[type="checkbox"], [role="row"] input[type="checkbox"], [role="row"] [role="checkbox"], material-checkbox'
+    );
+    const hasContinueBar = Array.from(document.querySelectorAll('button, [role="button"], div')).some(el => {
+      const txt = el.textContent.trim().toLowerCase();
+      return (txt === 'continue' || txt.includes('update exchange rates') || txt.includes('countries/regions selected') || txt.includes('country/region selected')) &&
+             el.offsetParent !== null && !el.closest('#play-price-automator-root');
+    });
+    return hasRowCheckbox || hasContinueBar;
+  }
+
+  async function ensureSetPricingActive() {
+    if (isSetPricingActive()) return true;
+
+    log('🔍 Activating "Set pricing" mode in Google Play Console...');
+    // Look for the "Set pricing" or "Set price" button in the pricing section header
+    const candidates = Array.from(document.querySelectorAll('button, a, [role="button"], span, div'));
+    const setPricingBtn = candidates.find(el => {
+      const txt = el.textContent.trim().toLowerCase();
+      const isVisible = el.offsetParent !== null;
+      const notInPanel = !el.closest('#play-price-automator-root');
+      return (txt === 'set pricing' || txt === 'set price') && isVisible && notInPanel;
+    });
+
+    if (setPricingBtn) {
+      setPricingBtn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      await humanMicroPause(120, 240);
+      setPricingBtn.click();
+      log('👆 Clicked "Set pricing" button. Waiting for selection checkboxes...');
+
+      const start = Date.now();
+      while (Date.now() - start < 3500) {
+        if (isSetPricingActive()) {
+          log('✅ "Set pricing" selection mode is now active.');
+          await humanMicroPause(150, 300);
+          return true;
+        }
+        await sleep(150);
+      }
+    }
+
+    log('⚠️ "Set pricing" button not detected or already active. Proceeding with country selection...');
+    return isSetPricingActive();
+  }
+
+  function clearOtherRowSelections() {
+    try {
+      const checkedBoxes = Array.from(document.querySelectorAll(
+        'table input[type="checkbox"]:checked, [role="row"] [aria-checked="true"], material-checkbox.is-checked'
+      ));
+      for (const chk of checkedBoxes) {
+        if (!chk.closest('#play-price-automator-root')) {
+          chk.click();
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  async function checkRowCheckbox(row) {
+    if (!row) return false;
+    const chk = row.querySelector('input[type="checkbox"], [role="checkbox"], material-checkbox');
+    if (!chk) return false;
+
+    const isChecked = chk.checked || 
+                      chk.getAttribute('aria-checked') === 'true' || 
+                      chk.classList.contains('is-checked') ||
+                      chk.classList.contains('checked');
+
+    if (!isChecked) {
+      const clickTarget = chk.closest('material-checkbox, label') || chk;
+      clickTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      await humanMicroPause(100, 220);
+      clickTarget.click();
+      await humanMicroPause(100, 200);
+    }
+    return true;
+  }
+
+  async function clickBottomContinueButton(timeoutMs = 4000) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      if (!state.isRunning) return false;
+      const btns = Array.from(document.querySelectorAll('button, [role="button"], a'));
+      const continueBtn = btns.find(b => {
+        const txt = b.textContent.trim().toLowerCase();
+        const isVisible = b.offsetParent !== null;
+        const isNotDisabled = !b.disabled && b.getAttribute('aria-disabled') !== 'true' && !b.classList.contains('disabled');
+        return (txt === 'continue' || txt === 'next') && isVisible && isNotDisabled && !b.closest('#play-price-automator-root');
+      });
+      if (continueBtn) {
+        continueBtn.scrollIntoView({ block: 'nearest' });
+        await humanMicroPause(120, 260);
+        continueBtn.click();
+        return true;
+      }
+      await sleep(120);
+    }
+    return false;
+  }
+
+  async function waitForAppPricingModal(timeoutMs = 4500) {
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      if (!state.isRunning) return null;
+      const dialog = document.querySelector('[role="dialog"], dialog, material-dialog, .modal-dialog');
+      if (dialog && !dialog.closest('#play-price-automator-root')) {
+        const input = dialog.querySelector('input:not([type="checkbox"])');
+        if (input) {
+          return { dialog, input };
+        }
+      }
+      await sleep(120);
+    }
+    return null;
+  }
+
+  function getCurrentModalCurrency(dialog) {
+    if (!dialog) return '';
+    // 1. Native select
+    const sel = dialog.querySelector('select');
+    if (sel) {
+      const opt = sel.selectedOptions?.[0] || sel.querySelector('option:checked');
+      if (opt) return opt.textContent.trim();
+      if (sel.value) return sel.value.trim();
+    }
+    // 2. Dropdown buttons, material-select, combobox
+    const items = Array.from(dialog.querySelectorAll('[role="combobox"], material-select, [aria-haspopup="listbox"], button, div[role="button"]'));
+    for (const item of items) {
+      const txt = item.textContent.trim();
+      const match = txt.match(/\b([A-Z]{3})\b/);
+      if (match) {
+        return match[1];
+      }
+    }
+    return '';
+  }
+
+  async function selectModalCurrency(dialog, targetCurrency) {
+    if (!targetCurrency || !dialog) return true;
+    const targetCode = targetCurrency.trim().toUpperCase();
+
+    // 1. Native select
+    const nativeSelect = dialog.querySelector('select');
+    if (nativeSelect) {
+      const opt = Array.from(nativeSelect.options).find(o => 
+        o.value.toUpperCase() === targetCode || 
+        o.textContent.toUpperCase().includes(targetCode)
+      );
+      if (opt) {
+        nativeSelect.value = opt.value;
+        nativeSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        log(`  Currency set to ${targetCode} via native select.`);
+        return true;
+      }
+    }
+
+    // 2. Check if already displays target currency
+    const currentCurr = getCurrentModalCurrency(dialog);
+    if (currentCurr.toUpperCase() === targetCode) {
+      log(`  Currency already matches target (${targetCode}).`);
+      return true;
+    }
+
+    // 3. Locate dropdown trigger button
+    const triggers = Array.from(dialog.querySelectorAll(
+      '[role="combobox"], material-select, [aria-haspopup="listbox"], [aria-haspopup="true"], button, div[tabindex="0"]'
+    ));
+    const currTrigger = triggers.find(b => {
+      const txt = b.textContent.trim();
+      return /\b[A-Z]{3}\b/.test(txt) || b.querySelector('svg, .material-icons, [data-icon*="arrow"], [data-icon*="down"]');
+    }) || dialog.querySelector('material-select, [role="combobox"]');
+
+    if (!currTrigger) {
+      log(`  ⚠️ Could not find currency dropdown in modal, proceeding with current currency.`);
+      return false;
+    }
+
+    // Click dropdown trigger
+    currTrigger.scrollIntoView({ block: 'nearest' });
+    await humanMicroPause(120, 220);
+    currTrigger.click();
+    await sleep(400);
+
+    // 4. In opened list/overlay, find option matching targetCode
+    const options = Array.from(document.querySelectorAll(
+      '[role="option"], material-select-item, [role="menuitem"], .popup-item, li'
+    ));
+    const targetOpt = options.find(o => {
+      const t = o.textContent.trim().toUpperCase();
+      return t === targetCode || t.startsWith(targetCode + ' ') || t.includes(`(${targetCode})`) || t.includes(` ${targetCode} `);
+    });
+
+    if (targetOpt) {
+      targetOpt.scrollIntoView({ block: 'nearest' });
+      await humanMicroPause(100, 200);
+      targetOpt.click();
+      log(`  Selected currency ${targetCode} in dropdown.`);
+      await humanMicroPause(120, 250);
+      return true;
+    }
+
+    // Check if dropdown has a search input
+    const filterInput = document.querySelector(
+      '[role="listbox"] input, .cdk-overlay-container input, material-select-dropdown input'
+    );
+    if (filterInput) {
+      setNativeValue(filterInput, targetCode);
+      await sleep(300);
+      const filteredOpt = Array.from(document.querySelectorAll('[role="option"], material-select-item')).find(o => 
+        o.textContent.trim().toUpperCase().includes(targetCode)
+      );
+      if (filteredOpt) {
+        filteredOpt.click();
+        log(`  Selected filtered currency ${targetCode}.`);
+        await humanMicroPause(120, 250);
+        return true;
+      }
+    }
+
+    log(`  ⚠️ Currency option ${targetCode} not found in dropdown list.`);
+    // Dismiss overlay safely
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+    return false;
+  }
+
+  async function clickModalUpdateButton(dialog) {
+    if (!dialog) return false;
+    const btns = Array.from(dialog.querySelectorAll('button, [role="button"]'));
+    const updateBtn = btns.find(b => {
+      const txt = b.textContent.trim().toLowerCase();
+      const isVisible = b.offsetParent !== null;
+      const isNotDisabled = !b.disabled && b.getAttribute('aria-disabled') !== 'true';
+      return (txt === 'update' || txt === 'apply' || txt === 'save') && isVisible && isNotDisabled;
+    });
+
+    if (updateBtn) {
+      updateBtn.scrollIntoView({ block: 'nearest' });
+      await humanMicroPause(150, 300);
+      updateBtn.click();
+      
+      // Wait for dialog to disappear
+      const start = Date.now();
+      while (Date.now() - start < 3500) {
+        if (!document.body.contains(dialog) || dialog.offsetParent === null) {
+          return true;
+        }
+        await sleep(100);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  // -------------------------------------------------------------
   // Realtime Timer Controllers
   // -------------------------------------------------------------
   function startTimers() {
@@ -356,7 +617,7 @@
     const remaining = Math.max(0, total - completed);
 
     if (completed >= total && total > 0) {
-      elRemain.textContent = `Completed ðŸŽ‰`;
+      elRemain.textContent = `Completed 🎉`;
       return;
     }
 
@@ -378,7 +639,7 @@
   // -------------------------------------------------------------
   async function runAutomation() {
     if (state.countries.length === 0) {
-      log('âš ï¸ Please load a bot_sale_prices CSV file first!');
+      log('⚠️ Please load a bot_sale_prices CSV file first!');
       return;
     }
 
@@ -389,28 +650,33 @@
 
     let modeLabel = '';
     if (state.mainCategory === 'app_price') {
-      modeLabel = 'ðŸ·ï¸ App Price Mode (Retail Price column)';
+      modeLabel = '🏷️ App Price Mode (Retail Price column)';
     } else if (state.saleDiscountMode === 'percentage') {
-      modeLabel = 'ðŸ·ï¸ App Sale Price (Discount % Mode)';
+      modeLabel = '🏷️ App Sale Price (Discount % Mode)';
     } else {
-      modeLabel = 'ðŸ’° App Sale Price (Fixed Price Mode)';
+      modeLabel = '💰 App Sale Price (Fixed Price Mode)';
     }
-    log(`ðŸš€ Starting automation in ${modeLabel} for ${state.countries.length} countries (Speed: ${state.speedDelay}ms)...`);
+    log(`🚀 Starting automation in ${modeLabel} for ${state.countries.length} countries (Speed: ${state.speedDelay}ms)...`);
 
     const searchBox = findSearchBox();
     if (!searchBox) {
-      log('âŒ Could not locate Google Play Console search bar! Are you on the "Availability and pricing" / "Edit sale" page?');
+      log('❌ Could not locate Google Play Console search bar! Are you on the "Availability and pricing" / "Edit sale" page?');
       state.isRunning = false;
       stopTimers();
       updateUI();
       return;
     }
 
+    // In App Price mode, ensure "Set pricing" mode is activated before iterating
+    if (state.mainCategory === 'app_price') {
+      await ensureSetPricingActive();
+    }
+
     let processedSinceLastCooldown = 0;
 
     for (let idx = state.currentIndex; idx < state.countries.length; idx++) {
       if (!state.isRunning) {
-        log('ðŸ›‘ Automation stopped by user.');
+        log('🛑 Automation stopped by user.');
         break;
       }
 
@@ -422,7 +688,7 @@
       // Anti-Bot Rate-Limiting Protection: Breathing rest cooldown every 25 processed items with natural jitter
       if (processedSinceLastCooldown > 0 && processedSinceLastCooldown % 25 === 0 && idx < state.countries.length - 1) {
         const breakDuration = randomBetween(2800, 3600);
-        log(`ðŸ›¡ï¸ Rate-Limit Safeguard: Taking a natural ${(breakDuration / 1000).toFixed(1)}s rest break... (${processedSinceLastCooldown} countries processed)`);
+        log(`🛡️ Rate-Limit Safeguard: Taking a natural ${(breakDuration / 1000).toFixed(1)}s rest break... (${processedSinceLastCooldown} countries processed)`);
         await sleep(breakDuration);
       }
 
@@ -434,101 +700,226 @@
       const isPercentage = state.mainCategory === 'app_sale_price' && state.saleDiscountMode === 'percentage';
       const unitText = isPercentage ? '%' : ` ${c.currency}`;
       const typeLabel = state.mainCategory === 'app_price' ? 'App Price' : (isPercentage ? 'Sale Discount' : 'Sale Price');
-      log(`ðŸ“ [${idx + 1}/${state.countries.length}] ${c.name} â€¢ Target ${typeLabel}: ${c.priceFormatted}${unitText}`);
+      log(`📍 [${idx + 1}/${state.countries.length}] ${c.name} • Target ${typeLabel}: ${c.priceFormatted}${unitText}`);
 
       try {
-        // Step 1: Focus and double-click to select all text in search bar & paste country name
-        searchBox.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-        searchBox.focus();
-        await humanMicroPause(70, 160); // Random pause before selecting search input
-        searchBox.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
-        if (typeof searchBox.select === 'function') searchBox.select();
-        await humanMicroPause(50, 130); // Random keystroke pause
-        setNativeValue(searchBox, c.name);
+        if (state.mainCategory === 'app_price') {
+          // =========================================================
+          // WORKFLOW A: Multi-Step "App Price" Automation
+          // ("Set pricing" -> Search -> Row Checkbox -> Continue -> Modal Price & ISO Currency -> Update)
+          // =========================================================
 
-        // Safe Humanized Delay with Cadence Jitter
-        await sleep(getHumanizedDelay(state.speedDelay));
+          // Step 0: Ensure "Set pricing" selection mode is active
+          await ensureSetPricingActive();
+          clearOtherRowSelections();
 
-        // Step 2: Wait for filtered row
-        const row = await waitForFilteredRow(c.name, 4500);
-        if (!row) {
-          log(`âš ï¸ Row not found for ${c.name}, skipping...`);
-          c.status = 'failed';
-          c.message = 'Row not found';
-          updateUI();
-          continue;
-        }
-        await humanMicroPause(100, 240); // Random visual confirmation pause
+          // Step 1: Filter country by name in the search bar
+          searchBox.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          searchBox.focus();
+          await humanMicroPause(70, 160);
+          searchBox.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
+          if (typeof searchBox.select === 'function') searchBox.select();
+          await humanMicroPause(50, 130);
+          setNativeValue(searchBox, c.name);
 
-        // Step 3: Open Edit Price / Discount modal
-        const opened = await openRowEditModal(row);
-        if (!opened) {
-          log(`âš ï¸ Could not click edit button for ${c.name}, skipping...`);
-          c.status = 'failed';
-          c.message = 'Edit button not found';
-          updateUI();
-          continue;
-        }
+          // Safe Humanized Delay with Cadence Jitter
+          await sleep(getHumanizedDelay(state.speedDelay));
 
-        await sleep(getHumanizedDelay(state.speedDelay));
-
-        // Step 4: Handle Edit Modal Input
-        const modalObj = await waitForEditPricePopup(4000);
-        if (!modalObj) {
-          log(`âš ï¸ Edit popup did not open for ${c.name}, skipping...`);
-          c.status = 'failed';
-          c.message = 'Modal did not open';
-          updateUI();
-          continue;
-        }
-
-        const { dialog, input } = modalObj;
-        await humanMicroPause(150, 320); // Random inspection pause
-
-        // Check current existing value in input
-        const existingVal = input.value.trim();
-        const numMatch = existingVal.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
-        const existingNum = numMatch ? parseFloat(numMatch[0]) : null;
-
-        if (existingNum !== null && Math.abs(existingNum - c.targetValue) < 0.001) {
-          // Already matches target value!
-          log(`âœ¨ [${c.name}] Value already matches target (${existingNum} == ${c.priceFormatted}${unitText}). Cleanly dismissing modal...`);
-          c.status = 'matched';
-          c.message = 'Already matches';
-
-          await humanMicroPause(140, 280); // Random human hesitation pause before closing
-          const cancelBtn = dialog.querySelector('button[aria-label*="Cancel" i]') ||
-                            Array.from(dialog.querySelectorAll('button')).find(b => b.textContent.toLowerCase().includes('cancel'));
-          if (cancelBtn) {
-            cancelBtn.click();
-          } else {
-            dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
-          }
-          await humanMicroPause(90, 190);
-        } else {
-          // Mismatch or empty: set new target value
-          log(`ðŸ”„ [${c.name}] Setting '${existingVal || 'empty'}' -> '${c.priceFormatted}${unitText}'...`);
-          setNativeValue(input, c.priceFormatted);
-          await humanMicroPause(280, 520); // Random human verification pause before clicking Save
-
-          // Find Save button in dialog
-          const saveBtn = dialog.querySelector('button[aria-label*="Save" i]') ||
-                          dialog.querySelector('button[aria-label*="Apply" i]') ||
-                          Array.from(dialog.querySelectorAll('button')).find(b => {
-                            const t = b.textContent.toLowerCase();
-                            return (t.includes('save') || t.includes('apply')) && !b.disabled;
-                          });
-
-          if (saveBtn) {
-            saveBtn.click();
-            c.status = 'done';
-            c.message = `Saved: ${c.priceFormatted}${unitText}`;
-            log(`âœ… [${c.name}] Saved: ${c.priceFormatted}${unitText}`);
-            await humanMicroPause(110, 220); // Random settling pause
-          } else {
-            log(`âš ï¸ [${c.name}] Save button disabled or not found.`);
+          // Step 2: Wait for filtered row in the pricing table
+          const row = await waitForFilteredRow(c.name, 4500);
+          if (!row) {
+            log(`⚠️ Row not found for ${c.name}, skipping...`);
             c.status = 'failed';
-            c.message = 'Save disabled';
+            c.message = 'Row not found';
+            updateUI();
+            continue;
+          }
+          await humanMicroPause(100, 240);
+
+          // Step 3: Check the country row's checkbox
+          const checked = await checkRowCheckbox(row);
+          if (!checked) {
+            log(`⚠️ Could not check row checkbox for ${c.name}, skipping...`);
+            c.status = 'failed';
+            c.message = 'Checkbox not found';
+            updateUI();
+            continue;
+          }
+          await humanMicroPause(120, 260);
+
+          // Step 4: Click the bottom action bar's "Continue" button
+          const continued = await clickBottomContinueButton(4000);
+          if (!continued) {
+            log(`⚠️ Bottom "Continue" button not active for ${c.name}, skipping...`);
+            c.status = 'failed';
+            c.message = 'Continue not found';
+            updateUI();
+            continue;
+          }
+
+          // Step 5: Wait for "Set price for selected countries and regions" modal dialog
+          const modalObj = await waitForAppPricingModal(4500);
+          if (!modalObj) {
+            log(`⚠️ Pricing popup did not open for ${c.name}, skipping...`);
+            c.status = 'failed';
+            c.message = 'Modal did not open';
+            updateUI();
+            continue;
+          }
+
+          const { dialog, input } = modalObj;
+          await humanMicroPause(150, 320);
+
+          // Check current existing value and currency in modal
+          const existingVal = input.value.trim();
+          const numMatch = existingVal.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
+          const existingNum = numMatch ? parseFloat(numMatch[0]) : null;
+          const currentCurr = getCurrentModalCurrency(dialog);
+
+          const priceMatches = existingNum !== null && Math.abs(existingNum - c.targetValue) < 0.001;
+          const currMatches = !c.currency || currentCurr.toUpperCase() === c.currency.toUpperCase();
+
+          if (priceMatches && currMatches) {
+            log(`✨ [${c.name}] Price and currency already match (${existingVal} ${currentCurr} == ${c.priceFormatted} ${c.currency}). Dismissing modal...`);
+            c.status = 'matched';
+            c.message = 'Already matches';
+
+            await humanMicroPause(140, 280);
+            const cancelBtn = dialog.querySelector('button[aria-label*="Cancel" i]') ||
+                              Array.from(dialog.querySelectorAll('button')).find(b => b.textContent.toLowerCase().includes('cancel'));
+            if (cancelBtn) {
+              cancelBtn.click();
+            } else {
+              dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+            }
+            await humanMicroPause(90, 190);
+          } else {
+            log(`🔄 [${c.name}] Setting price '${existingVal || 'empty'}' -> '${c.priceFormatted}' & Currency '${currentCurr}' -> '${c.currency}'...`);
+            setNativeValue(input, c.priceFormatted);
+            await humanMicroPause(220, 420);
+
+            if (c.currency) {
+              await selectModalCurrency(dialog, c.currency);
+              await humanMicroPause(160, 320);
+            }
+
+            const updated = await clickModalUpdateButton(dialog);
+            if (updated) {
+              c.status = 'done';
+              c.message = `Saved: ${c.priceFormatted} ${c.currency}`;
+              log(`✅ [${c.name}] Saved: ${c.priceFormatted} ${c.currency}`);
+              await humanMicroPause(110, 220);
+            } else {
+              log(`⚠️ [${c.name}] Update button could not be clicked.`);
+              c.status = 'failed';
+              c.message = 'Update failed';
+            }
+          }
+
+          // Step 6: Post-Modal Cleanup: Clear search and row selections
+          setNativeValue(searchBox, '');
+          await sleep(120);
+          clearOtherRowSelections();
+
+        } else {
+          // =========================================================
+          // WORKFLOW B: "App Sale Price" Automation
+          // (Search -> Row Edit Pencil -> Sale Modal -> Save)
+          // =========================================================
+
+          // Step 1: Focus and double-click to select all text in search bar & paste country name
+          searchBox.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+          searchBox.focus();
+          await humanMicroPause(70, 160);
+          searchBox.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
+          if (typeof searchBox.select === 'function') searchBox.select();
+          await humanMicroPause(50, 130);
+          setNativeValue(searchBox, c.name);
+
+          // Safe Humanized Delay with Cadence Jitter
+          await sleep(getHumanizedDelay(state.speedDelay));
+
+          // Step 2: Wait for filtered row
+          const row = await waitForFilteredRow(c.name, 4500);
+          if (!row) {
+            log(`⚠️ Row not found for ${c.name}, skipping...`);
+            c.status = 'failed';
+            c.message = 'Row not found';
+            updateUI();
+            continue;
+          }
+          await humanMicroPause(100, 240);
+
+          // Step 3: Open Edit Price / Discount modal
+          const opened = await openRowEditModal(row);
+          if (!opened) {
+            log(`⚠️ Could not click edit button for ${c.name}, skipping...`);
+            c.status = 'failed';
+            c.message = 'Edit button not found';
+            updateUI();
+            continue;
+          }
+
+          await sleep(getHumanizedDelay(state.speedDelay));
+
+          // Step 4: Handle Edit Modal Input
+          const modalObj = await waitForEditPricePopup(4000);
+          if (!modalObj) {
+            log(`⚠️ Edit popup did not open for ${c.name}, skipping...`);
+            c.status = 'failed';
+            c.message = 'Modal did not open';
+            updateUI();
+            continue;
+          }
+
+          const { dialog, input } = modalObj;
+          await humanMicroPause(150, 320);
+
+          // Check current existing value in input
+          const existingVal = input.value.trim();
+          const numMatch = existingVal.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
+          const existingNum = numMatch ? parseFloat(numMatch[0]) : null;
+
+          if (existingNum !== null && Math.abs(existingNum - c.targetValue) < 0.001) {
+            // Already matches target value!
+            log(`✨ [${c.name}] Value already matches target (${existingNum} == ${c.priceFormatted}${unitText}). Cleanly dismissing modal...`);
+            c.status = 'matched';
+            c.message = 'Already matches';
+
+            await humanMicroPause(140, 280);
+            const cancelBtn = dialog.querySelector('button[aria-label*="Cancel" i]') ||
+                              Array.from(dialog.querySelectorAll('button')).find(b => b.textContent.toLowerCase().includes('cancel'));
+            if (cancelBtn) {
+              cancelBtn.click();
+            } else {
+              dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+            }
+            await humanMicroPause(90, 190);
+          } else {
+            // Mismatch or empty: set new target value
+            log(`🔄 [${c.name}] Setting '${existingVal || 'empty'}' -> '${c.priceFormatted}${unitText}'...`);
+            setNativeValue(input, c.priceFormatted);
+            await humanMicroPause(280, 520);
+
+            // Find Save button in dialog
+            const saveBtn = dialog.querySelector('button[aria-label*="Save" i]') ||
+                            dialog.querySelector('button[aria-label*="Apply" i]') ||
+                            Array.from(dialog.querySelectorAll('button')).find(b => {
+                              const t = b.textContent.toLowerCase();
+                              return (t.includes('save') || t.includes('apply')) && !b.disabled;
+                            });
+
+            if (saveBtn) {
+              saveBtn.click();
+              c.status = 'done';
+              c.message = `Saved: ${c.priceFormatted}${unitText}`;
+              log(`✅ [${c.name}] Saved: ${c.priceFormatted}${unitText}`);
+              await humanMicroPause(110, 220);
+            } else {
+              log(`⚠️ [${c.name}] Save button disabled or not found.`);
+              c.status = 'failed';
+              c.message = 'Save disabled';
+            }
           }
         }
 
@@ -537,7 +928,7 @@
 
 
       } catch (err) {
-        log(`âŒ Error processing ${c.name}: ${err.message}`);
+        log(`❌ Error processing ${c.name}: ${err.message}`);
         c.status = 'failed';
         c.message = err.message;
       }
@@ -546,7 +937,7 @@
     }
 
     if (state.isRunning && state.currentIndex >= state.countries.length - 1) {
-      log('ðŸ† All countries completed successfully!');
+      log('🏆 All countries completed successfully!');
       if (state.autoSaveConsole) {
         await saveConsoleChanges();
       }
@@ -558,7 +949,7 @@
   }
 
   async function saveConsoleChanges() {
-    log('ðŸ’¾ Looking for bottom "Save changes" bar in Google Play Console...');
+    log('💾 Looking for bottom "Save changes" bar in Google Play Console...');
     await humanMicroPause(700, 1100);
     const saveAllBtn = Array.from(document.querySelectorAll('button')).find(b => {
       const txt = b.textContent.trim().toLowerCase();
@@ -569,9 +960,9 @@
       saveAllBtn.scrollIntoView({ block: 'nearest' });
       await humanMicroPause(180, 340);
       saveAllBtn.click();
-      log('ðŸŽ‰ Clicked main "Save changes" in Google Play Console!');
+      log('🎉 Clicked main "Save changes" in Google Play Console!');
     } else {
-      log('â„¹ï¸ Main "Save changes" button not found or already saved.');
+      log('ℹ️ Main "Save changes" button not found or already saved.');
     }
   }
 
@@ -623,9 +1014,9 @@
     const bDone = document.getElementById('ppa-badge-done');
     const bMatch = document.getElementById('ppa-badge-matched');
     const bFail = document.getElementById('ppa-badge-failed');
-    if (bDone) bDone.textContent = `âœ… ${doneCount} Done`;
-    if (bMatch) bMatch.textContent = `âœ¨ ${matchedCount} Matches`;
-    if (bFail) bFail.textContent = `âš ï¸ ${failedCount} Issues`;
+    if (bDone) bDone.textContent = `✅ ${doneCount} Done`;
+    if (bMatch) bMatch.textContent = `✨ ${matchedCount} Matches`;
+    if (bFail) bFail.textContent = `⚠️ ${failedCount} Issues`;
 
     const btnStart = document.getElementById('ppa-btn-start');
     const btnPause = document.getElementById('ppa-btn-pause');
@@ -660,7 +1051,7 @@
   }
 
   // -------------------------------------------------------------
-  // Floating Panel Creation (50% Larger â€¢ 540px Width)
+  // Floating Panel Creation (50% Larger • 540px Width)
   // -------------------------------------------------------------
   function createFloatingPanel() {
     if (document.getElementById('play-price-automator-root')) return;
@@ -674,10 +1065,10 @@
         <!-- Draggable Header -->
         <div id="ppa-header">
           <div id="ppa-title-bar">
-            <span id="ppa-logo">âš¡</span>
+            <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot â€¢ v1.6.1</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.0</div>
             </div>
           </div>
           <div id="ppa-header-badge">
@@ -690,10 +1081,10 @@
           <div id="ppa-category-card">
             <div id="ppa-category-tabs">
               <button class="ppa-cat-tab active" id="ppa-cat-btn-sale" data-cat="app_sale_price">
-                ðŸ”¥ App Sale Price
+                🔥 App Sale Price
               </button>
               <button class="ppa-cat-tab" id="ppa-cat-btn-app" data-cat="app_price">
-                ðŸ·ï¸ App Price
+                🏷️ App Price
               </button>
             </div>
           </div>
@@ -702,10 +1093,10 @@
           <div id="ppa-mode-card">
             <div id="ppa-mode-tabs">
               <button class="ppa-mode-tab active" id="ppa-mode-btn-fixed" data-mode="fixed_price">
-                ðŸ’° Fixed Price Mode
+                💰 Fixed Price Mode
               </button>
               <button class="ppa-mode-tab" id="ppa-mode-btn-pct" data-mode="percentage">
-                ðŸ·ï¸ Discount % Mode
+                🏷️ Discount % Mode
               </button>
             </div>
             <div id="ppa-mode-desc">
@@ -722,7 +1113,7 @@
 
           <!-- File Upload Zone -->
           <div id="ppa-upload-zone">
-            <div id="ppa-upload-icon">ðŸ“</div>
+            <div id="ppa-upload-icon">📁</div>
             <div id="ppa-upload-text"><strong>Click or Drop CSV File Here</strong></div>
             <div id="ppa-upload-sub">Accepts <code>bot_sale_prices_*.csv</code> or <code>bot_app_prices_*.csv</code> from PlayPrice Engine</div>
             <input type="file" id="ppa-file-input" accept=".csv" style="display: none;" />
@@ -744,23 +1135,23 @@
               <div id="ppa-progress-bar"></div>
             </div>
             <div id="ppa-stat-badges">
-              <span class="ppa-badge ppa-badge-done" id="ppa-badge-done">âœ… 0 Done</span>
-              <span class="ppa-badge ppa-badge-matched" id="ppa-badge-matched">âœ¨ 0 Matches</span>
-              <span class="ppa-badge ppa-badge-failed" id="ppa-badge-failed">âš ï¸ 0 Issues</span>
+              <span class="ppa-badge ppa-badge-done" id="ppa-badge-done">✅ 0 Done</span>
+              <span class="ppa-badge ppa-badge-matched" id="ppa-badge-matched">✨ 0 Matches</span>
+              <span class="ppa-badge ppa-badge-failed" id="ppa-badge-failed">⚠️ 0 Issues</span>
             </div>
           </div>
 
           <!-- Real-Time Timers (Stopwatch & Countdown ETA) -->
           <div id="ppa-timers-row">
             <div class="ppa-timer-card">
-              <span class="ppa-timer-icon">â±ï¸</span>
+              <span class="ppa-timer-icon">⏱️</span>
               <div class="ppa-timer-content">
                 <span class="ppa-timer-label">Elapsed Stopwatch</span>
                 <span class="ppa-timer-val" id="ppa-timer-elapsed">00:00</span>
               </div>
             </div>
             <div class="ppa-timer-card">
-              <span class="ppa-timer-icon">â³</span>
+              <span class="ppa-timer-icon">⏳</span>
               <div class="ppa-timer-content">
                 <span class="ppa-timer-label">Est. Completion</span>
                 <span class="ppa-timer-val" id="ppa-timer-remaining">--:--</span>
@@ -770,10 +1161,10 @@
 
           <!-- Controls Bar -->
           <div id="ppa-controls">
-            <button class="ppa-btn ppa-btn-start" id="ppa-btn-start">â–¶ Start</button>
-            <button class="ppa-btn ppa-btn-pause" id="ppa-btn-pause" disabled>â¸ Pause</button>
-            <button class="ppa-btn ppa-btn-stop" id="ppa-btn-stop" disabled>â¹ Stop</button>
-            <button class="ppa-btn ppa-btn-reset" id="ppa-btn-reset">â†º Reset</button>
+            <button class="ppa-btn ppa-btn-start" id="ppa-btn-start">▶ Start</button>
+            <button class="ppa-btn ppa-btn-pause" id="ppa-btn-pause" disabled>⏸ Pause</button>
+            <button class="ppa-btn ppa-btn-stop" id="ppa-btn-stop" disabled>⏹ Stop</button>
+            <button class="ppa-btn ppa-btn-reset" id="ppa-btn-reset">↺ Reset</button>
           </div>
 
           <!-- Safe Speed & Console Options -->
@@ -781,10 +1172,10 @@
             <label class="ppa-option-lbl" title="Pacing delay between steps with randomized human jitter to completely avoid rate limiting">
               Safety Cadence:
               <select id="ppa-speed-select">
-                <option value="2500">ðŸ›¡ï¸ Ultra-Safe (2500ms â€¢ Human Cadence)</option>
-                <option value="1600" selected>âš¡ Safe &amp; Steady (1600ms â€¢ Recommended)</option>
-                <option value="1000">ðŸš€ Moderate (1000ms â€¢ Fast Network)</option>
-                <option value="3500">ðŸ¢ Maximum Caution (3500ms â€¢ High Latency)</option>
+                <option value="2500">🛡️ Ultra-Safe (2500ms • Human Cadence)</option>
+                <option value="1600" selected>⚡ Safe &amp; Steady (1600ms • Recommended)</option>
+                <option value="1000">🚀 Moderate (1000ms • Fast Network)</option>
+                <option value="3500">🐢 Maximum Caution (3500ms • High Latency)</option>
               </select>
             </label>
             <label class="ppa-option-lbl" title="Auto-click main 'Save changes' button at bottom of Google Play Console when finished">
@@ -1274,7 +1665,7 @@
 
         applyModeTargets();
         updateUI();
-        log(`ðŸ”¥ Switched to App Sale Price (${state.saleDiscountMode === 'percentage' ? 'Discount % Mode' : 'Fixed Price Mode'}).`);
+        log(`🔥 Switched to App Sale Price (${state.saleDiscountMode === 'percentage' ? 'Discount % Mode' : 'Fixed Price Mode'}).`);
       });
 
       catBtnApp.addEventListener('click', () => {
@@ -1287,7 +1678,7 @@
 
         applyModeTargets();
         updateUI();
-        log('ðŸ·ï¸ Switched to App Price Mode (Uses Retail Price column for Google Play Console Pricing tab).');
+        log('🏷️ Switched to App Price Mode (Uses Retail Price column for Google Play Console Pricing tab).');
       });
     }
 
@@ -1306,7 +1697,7 @@
           modeDescText.innerHTML = '<strong>Fixed Price Mode:</strong> Automates local currency sale prices from <em>Discounted Price</em> column.';
         }
         applyModeTargets();
-        log('ðŸ’° Switched to Fixed Price Mode (uses "Discounted Price" column).');
+        log('💰 Switched to Fixed Price Mode (uses "Discounted Price" column).');
         updateUI();
       });
 
@@ -1319,7 +1710,7 @@
           modeDescText.innerHTML = '<strong>Discount % Mode:</strong> Automates percentage discounts from <em>Discount %</em> column.';
         }
         applyModeTargets();
-        log('ðŸ·ï¸ Switched to Discount % Mode (uses "Discount %" column).');
+        log('🏷️ Switched to Discount % Mode (uses "Discount %" column).');
         updateUI();
       });
     }
@@ -1361,7 +1752,7 @@
         state.isPaused = false;
         state.isRunning = true;
         startTimers();
-        log('â–¶ Automation resumed.');
+        log('▶ Automation resumed.');
         updateUI();
       } else {
         runAutomation();
@@ -1371,7 +1762,7 @@
     document.getElementById('ppa-btn-pause').addEventListener('click', () => {
       state.isPaused = true;
       pauseTimers();
-      log('â¸ Automation paused.');
+      log('⏸ Automation paused.');
       updateUI();
     });
 
@@ -1379,7 +1770,7 @@
       state.isRunning = false;
       state.isPaused = false;
       stopTimers(false);
-      log('â¹ Automation stopped.');
+      log('⏹ Automation stopped.');
       updateUI();
     });
 
@@ -1392,7 +1783,7 @@
         c.message = '';
       }
       stopTimers(true);
-      log('ðŸ”„ Queue reset to first country.');
+      log('🔄 Queue reset to first country.');
       updateUI();
     });
 
@@ -1401,7 +1792,7 @@
     if (speedSelect) {
       speedSelect.addEventListener('change', (e) => {
         state.speedDelay = parseInt(e.target.value, 10);
-        log(`â± Safe cadence set to ${state.speedDelay}ms per country.`);
+        log(`⏱ Safe cadence set to ${state.speedDelay}ms per country.`);
       });
     }
 
@@ -1410,7 +1801,7 @@
     if (chkAutoSave) {
       chkAutoSave.addEventListener('change', (e) => {
         state.autoSaveConsole = e.target.checked;
-        log(`ðŸ’¾ Auto-save console: ${state.autoSaveConsole ? 'ENABLED' : 'DISABLED'}`);
+        log(`💾 Auto-save console: ${state.autoSaveConsole ? 'ENABLED' : 'DISABLED'}`);
       });
     }
 
@@ -1453,7 +1844,7 @@
         if (fileCountEl) fileCountEl.textContent = `${parsed.length} Countries`;
 
         stopTimers(true);
-        log(`ðŸ“‚ Loaded ${parsed.length} countries from ${file.name}`);
+        log(`📂 Loaded ${parsed.length} countries from ${file.name}`);
         updateUI();
       } else {
         alert('Could not parse countries from CSV. Please ensure the CSV has Country and Price/Discount columns.');
