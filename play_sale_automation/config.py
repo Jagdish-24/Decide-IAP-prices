@@ -11,7 +11,7 @@ CONFIG_DIR = os.path.join(os.path.dirname(__file__), "cache")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 
 # Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-APP_VERSION = "1.4.0"
+APP_VERSION = "1.6.1"
 APP_LAST_UPDATED = "24 Oct 2026"
 
 def get_default_coordinates():
@@ -22,35 +22,31 @@ def get_default_coordinates():
     """
     w, h = pyautogui.size()
     
-    # Normalized coordinates derived from split-screen reference
+    # Accurate normalized coordinates derived from Google Play Console Material 3 layout
     return {
         # Left Window (Google Play Console)
         "left_search_box": {
-            "x": int(w * 0.350),  # ~896 on 2560
-            "y": int(h * 0.670)   # ~965 on 1440 (Availability and pricing search box)
+            "x": int(w * 0.373),  # ~955 on 2560 (Search by country or region pill)
+            "y": int(h * 0.255)   # ~367 on 1440
         },
         "left_row_pencil": {
-            "x": int(w * 0.205),  # ~525 on 2560 (Sale price pencil icon in filtered row)
-            "y": int(h * 0.740)   # ~1065 on 1440
+            "x": int(w * 0.213),  # ~545 on 2560 (Sale price pencil icon in filtered row 1)
+            "y": int(h * 0.326)   # ~470 on 1440
         },
         "left_popup_input": {
-            "x": int(w * 0.235),  # ~600 on 2560 (Input box in Edit price popup)
-            "y": int(h * 0.800)   # ~1150 on 1440
+            "x": int(w * 0.215),  # ~550 on 2560 (Input box in Edit price popup)
+            "y": int(h * 0.389)   # ~560 on 1440
         },
         "left_popup_cancel": {
-            "x": int(w * 0.255),  # ~650 on 2560 (Cancel button in Edit price popup)
-            "y": int(h * 0.840)   # ~1210 on 1440
+            "x": int(w * 0.199),  # ~510 on 2560 (Cancel button in Edit price popup)
+            "y": int(h * 0.434)   # ~625 on 1440
         },
         "left_popup_save": {
-            "x": int(w * 0.285),  # ~730 on 2560 (Save button at bottom right of popup)
-            "y": int(h * 0.840)   # ~1210 on 1440
-        },
-        "left_table_scroll_area": {
-            "x": int(w * 0.250),
-            "y": int(h * 0.700)
+            "x": int(w * 0.225),  # ~575 on 2560 (Save button in Edit price popup)
+            "y": int(h * 0.434)   # ~625 on 1440
         },
         
-        # Right Window (PlayPriceEngine)
+        # Right Window (PlayPriceEngine fallback)
         "right_search_box": {
             "x": int(w * 0.890),  # ~2280 on 2560 (Filter countries search input)
             "y": int(h * 0.225)   # ~324 on 1440
@@ -58,10 +54,6 @@ def get_default_coordinates():
         "right_copy_button": {
             "x": int(w * 0.765),  # ~1958 on 2560 (Copy button next to first row discounted price)
             "y": int(h * 0.285)   # ~410 on 1440
-        },
-        "right_table_scroll_area": {
-            "x": int(w * 0.750),
-            "y": int(h * 0.500)
         }
     }
 
@@ -73,7 +65,7 @@ DEFAULT_CONFIG = {
         "user_pause_duration": 10.0,    # 10-second pause if user moves mouse
         "mouse_move_duration": 0.25,   # Smooth human-like cursor glide
         "step_delay": 0.7,             # Default pause after clicks/keystrokes
-        "search_delay": 1.0,           # Wait for table to filter after search
+        "search_delay": 0.8,           # Wait for table to filter after search
         "popup_delay": 0.8,            # Wait for Edit price popup to open/close
         "post_save_delay": 0.8         # Wait for change to reflect in table
     },
@@ -90,9 +82,14 @@ def load_config():
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 saved = json.load(f)
-                # Merge missing keys from defaults
                 merged = dict(DEFAULT_CONFIG)
                 merged.update(saved)
+
+                # Sanitize legacy stale coordinates if search box Y is pointing to bottom of page (> 500)
+                coords = merged.get("coordinates", {})
+                if coords.get("left_search_box", {}).get("y", 0) > 500:
+                    merged["coordinates"] = get_default_coordinates()
+                    save_config(merged)
                 return merged
         except Exception as e:
             print(f"[Config] Error loading config file, resetting to defaults: {e}")

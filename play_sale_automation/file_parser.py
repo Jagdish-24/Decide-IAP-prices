@@ -83,14 +83,25 @@ def _parse_csv(file_path):
                 retail_str
             )
 
+            # Identify Discount % / Difference
+            discount_pct_str = (
+                row_dict.get("discount %") or 
+                row_dict.get("discount diff %") or 
+                row_dict.get("discount difference %") or 
+                row_dict.get("discount rate") or 
+                "0%"
+            )
+
             results[country_name] = {
                 "name": country_name,
                 "code": code,
                 "currency": curr,
                 "retail_price": _clean_number(retail_str),
                 "sale_price": _clean_number(sale_str),
+                "discount_pct": _clean_number(discount_pct_str),
                 "retail_raw": str(retail_str).strip(),
-                "sale_raw": str(sale_str).strip()
+                "sale_raw": str(sale_str).strip(),
+                "discount_pct_raw": str(discount_pct_str).strip()
             }
 
     return results

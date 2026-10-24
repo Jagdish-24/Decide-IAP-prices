@@ -66,7 +66,7 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.4.0</span>
+          <span class="version-tag" id="appVersionText">v1.6.1</span>
           <span class="version-sep">•</span>
           <span class="version-date" id="lastUpdatedDateText">Updated 24 Oct 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -616,6 +616,11 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line></svg>
             <span id="btnExportBotCsvLabel">Bot CSV (App Prices)</span>
           </button>
+
+          <a class="btn btn-secondary btn-sm" id="btnOpenBrowserBot" href="play_console_browser_bot/install_guide.html" target="_blank" title="Open 1-Click In-Browser Price Automator (Bookmarklet &amp; Extension Guide)" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; color:#38BDF8; border-color:rgba(56, 189, 248, 0.4);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            Browser Bot ↗
+          </a>
         </div>
       </div>
     </div>
@@ -645,6 +650,7 @@
                   <th data-col="currency" data-sortable="true" title="Click to sort by Currency">Currency <span class="sort-icon"></span></th>
                   <th data-col="retail" data-sortable="true" title="Click to sort by Retail Price">End-User Retail Price <span class="sort-icon"></span></th>
                   <th data-col="discount" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Price">Discounted Price <span class="sort-icon"></span></th>
+                  <th data-col="discountdiff" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Difference %">Discount % <span class="sort-icon"></span></th>
                   <th data-col="tax" data-sortable="true" title="Click to sort by Tax Rate">Tax / VAT Cut <span class="sort-icon"></span></th>
                   <th data-col="playcut" data-sortable="true" title="Click to sort by Play Cut">Google Play Cut <span class="sort-icon"></span></th>
                   <th data-col="buffercut" data-sortable="true" title="Click to sort by Buffer Cut">Buffer Cut <span class="sort-icon"></span></th>
@@ -686,6 +692,7 @@
                   <th data-col="currency" data-sortable="true" title="Click to sort by Currency">Currency <span class="sort-icon"></span></th>
                   <th data-col="retail" data-sortable="true" title="Click to sort by Retail Price">End-User Retail Price <span class="sort-icon"></span></th>
                   <th data-col="discount" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Price">Discounted Price <span class="sort-icon"></span></th>
+                  <th data-col="discountdiff" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Difference %">Discount % <span class="sort-icon"></span></th>
                   <th data-col="tax" data-sortable="true" title="Click to sort by Tax Rate">Tax / VAT Cut <span class="sort-icon"></span></th>
                   <th data-col="playcut" data-sortable="true" title="Click to sort by Play Cut">Google Play Cut <span class="sort-icon"></span></th>
                   <th data-col="buffercut" data-sortable="true" title="Click to sort by Buffer Cut">Buffer Cut <span class="sort-icon"></span></th>
@@ -727,6 +734,7 @@
                   <th data-col="currency" data-sortable="true" title="Click to sort by Currency">Currency <span class="sort-icon"></span></th>
                   <th data-col="retail" data-sortable="true" title="Click to sort by Retail Price">End-User Retail Price <span class="sort-icon"></span></th>
                   <th data-col="discount" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Price">Discounted Price <span class="sort-icon"></span></th>
+                  <th data-col="discountdiff" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Difference %">Discount % <span class="sort-icon"></span></th>
                   <th data-col="tax" data-sortable="true" title="Click to sort by Tax Rate">Tax / VAT Cut <span class="sort-icon"></span></th>
                   <th data-col="playcut" data-sortable="true" title="Click to sort by Play Cut">Google Play Cut <span class="sort-icon"></span></th>
                   <th data-col="buffercut" data-sortable="true" title="Click to sort by Buffer Cut">Buffer Cut <span class="sort-icon"></span></th>
@@ -768,6 +776,7 @@
                   <th data-col="currency" data-sortable="true" title="Click to sort by Currency">Currency <span class="sort-icon"></span></th>
                   <th data-col="retail" data-sortable="true" title="Click to sort by Retail Price">End-User Retail Price <span class="sort-icon"></span></th>
                   <th data-col="discount" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Price">Discounted Price <span class="sort-icon"></span></th>
+                  <th data-col="discountdiff" class="col-discount-header" data-sortable="true" style="display: none;" title="Click to sort by Discount Difference %">Discount % <span class="sort-icon"></span></th>
                   <th data-col="tax" data-sortable="true" title="Click to sort by Tax Rate">Tax / VAT Cut <span class="sort-icon"></span></th>
                   <th data-col="playcut" data-sortable="true" title="Click to sort by Play Cut">Google Play Cut <span class="sort-icon"></span></th>
                   <th data-col="buffercut" data-sortable="true" title="Click to sort by Buffer Cut">Buffer Cut <span class="sort-icon"></span></th>
@@ -1063,7 +1072,7 @@
           <div>
             <div class="modal-title-row">
               <h3>PlayPrice Engine Version History</h3>
-              <span class="version-tag-pill">v1.4.0 (Latest)</span>
+              <span class="version-tag-pill">v1.6.1 (Latest)</span>
             </div>
             <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 24 Oct 2026</p>
           </div>
@@ -1082,8 +1091,78 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.4.0 -->
+          <!-- Release v1.6.1 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.6.1</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">24 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Two-Decimal Precision for Discount %:</strong> Enhanced the Discount % table column and Bot CSV exports to display exact two-decimal precision (<code>xx.xx%</code>, e.g. <code>90.91%</code>, <code>80.81%</code>) for high-precision analytical calculations and pricing auditing.</li>
+                <li><strong>Precision Clipboard Copying:</strong> Copying a country's discount percentage copies the exact <code>xx.xx%</code> formatted value to the clipboard.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.6.0 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.6.0</span>
+                <span class="changelog-tag tag-minor">Minor Release</span>
+                <span class="changelog-date">24 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Dedicated Discount Difference % Column:</strong> Added new table column positioned adjacent to "Discounted Price", displaying the exact calculated percentage discount difference per country (accounting for charm rounding and minimum price floors).</li>
+                <li><strong>One-Click Clipboard Copy:</strong> Added an instant copy button on every discount percentage cell to copy the clean percentage value to the clipboard for manual or automated entry into Google Play Console.</li>
+                <li><strong>Enhanced Bot CSV Exports:</strong> Integrated the discount difference percentage into both "Bot CSV (Sale Prices)" and "Bot CSV (App Prices)" export modes for Google Play Console automation and Chrome extension synchronization.</li>
+                <li><strong>Column Visibility &amp; Sorting:</strong> Fully integrated into the table column picker menu with preset support and dynamic ascending/descending header sorting.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.5.1 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.5.1</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">24 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Double-Click Country Search &amp; Direct Paste:</strong> Country search bar now highlights existing queries via instant double-click and pastes the new country name via clipboard, completely eliminating slow character-by-character backspace loops.</li>
+                <li><strong>Seamless Queue Continuation on Price Match:</strong> When a country's existing sale price already matches the target price from CSV, the dialog dismisses cleanly and the automation immediately advances to the next country instead of stopping.</li>
+                <li><strong>Protected Global Hotkey Hooks:</strong> Keystrokes generated by the automator (e.g. Escape dialog dismissal) are safely guarded under <code>bot_action</code> context, preventing accidental emergency-stop triggering.</li>
+                <li><strong>Enhanced Treeview Status Tagging:</strong> Added distinct <code>✨ Matched</code> indicator alongside <code>✅ Done</code> for instant visual clarity across all 176 countries in the queue.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.5.0 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.5.0</span>
+                <span class="changelog-tag tag-minor">Minor Release</span>
+                <span class="changelog-date">24 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Screenshot-Guided Visual Verification Workflow:</strong> Automated every single step with live screenshot evaluation and verification: country clipboard copy (Step 1), search bar paste (Step 2), price input paste (Step 3), and post-save verification (Step 4).</li>
+                <li><strong>Dedicated Screenshot Manager:</strong> Auto-manages the dedicated <code>play_sale_automation/screenshots/</code> directory, strictly enforcing a maximum FIFO retention quota of 5 screenshots at all times, with Git ignore protection.</li>
+                <li><strong>Eliminated App Table Scrolling:</strong> Completely removed unnecessary table scroll gestures, ensuring single-row focus and preventing erroneous bottom-row jumps.</li>
+                <li><strong>Dynamic Visual Locators &amp; Auto-Detect:</strong> Real-time OpenCV Material 3 search pill and table row contour detection with one-click "⚡ Auto-Detect from View" calibration.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.4.0 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">

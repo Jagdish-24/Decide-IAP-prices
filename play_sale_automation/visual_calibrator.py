@@ -23,6 +23,14 @@ except Exception:
 
 
 import threading
+import glob
+
+try:
+    import cv2
+    import numpy as np
+    HAS_OPENCV = True
+except ImportError:
+    HAS_OPENCV = False
 
 def _raw_gdi_capture():
     user32 = ctypes.windll.user32
@@ -111,6 +119,174 @@ def capture_desktop_image():
     t.start()
     t.join(timeout=4.0)
     return result[0]
+
+
+class VisualScreenshotManager:
+    """
+    Manages automated step-by-step verification screenshots.
+    Guarantees that a maximum of 5 screenshots are retained at all times (FIFO: deletes oldest).
+    """
+    def __init__(self, directory=None, max_screenshots=5):
+        if directory is None:
+            directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), "screenshots")
+        self.directory = directory
+        self.max_screenshots = max_screenshots
+        os.makedirs(self.directory, exist_ok=True)
+
+    def capture_and_save(self, step_name, label="", img=None):
+        """
+        Captures or takes a PIL Image, saves it to the dedicated screenshots folder,
+        and enforces the maximum 5 screenshots quota by pruning older ones.
+        """
+        if img is None:
+            img = capture_desktop_image()
+        if not img:
+            return None, None
+
+        os.makedirs(self.directory, exist_ok=True)
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        clean_label = "".join(c if c.isalnum() else "_" for c in str(label)).strip("_")
+        if clean_label:
+            filename = f"{step_name}_{clean_label}_{timestamp}.png"
+        else:
+            filename = f"{step_name}_{timestamp}.png"
+
+        filepath = os.path.join(self.directory, filename)
+        try:
+            img.save(filepath)
+            self._prune_screenshots()
+            return filepath, img
+        except Exception as e:
+            print(f"[ScreenshotManager] Error saving screenshot: {e}")
+            return None, img
+
+    def _prune_screenshots(self):
+        """Deletes oldest screenshots to strictly maintain at most max_screenshots."""
+        try:
+            pattern = os.path.join(self.directory, "*.png")
+            files = sorted(glob.glob(pattern), key=os.path.getmtime)
+            while len(files) > self.max_screenshots:
+                oldest = files.pop(0)
+                try:
+                    os.remove(oldest)
+                except Exception:
+                    pass
+        except Exception as e:
+            print(f"[ScreenshotManager] Error pruning screenshots: {e}")
+
+    def get_recent_screenshots(self):
+        """Returns sorted list of current screenshot file paths."""
+        try:
+            pattern = os.path.join(self.directory, "*.png")
+            return sorted(glob.glob(pattern), key=os.path.getmtime)
+        except Exception:
+            return []
+
+
+def locate_search_bar_visual(img=None):
+    """
+    Visually locates the Google Play Console search bar pill in the left screen half.
+    Returns (center_x, center_y) or None if not detected.
+    """
+    if not HAS_OPENCV:
+        return None
+    if img is None:
+        img = capture_desktop_image()
+    if not img:
+        return None
+
+    try:
+        cv_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+        h, w = cv_img.shape[:2]
+        left_w = w // 2
+
+        # Search area: left half, Y between 100 and 750
+        roi = cv_img[100:750, :left_w]
+        gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
+        thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        for c in contours:
+            x, y, bw, bh = cv2.boundingRect(c)
+            # Material 3 pill shape: width 220 to 520, height 28 to 56
+            if 220 <= bw <= 520 and 28 <= bh <= 56:
+                patch = roi[y:y+bh, x:x+bw]
+                mean_bgr = np.mean(patch, axis=(0, 1))
+                if mean_bgr[0] > 195 and mean_bgr[1] > 195 and mean_bgr[2] > 195 and mean_bgr[0] >= mean_bgr[2] - 5:
+                    return (x + bw // 2, (y + 100) + bh // 2)
+    except Exception as e:
+        print(f"[VisualCalibrator] Search bar detection warning: {e}")
+    return None
+
+
+def locate_first_row_pencil_visual(img=None, search_bar_y=None):
+    """
+    Visually locates the pencil icon of the first table row beneath the search bar.
+    Returns (center_x, center_y) or None if not detected.
+    """
+    if not HAS_OPENCV:
+        return None
+    if img is None:
+        img = capture_desktop_image()
+    if not img:
+        return None
+
+    try:
+        cv_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+        h, w = cv_img.shape[:2]
+        left_w = w // 2
+
+        sy = search_bar_y or 367
+        # Search table lines below search_y
+        table_roi = cv_img[sy + 30 : min(h, sy + 320), :left_w]
+        t_gray = cv2.cvtColor(table_roi, cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(t_gray, 50, 150)
+        lines = cv2.HoughLinesP(edges, 1, np.pi/180, threshold=100, minLineLength=200, maxLineGap=10)
+
+        if lines is not None:
+            raw_ys = sorted(list(set([int(l[1] + sy + 30) for l in lines])))
+            clustered = []
+            for y in raw_ys:
+                if not clustered or abs(y - clustered[-1]) > 8:
+                    clustered.append(y)
+            if len(clustered) >= 2:
+                row_y = (clustered[0] + clustered[1]) // 2
+                pencil_x = int(left_w * 0.426)  # ~545 on 1280
+                return (pencil_x, row_y)
+    except Exception as e:
+        print(f"[VisualCalibrator] Row pencil detection warning: {e}")
+    return None
+
+
+def locate_price_popup_visual(img=None, fallback_pt=None):
+    """
+    Visually detects the input box in the 'Edit price' popup dialog.
+    Returns (input_x, input_y) or fallback.
+    """
+    if not HAS_OPENCV:
+        return fallback_pt
+    if img is None:
+        img = capture_desktop_image()
+    if not img:
+        return fallback_pt
+
+    try:
+        cv_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+        h, w = cv_img.shape[:2]
+        left_w = w // 2
+
+        # Look in the region around row 1 (Y: 400 to 800, X: 300 to 800)
+        roi = cv_img[400:800, 300:min(left_w, 800)]
+        b, g, r = roi[:, :, 0], roi[:, :, 1], roi[:, :, 2]
+        blue_mask = (b.astype(int) - r.astype(int) > 60) & (b > 160)
+        ys, xs = np.where(blue_mask)
+        if len(xs) > 20:
+            bx = np.mean(xs) + 300
+            by = np.mean(ys) + 400
+            return (int(bx), int(by))
+    except Exception as e:
+        print(f"[VisualCalibrator] Price popup input detection warning: {e}")
+    return fallback_pt
 
 
 def generate_point_crop(img, x, y, size=110, color="#38BDF8", label=None):

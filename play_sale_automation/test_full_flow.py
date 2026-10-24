@@ -72,6 +72,7 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
         self.assertEqual(al["currency"], "USD")
         self.assertEqual(al["sale_price"], 0.19)
         self.assertEqual(al["retail_price"], 0.99)
+        self.assertEqual(al["discount_pct"], -50.0)
 
         # Verify Algeria (Zero-decimal DZD floor reached)
         dz = parsed.get("Algeria")
@@ -169,8 +170,8 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
         self.assertEqual(final_price, "0.19")
 
         # Verify steps taken
-        # 1. Search box clicked
-        mock_pyautogui.click.assert_any_call(x=896, y=965, clicks=1, button="left")
+        # 1. Search box double-clicked to select all text
+        mock_pyautogui.click.assert_any_call(x=896, y=965, clicks=2, button="left")
         # 2. Pencil icon clicked
         mock_pyautogui.click.assert_any_call(x=525, y=1065, clicks=1, button="left")
         # 3. Popup input double clicked
@@ -275,7 +276,10 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
     @patch("automator_engine.pyautogui")
     @patch("automator_engine.pyperclip")
     def test_07_multi_country_loop_progress(self, mock_pyperclip, mock_pyautogui):
-        mock_pyperclip.paste.return_value = "0.00"
+        # Country 1 (Albania, 0.19): Mismatch ("0.00") -> Overwrite & Save (completed)
+        # Country 2 (Algeria, 30): Match ("30") -> Clean close & continue (matched)
+        # Country 3 (Argentina, 199): Mismatch ("0.00") -> Overwrite & Save (completed)
+        mock_pyperclip.paste.side_effect = ["0.00", "DZD 30", "0.00"]
         progress_events = []
         state_events = []
 
@@ -315,17 +319,17 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
         engine._run_loop()
 
         self.assertEqual(engine.state, AutomatorState.COMPLETED)
-        # Verify 3 countries processed
-        completed_events = [e for e in progress_events if e[3] == "completed"]
-        self.assertEqual(len(completed_events), 3)
-        self.assertEqual(completed_events[0][2], "Albania")
-        self.assertEqual(completed_events[0][4], "0.19")
-        self.assertEqual(completed_events[1][2], "Algeria")
-        self.assertEqual(completed_events[1][4], "30")
-        self.assertEqual(completed_events[2][2], "Argentina")
-        self.assertEqual(completed_events[2][4], "199")
+        # Verify all 3 countries completed or matched without stopping
+        finished_events = [e for e in progress_events if e[3] in ["completed", "matched"]]
+        self.assertEqual(len(finished_events), 3)
+        self.assertEqual(finished_events[0][2], "Albania")
+        self.assertEqual(finished_events[0][3], "completed")
+        self.assertEqual(finished_events[1][2], "Algeria")
+        self.assertEqual(finished_events[1][3], "matched")
+        self.assertEqual(finished_events[2][2], "Argentina")
+        self.assertEqual(finished_events[2][3], "completed")
 
-        print("Test 7 Passed: Multi-country loop and progress tracking verified.")
+        print("Test 7 Passed: Multi-country loop with matching price continuation verified.")
 
     # -------------------------------------------------------------
     # TEST 8: Immediate Stop Request Halts Execution

@@ -2001,6 +2001,7 @@ body.hide-col-country [data-col="country"],
 body.hide-col-currency [data-col="currency"],
 body.hide-col-retail [data-col="retail"],
 body.hide-col-discount [data-col="discount"],
+body.hide-col-discountdiff [data-col="discountdiff"],
 body.hide-col-tax [data-col="tax"],
 body.hide-col-playcut [data-col="playcut"],
 body.hide-col-buffercut [data-col="buffercut"],
@@ -2273,6 +2274,22 @@ body.hide-col-action [data-col="action"] {
 }
 
 .discount-badge {
+  display: inline-block;
+  background: var(--accent-amber-subtle);
+  color: var(--accent-amber);
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 0;
+}
+
+.discount-diff-val {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--accent-amber);
+}
+
+.discount-diff-sub {
   display: inline-block;
   background: var(--accent-amber-subtle);
   color: var(--accent-amber);

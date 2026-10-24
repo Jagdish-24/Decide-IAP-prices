@@ -25,7 +25,13 @@ from mouse_detector import MouseInterventionDetector
 from automator_engine import PlaySaleAutomatorEngine, AutomatorState
 from window_locator import WindowLocator
 from file_parser import parse_pricing_file
-from visual_calibrator import capture_desktop_image, generate_point_crop, ScreenPinOverlay
+from visual_calibrator import (
+    capture_desktop_image,
+    generate_point_crop,
+    ScreenPinOverlay,
+    locate_search_bar_visual,
+    locate_first_row_pencil_visual
+)
 from PIL import Image, ImageTk
 
 # Attempt global hotkeys with pynput
@@ -574,7 +580,9 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self.tree.tag_configure("even", background=self.colors["tree_even"])
         self.tree.tag_configure("odd", background=self.colors["tree_odd"])
         self.tree.tag_configure("done", foreground=self.colors["success"])
+        self.tree.tag_configure("matched", foreground="#38BDF8")
         self.tree.tag_configure("active", foreground=self.colors["accent"])
+        self.tree.tag_configure("failed", foreground=self.colors["danger"])
         self.tree.tag_configure("pending", foreground=self.colors["text_muted"])
 
     def _filter_country_tree(self, *args):
@@ -609,7 +617,13 @@ class PlaySaleAutomatorGUI(tk.Tk):
                                 bg=self.colors["success"], fg="#FFFFFF", activebackground=self.colors["success_hover"],
                                 activeforeground="#FFFFFF", relief="flat", padx=12, pady=4, cursor="hand2",
                                 command=self._refresh_live_calibration_crops)
-        btn_capture.pack(side="left", padx=(0, 10))
+        btn_capture.pack(side="left", padx=(0, 6))
+
+        btn_autodetect = tk.Button(top_bar, text="⚡ Auto-Detect from View", font=("Segoe UI", 9, "bold"),
+                                   bg=self.colors["accent"], fg="#080D1A", activebackground=self.colors["accent_hover"],
+                                   activeforeground="#FFFFFF", relief="flat", padx=10, pady=4, cursor="hand2",
+                                   command=self._auto_detect_visual_points)
+        btn_autodetect.pack(side="left", padx=(0, 10))
 
         self.desktop_status_lbl = tk.Label(top_bar, text="● Live Screen: 2560x1440 • Ready",
                                            font=("Segoe UI", 8, "bold"), fg=self.colors["accent"], bg=self.colors["card_bg"])
@@ -757,6 +771,38 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self._refresh_live_calibration_crops()
         self._on_engine_log("🔄 Restored default proportional coordinates.")
 
+    def _auto_detect_visual_points(self):
+        """Visually locates the Play Console search bar and table rows from live screen."""
+        shot = capture_desktop_image()
+        if not shot:
+            messagebox.showerror("Capture Error", "Could not capture live screen for auto-detection.")
+            return
+
+        detected = {}
+        s_pt = locate_search_bar_visual(shot)
+        if s_pt:
+            detected["left_search_box"] = {"x": s_pt[0], "y": s_pt[1]}
+
+        p_pt = locate_first_row_pencil_visual(shot, search_bar_y=s_pt[1] if s_pt else None)
+        if p_pt:
+            detected["left_row_pencil"] = {"x": p_pt[0], "y": p_pt[1]}
+            detected["left_popup_input"] = {"x": p_pt[0] + 5, "y": p_pt[1] + 90}
+            detected["left_popup_cancel"] = {"x": p_pt[0] - 35, "y": p_pt[1] + 155}
+            detected["left_popup_save"] = {"x": p_pt[0] + 30, "y": p_pt[1] + 155}
+
+        if detected:
+            coords = self.config_data.setdefault("coordinates", {})
+            coords.update(detected)
+            save_config(self.config_data)
+            for k, pt in detected.items():
+                lbl = self.coord_labels.get(k)
+                if lbl:
+                    lbl.config(text=f"X: {pt['x']}  |  Y: {pt['y']}")
+            self._refresh_live_calibration_crops(cached_img=shot)
+            self._on_engine_log(f"⚡ Auto-detected {len(detected)} points from live Play Console screen!")
+        else:
+            self._on_engine_log("⚠️ Could not auto-detect Play Console controls. Please ensure Google Play Console is open on the left window.")
+
     def _build_timing_tab(self):
         container = tk.Frame(self.timing_tab, bg=self.colors["card_bg"], padx=16, pady=12)
         container.pack(fill="both", expand=True)
@@ -869,9 +915,14 @@ class PlaySaleAutomatorGUI(tk.Tk):
 
         def on_press(key):
             try:
+                # Do NOT trigger hotkeys if keystroke was fired by the automator itself!
+                if getattr(self.engine, "is_simulating", False):
+                    return
                 if key == pynput_keyboard.Key.f8:
                     self.after(0, self._on_click_start)
-                elif key == pynput_keyboard.Key.f9 or key == pynput_keyboard.Key.esc:
+                elif key == pynput_keyboard.Key.f9:
+                    self.after(0, self._on_click_stop)
+                elif key == pynput_keyboard.Key.esc:
                     self.after(0, self._on_click_stop)
             except Exception:
                 pass
@@ -944,7 +995,7 @@ class PlaySaleAutomatorGUI(tk.Tk):
             self.btn_test_one.config(state="normal")
         elif state == AutomatorState.COMPLETED:
             self.status_icon_lbl.config(text="🏁")
-            self.status_text_lbl.config(text="COMPLETED: All countries processed!", fg=self.colors["success"])
+            self.status_text_lbl.config(text=f"COMPLETED: {msg}", fg=self.colors["success"])
             self.btn_start.config(state="normal")
             self.btn_stop.config(state="disabled")
             self.btn_test_one.config(state="normal")
@@ -962,8 +1013,19 @@ class PlaySaleAutomatorGUI(tk.Tk):
         # Update Treeview item tag
         item_id = str(current_idx if status == "processing" else max(0, current_idx - 1))
         if self.tree.exists(item_id):
-            tag = "active" if status == "processing" else ("done" if status == "completed" else "failed")
-            status_text = "⏳ In Progress" if status == "processing" else ("✅ Done" if status == "completed" else "❌ Failed")
+            if status == "processing":
+                tag = "active"
+                status_text = "⏳ In Progress"
+            elif status == "matched":
+                tag = "matched"
+                status_text = "✨ Matched"
+            elif status in ["completed", "done"]:
+                tag = "done"
+                status_text = "✅ Done"
+            else:
+                tag = "failed"
+                status_text = "❌ Failed"
+
             cur_vals = list(self.tree.item(item_id, "values"))
             if len(cur_vals) >= 7:
                 if price:

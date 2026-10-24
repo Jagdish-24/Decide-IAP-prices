@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "PlayPrice Automator • Google Play Console Robot",
+  "version": "1.6.1",
+  "description": "Automates country sale prices and app prices in Google Play Console via direct DOM injection with 0 mouse movement.",
+  "icons": {
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PlayPrice Automator"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://play.google.com/console/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "permissions": [
+    "activeTab"
+  ]
+}

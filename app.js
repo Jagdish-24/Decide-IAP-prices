@@ -7,7 +7,7 @@
   'use strict';
 
   // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-  const APP_VERSION = '1.4.0';
+  const APP_VERSION = '1.6.1';
   const APP_LAST_UPDATED = '24 Oct 2026';
 
   // 1. Initial State
@@ -36,6 +36,7 @@
       currency: true,
       retail: true,
       discount: true,
+      discountdiff: true,
       tax: true,
       playcut: true,
       buffercut: true,
@@ -145,6 +146,7 @@
     { id: 'currency', name: 'Currency (ISO)', category: 'general' },
     { id: 'retail', name: 'End-User Retail Price', category: 'pricing' },
     { id: 'discount', name: 'Discounted Price', category: 'pricing', isPromo: true },
+    { id: 'discountdiff', name: 'Discount %', category: 'pricing', isPromo: true },
     { id: 'tax', name: 'Tax / VAT Cut', category: 'deductions' },
     { id: 'playcut', name: 'Google Play Fee', category: 'deductions' },
     { id: 'buffercut', name: 'Buffer Cut (FX/TDS)', category: 'deductions' },
@@ -158,22 +160,22 @@
 
   const COLUMN_PRESETS = {
     all: {
-      country: true, currency: true, retail: true, discount: true,
+      country: true, currency: true, retail: true, discount: true, discountdiff: true,
       tax: true, playcut: true, buffercut: true,
       netlocal: true, netusd: true, netinr: true, discountnetinr: true, mindset: true, action: true
     },
     essential: {
-      country: true, currency: true, retail: true, discount: true,
+      country: true, currency: true, retail: true, discount: true, discountdiff: true,
       tax: false, playcut: false, buffercut: false,
       netlocal: false, netusd: true, netinr: true, discountnetinr: true, mindset: false, action: true
     },
     earnings: {
-      country: true, currency: true, retail: true, discount: true,
+      country: true, currency: true, retail: true, discount: true, discountdiff: true,
       tax: false, playcut: false, buffercut: false,
       netlocal: true, netusd: true, netinr: true, discountnetinr: true, mindset: false, action: false
     },
     cuts: {
-      country: true, currency: true, retail: true, discount: false,
+      country: true, currency: true, retail: true, discount: false, discountdiff: false,
       tax: true, playcut: true, buffercut: true,
       netlocal: false, netusd: true, netinr: false, discountnetinr: false, mindset: false, action: false
     }
@@ -815,10 +817,17 @@
     const bufferPct = retailPrice > 0 ? (bufferCut / retailPrice) * 100 : 0;
     const developerNetPct = retailPrice > 0 ? (developerNetLocal / retailPrice) * 100 : 0;
 
+    // Actual calculated discount difference percentage
+    let discountDiffPct = 0;
+    if (state.discountEnabled && retailPrice > 0 && discountedPrice < retailPrice) {
+      discountDiffPct = ((retailPrice - discountedPrice) / retailPrice) * 100;
+    }
+
     return {
       country,
       retailPrice,
       discountedPrice,
+      discountDiffPct,
       retailInUsd,
       retailInBase,
       taxAmount,
@@ -1475,6 +1484,8 @@
             return dir * (a.retailInBase - b.retailInBase);
           case 'discount':
             return dir * (a.discountedPrice - b.discountedPrice);
+          case 'discountdiff':
+            return dir * (a.discountDiffPct - b.discountDiffPct);
           case 'tax':
             return dir * (a.taxPct - b.taxPct);
           case 'playcut':
@@ -1561,7 +1572,7 @@
   }
 
   function getEmptyTableNotice() {
-    const colSpan = state.discountEnabled ? 13 : 11;
+    const colSpan = state.discountEnabled ? 14 : 11;
     return `<tr><td colspan="${colSpan}" style="text-align: center; padding: 28px; color: var(--text-muted);">No matching countries found for query "${escapeHTML(state.searchQuery)}".</td></tr>`;
   }
 
@@ -1577,7 +1588,11 @@
     const cleanDiscountNum = formatCleanNumber(calc.discountedPrice, c.currency);
 
     let discountCellHtml = '';
+    let discountDiffCellHtml = '';
     if (state.discountEnabled) {
+      const cleanDiffPct = calc.discountDiffPct.toFixed(2);
+      const isPromoActive = calc.discountDiffPct > 0;
+
       if (calc.isDiscountAtFloor) {
         discountCellHtml = `
           <td class="mono-cell col-discount-cell" data-col="discount">
@@ -1608,6 +1623,20 @@
           </td>
         `;
       }
+
+      discountDiffCellHtml = `
+        <td class="mono-cell col-discount-diff-cell" data-col="discountdiff">
+          <div class="price-box">
+            <span class="discount-diff-val" title="Exact discount difference: ${calc.discountDiffPct.toFixed(4)}%">${cleanDiffPct}%</span>
+            <button class="btn-copy btn-copy-discount-pct" data-copy-val="${cleanDiffPct}%" data-country="${escapeHTML(c.name)}" data-currency="${escapeHTML(c.currency)}" data-type="discount_pct" title="Copy discount percentage (${cleanDiffPct}%) to clipboard">
+              ${COPY_ICON_SVG}
+            </button>
+          </div>
+          <div>
+            <span class="discount-diff-sub">${isPromoActive ? `-${cleanDiffPct}% off` : 'No discount'}</span>
+          </div>
+        </td>
+      `;
     }
 
     const discountNetInrCellHtml = state.discountEnabled ? `
@@ -1647,6 +1676,7 @@
           <div class="base-price-val">≈ ${baseCode} ${calc.retailInBase.toFixed(2)}</div>
         </td>
         ${discountCellHtml}
+        ${discountDiffCellHtml}
         <td class="mono-cell" data-col="tax">
           <div class="cut-val">${formatPct(calc.taxPct)}</div>
           <div class="cut-sub">${formatMoney(calc.taxAmount, c.currency)}</div>
@@ -1709,6 +1739,8 @@
           }, 1200);
           if (type === 'country') {
             showToast(`Copied country: ${valToCopy}`, 'success');
+          } else if (type === 'discount_pct') {
+            showToast(`Copied ${valToCopy} discount (${country || ''}) to clipboard!`, 'success');
           } else {
             showToast(`Copied ${currency || ''} ${valToCopy} (${country || ''}) for Google Play!`, 'success');
           }
@@ -1884,7 +1916,7 @@
           escapeCsvCell(country.currency),
           escapeCsvCell(formatCleanNumber(calc.retailPrice, country.currency)),
           calc.retailInBase.toFixed(2),
-          state.discountEnabled ? `${state.discountRate}%` : 'None',
+          state.discountEnabled ? `${calc.discountDiffPct.toFixed(2)}%` : 'None',
           state.discountEnabled ? escapeCsvCell(formatCleanNumber(calc.discountedPrice, country.currency)) : escapeCsvCell(formatCleanNumber(calc.retailPrice, country.currency)),
           calc.taxPct.toFixed(1),
           calc.taxAmount.toFixed(2),
@@ -2268,8 +2300,8 @@
 
     // Headers mapped directly to file_parser.py in play_sale_automation
     const headers = isSaleMode
-      ? ['Country Name', 'Country Code', 'Currency', 'Discounted Price', 'Retail Price', 'Discount Rate']
-      : ['Country Name', 'Country Code', 'Currency', 'Retail Price'];
+      ? ['Country Name', 'Country Code', 'Currency', 'Discounted Price', 'Discount %', 'Retail Price']
+      : ['Country Name', 'Country Code', 'Currency', 'Retail Price', 'Discount %'];
 
     const rows = [headers];
 
@@ -2281,6 +2313,7 @@
       const cleanRetail = formatCleanNumber(calc.retailPrice, country.currency);
       const cleanSale = formatCleanNumber(calc.discountedPrice, country.currency);
       const safeName = `"${country.name.replace(/"/g, '""')}"`;
+      const cleanPct = `${calc.discountDiffPct.toFixed(2)}%`;
 
       if (isSaleMode) {
         rows.push([
@@ -2288,15 +2321,16 @@
           country.code,
           country.currency,
           cleanSale,
-          cleanRetail,
-          `"-${state.discountRate}%"`
+          `"${cleanPct}"`,
+          cleanRetail
         ]);
       } else {
         rows.push([
           safeName,
           country.code,
           country.currency,
-          cleanRetail
+          cleanRetail,
+          `"0.00%"`
         ]);
       }
     });
