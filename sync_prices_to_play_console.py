@@ -61,8 +61,8 @@ def to_micros(val: float) -> str:
     """Converts a standard currency amount (e.g. 1.49) to Google Play micros string (1490000)."""
     return str(int(round(float(val) * 1_000_000)))
 
-def parse_csv_matrix(csv_path: str, use_discount: bool = False):
-    """Parses a PlayPrice Engine exported CSV into Google Play pricing dictionaries."""
+def parse_csv_matrix(csv_path: str, use_discount: bool = False, sku_name: str = None):
+    """Parses any PlayPrice Engine exported CSV (Full Matrix, Master All-SKUs, or single SKU) into Google Play pricing dictionaries."""
     if not os.path.exists(csv_path):
         raise FileNotFoundError(f"CSV file not found: {csv_path}")
 
@@ -70,15 +70,55 @@ def parse_csv_matrix(csv_path: str, use_discount: bool = False):
     with open(csv_path, mode='r', encoding='utf-8-sig') as f:
         reader = csv.DictReader(f)
         for row in reader:
-            code = (row.get('Country Code') or row.get('Country/Region') or '').strip().upper()
-            curr = (row.get('Currency') or '').strip().upper()
+            # 1. Flexible country code extraction
+            code = (
+                row.get('Country Code') or 
+                row.get('Country Code (ISO)') or 
+                row.get('Country/Region') or 
+                row.get('Country') or 
+                ''
+            ).strip().upper()
             
-            # Select retail price or promotional discounted price
+            # 2. Flexible currency code extraction
+            curr = (
+                row.get('Currency') or 
+                row.get('Local Currency Code') or 
+                row.get('Currency Code') or 
+                ''
+            ).strip().upper()
+            
+            # 3. Flexible price extraction (Single-SKU, Full Matrix, or promo column)
             price_raw = None
-            if use_discount and row.get('Discounted Price') and row.get('Discounted Price') != 'N/A':
-                price_raw = row.get('Discounted Price')
-            else:
-                price_raw = row.get('Retail Price') or row.get('Default Price')
+            if use_discount:
+                price_raw = (
+                    row.get('Discounted Price') or 
+                    row.get('Discounted Price (Local)') or 
+                    row.get('Promo Price') or 
+                    row.get('Promotional Price')
+                )
+            
+            if not price_raw or price_raw == 'N/A':
+                price_raw = (
+                    row.get('Retail Price') or 
+                    row.get('Local Retail Price') or 
+                    row.get('Default Price') or 
+                    row.get('Price')
+                )
+            
+            # 4. If row has multiple SKU columns (Master Matrix CSV format), match by SKU name
+            if not price_raw and sku_name:
+                sku_clean = sku_name.lower().replace('-', ' ').replace('_', ' ')
+                for col_name, val in row.items():
+                    if not col_name or not val:
+                        continue
+                    col_lower = col_name.lower()
+                    if sku_clean in col_lower or any(part in col_lower for part in sku_clean.split('.')):
+                        if use_discount and ('promo' in col_lower or 'discount' in col_lower):
+                            price_raw = val
+                            break
+                        elif not use_discount and ('retail' in col_lower or 'price' in col_lower):
+                            price_raw = val
+                            break
             
             if not code or code not in VALID_PLAY_STORE_COUNTRIES:
                 continue
@@ -196,7 +236,7 @@ def main():
         if not args.sku:
             print("❌ Error: When updating from a single CSV matrix, you must specify the target --sku.")
             sys.exit(1)
-        prices = parse_csv_matrix(args.csv, use_discount=args.discount)
+        prices = parse_csv_matrix(args.csv, use_discount=args.discount, sku_name=args.sku)
         update_single_sku(service, args.package, args.sku, prices, dry_run=args.dry_run)
 
     elif args.json:

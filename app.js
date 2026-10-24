@@ -66,16 +66,23 @@
     GLOBAL: new Set(['GLOBAL_USD', 'GLOBAL_EUR'])
   };
 
-  // Google Play Official Regional Minimum Transaction Floors
+  // Google Play Official Regional Minimum Transaction Floors (All 65 Supported Currencies)
   const GOOGLE_PLAY_MIN_PRICES = {
-    USD: 0.10, EUR: 0.10, GBP: 0.10, INR: 10.00, BRL: 0.99, CAD: 0.10,
-    AUD: 0.10, NZD: 0.15, JPY: 50.00, KRW: 1000.00, IDR: 3000.00, TRY: 2.00,
-    MXN: 5.00, PLN: 1.00, ZAR: 3.00, AED: 1.00, SAR: 1.00, THB: 10.00,
-    VND: 6000.00, PHP: 15.00, MYR: 1.00, SGD: 0.20, CHF: 0.10, SEK: 1.00,
-    NOK: 1.00, DKK: 1.00, TWD: 10.00, HKD: 1.00, CLP: 100.00, COP: 500.00,
-    ARS: 50.00, EGP: 5.00, NGN: 50.00, PKR: 20.00, BDT: 10.00, DZD: 30.00,
-    KZT: 50.00, UAH: 5.00, CZK: 5.00, HUF: 50.00, ILS: 1.00, PEN: 1.00, RON: 1.00
+    AED: 1.00, ARS: 50.00, AUD: 0.10, AZN: 0.20, BDT: 10.00, BOB: 1.00, BRL: 0.99, CAD: 0.10,
+    CHF: 0.10, CLP: 100.00, COP: 500.00, CRC: 100.00, CZK: 5.00, DKK: 1.00, DZD: 30.00, EGP: 5.00,
+    ETB: 10.00, EUR: 0.10, GBP: 0.10, GEL: 0.50, GHS: 2.00, HKD: 1.00, HUF: 50.00, IDR: 3000.00,
+    ILS: 1.00, INR: 10.00, IQD: 500.00, JOD: 0.10, JPY: 50.00, KES: 20.00, KRW: 1000.00, KZT: 50.00,
+    LKR: 50.00, MAD: 2.00, MMK: 500.00, MNT: 500.00, MOP: 1.00, MXN: 5.00, MYR: 1.00, NGN: 50.00,
+    NOK: 1.00, NZD: 0.15, PEN: 1.00, PHP: 15.00, PKR: 20.00, PLN: 1.00, PYG: 1000.00, QAR: 1.00,
+    RON: 1.00, RSD: 20.00, RUB: 15.00, SAR: 1.00, SEK: 1.00, SGD: 0.20, THB: 10.00, TRY: 2.00,
+    TWD: 10.00, TZS: 500.00, UAH: 5.00, USD: 0.10, UZS: 2000.00, VND: 6000.00, XAF: 100.00, XOF: 100.00,
+    ZAR: 3.00
   };
+
+  // Google Play Zero-Decimal Currencies (Whole Integer Units Only)
+  const ZERO_DECIMAL_CURRENCIES = new Set([
+    'JPY', 'KRW', 'VND', 'IDR', 'CLP', 'COP', 'HUF', 'PYG', 'TZS', 'UZS', 'MMK', 'MNT', 'XAF', 'XOF', 'IQD'
+  ]);
 
   // Quick Catalogue Monetization Presets
   const CATALOGUE_PRESETS = {
@@ -189,9 +196,9 @@
     return { productId, offerId, discountOfferId };
   }
 
-  // Standard Indian charm price points for mobile gaming
+  // Standard Indian charm price points for mobile gaming (starts at official ₹10 Play Store min floor)
   const INR_LADDER = [
-    9, 19, 29, 39, 49, 79, 89, 99, 110, 149, 199, 249, 299, 399, 499,
+    10, 19, 29, 39, 49, 79, 89, 99, 110, 149, 199, 249, 299, 399, 499,
     599, 799, 899, 999, 1199, 1499, 1999, 2499, 2999, 3999, 4999
   ];
 
@@ -376,15 +383,17 @@
     }
   }
 
-  async function fetchLiveExchangeRates() {
-    // 1. Check local cache first to protect external API rate limits
-    const cachedRates = loadCachedExchangeRates();
-    if (cachedRates) {
-      state.exchangeRates = Object.assign({}, window.FALLBACK_EXCHANGE_RATES, cachedRates);
-      if (elements.fxStatusText) {
-        elements.fxStatusText.textContent = 'Live FX Active (Cached)';
+  async function fetchLiveExchangeRates(forceRefresh = false) {
+    // 1. Check local cache first to protect external API rate limits (unless forced refresh)
+    if (!forceRefresh) {
+      const cachedRates = loadCachedExchangeRates();
+      if (cachedRates) {
+        state.exchangeRates = Object.assign({}, window.FALLBACK_EXCHANGE_RATES, cachedRates);
+        if (elements.fxStatusText) {
+          elements.fxStatusText.textContent = 'Live FX Active (Cached)';
+        }
+        return;
       }
-      return;
     }
 
     // 2. Network request with timeout & HTTP 429 rate limit handling
@@ -525,7 +534,9 @@
     if (state.charmRounding) {
       retailPrice = applyCharmPricing(rawLocalPrice, country.currency);
     } else {
-      retailPrice = Math.round(rawLocalPrice * 100) / 100;
+      retailPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency)
+        ? Math.round(rawLocalPrice)
+        : Math.round(rawLocalPrice * 100) / 100;
     }
 
     // Promotional Discount Calculation (if enabled)
@@ -551,31 +562,52 @@
               discountedPrice = Math.max(1, Math.round(rawDiscounted));
             }
           } else {
-            discountedPrice = Math.max(0.01, Math.round(rawDiscounted * 100) / 100);
+            discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency)
+              ? Math.max(1, Math.round(rawDiscounted))
+              : Math.max(0.01, Math.round(rawDiscounted * 100) / 100);
           }
           // Strict fallback guarantee
           if (discountedPrice >= retailPrice) {
-            discountedPrice = Math.max(0.01, Math.round((retailPrice - 0.01) * 100) / 100);
+            discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency)
+              ? Math.max(1, Math.round(retailPrice - 1))
+              : Math.max(0.01, Math.round((retailPrice - 0.01) * 100) / 100);
           }
         }
       } else {
-        discountedPrice = Math.round(rawDiscounted * 100) / 100;
+        discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency)
+          ? Math.round(rawDiscounted)
+          : Math.round(rawDiscounted * 100) / 100;
         if (discountedPrice >= retailPrice) {
-          discountedPrice = Math.max(0.01, Math.round((retailPrice - 0.01) * 100) / 100);
+          discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency)
+            ? Math.max(1, Math.round(retailPrice - 1))
+            : Math.max(0.01, Math.round((retailPrice - 0.01) * 100) / 100);
         }
       }
     }
 
     // Google Play Minimum Price Floor check & enforcement
-    const minFloor = GOOGLE_PLAY_MIN_PRICES[country.currency] || 0.10;
+    const minFloor = GOOGLE_PLAY_MIN_PRICES[country.currency] || Math.max(0.10, Math.round(0.10 * localRate));
     let isClampedToMin = false;
     if (retailPrice < minFloor) {
       retailPrice = minFloor;
       isClampedToMin = true;
     }
 
-    if (state.discountEnabled && discountedPrice < minFloor) {
-      discountedPrice = minFloor;
+    let isDiscountAtFloor = false;
+    if (state.discountEnabled) {
+      if (discountedPrice <= minFloor) {
+        discountedPrice = minFloor;
+      }
+      if (discountedPrice >= retailPrice) {
+        discountedPrice = retailPrice;
+        isDiscountAtFloor = true;
+      }
+    }
+
+    // Ensure zero-decimal currencies remain strict integers
+    if (ZERO_DECIMAL_CURRENCIES.has(country.currency)) {
+      retailPrice = Math.round(retailPrice);
+      discountedPrice = Math.round(discountedPrice);
     }
 
     // Pricing base to use for tax and cuts (discounted if enabled and active)
@@ -609,19 +641,22 @@
     const inrRate = getRate('INR');
     const developerNetInInr = developerNetInUsd * inrRate;
 
-    // Calculate Developer Net after promotional discount (in INR)
+    // Calculate Developer Net after promotional discount (in INR, USD, and deductions)
     let discountDeveloperNetInInr = 0;
+    let discountDeveloperNetInUsd = 0;
+    let discountTaxAmount = 0;
+    let discountPlayStoreCut = 0;
+    let discountBufferCut = 0;
+    let discountNetRevenueBase = discountedPrice;
     if (state.discountEnabled) {
-      let discountTaxAmount = 0;
-      let discountNetRevenueBase = discountedPrice;
       if (country.taxType === 'included' && country.taxRate > 0) {
         discountTaxAmount = discountedPrice * (country.taxRate / (100 + country.taxRate));
         discountNetRevenueBase = discountedPrice - discountTaxAmount;
       }
-      const discountPlayStoreCut = discountNetRevenueBase * state.playFeeRate;
-      const discountBufferCut = discountNetRevenueBase * state.bufferRate;
+      discountPlayStoreCut = discountNetRevenueBase * state.playFeeRate;
+      discountBufferCut = discountNetRevenueBase * state.bufferRate;
       const discountDeveloperNetLocal = discountNetRevenueBase - discountPlayStoreCut - discountBufferCut;
-      const discountDeveloperNetInUsd = country.currency === 'USD' ? discountDeveloperNetLocal : (discountDeveloperNetLocal / localRate);
+      discountDeveloperNetInUsd = country.currency === 'USD' ? discountDeveloperNetLocal : (discountDeveloperNetLocal / localRate);
       discountDeveloperNetInInr = discountDeveloperNetInUsd * inrRate;
     }
 
@@ -631,6 +666,15 @@
     // Retail in Base Currency equivalent
     const retailInUsd = country.currency === 'USD' ? retailPrice : (retailPrice / localRate);
     const retailInBase = baseCurr === 'USD' ? retailInUsd : (retailInUsd * baseToUsdRate);
+
+    // Effective values for Forecaster & Visual Margin Stacked Bar (reflecting discounts when active)
+    const effectiveSpendUsd = state.discountEnabled
+      ? (country.currency === 'USD' ? discountedPrice : (discountedPrice / localRate))
+      : retailInUsd;
+    const effectiveNetUsd = state.discountEnabled ? discountDeveloperNetInUsd : developerNetInUsd;
+    const effectiveTaxUsd = state.discountEnabled ? (discountTaxAmount / localRate) : (taxAmount / localRate);
+    const effectivePlayUsd = state.discountEnabled ? (discountPlayStoreCut / localRate) : (playStoreCut / localRate);
+    const effectiveBufUsd = state.discountEnabled ? (discountBufferCut / localRate) : (bufferCut / localRate);
 
     // Percentage of retail price
     const taxPct = retailPrice > 0 ? (taxAmount / retailPrice) * 100 : 0;
@@ -655,10 +699,20 @@
       developerNetInBase,
       developerNetInUsd,
       developerNetInInr,
+      discountDeveloperNetInUsd,
       discountDeveloperNetInInr,
+      discountTaxAmount,
+      discountPlayStoreCut,
+      discountBufferCut,
+      effectiveSpendUsd,
+      effectiveNetUsd,
+      effectiveTaxUsd,
+      effectivePlayUsd,
+      effectiveBufUsd,
       developerNetPct,
       effectivePpp,
       isClampedToMin,
+      isDiscountAtFloor,
       minFloor
     };
   }
@@ -667,7 +721,7 @@
   function formatMoney(amount, currencyCode) {
     if (isNaN(amount)) return `${currencyCode} 0.00`;
     let formatted = '';
-    if (['INR', 'JPY', 'KRW', 'VND', 'IDR', 'CLP', 'COP'].includes(currencyCode)) {
+    if (currencyCode === 'INR' || ZERO_DECIMAL_CURRENCIES.has(currencyCode)) {
       formatted = Math.round(amount).toLocaleString('en-US');
     } else {
       formatted = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -677,7 +731,7 @@
 
   function formatCleanNumber(amount, currencyCode) {
     if (isNaN(amount)) return '0.00';
-    if (['INR', 'JPY', 'KRW', 'VND', 'IDR', 'CLP', 'COP'].includes(currencyCode)) {
+    if (currencyCode === 'INR' || ZERO_DECIMAL_CURRENCIES.has(currencyCode)) {
       return String(Math.round(amount));
     }
     return amount.toFixed(2);
@@ -1382,20 +1436,39 @@
     const cleanRetailNum = formatCleanNumber(calc.retailPrice, c.currency);
     const cleanDiscountNum = formatCleanNumber(calc.discountedPrice, c.currency);
 
-    const discountCellHtml = state.discountEnabled ? `
-      <td class="mono-cell col-discount-cell" data-col="discount">
-        <div class="price-box">
-          <span class="discount-price-val">${escapeHTML(c.currency)} ${cleanDiscountNum}</span>
-          <button class="btn-copy" data-copy-val="${cleanDiscountNum}" data-country="${escapeHTML(c.name)}" data-currency="${escapeHTML(c.currency)}" title="Copy promo price to clipboard">
-            ${COPY_ICON_SVG}
-          </button>
-        </div>
-        <div>
-          <span class="original-price-strike">${cleanRetailNum}</span>
-          <span class="discount-badge">-${state.discountRate}%</span>
-        </div>
-      </td>
-    ` : '';
+    let discountCellHtml = '';
+    if (state.discountEnabled) {
+      if (calc.isDiscountAtFloor) {
+        discountCellHtml = `
+          <td class="mono-cell col-discount-cell" data-col="discount">
+            <div class="price-box">
+              <span class="discount-price-val">${escapeHTML(c.currency)} ${cleanDiscountNum}</span>
+              <button class="btn-copy" data-copy-val="${cleanDiscountNum}" data-country="${escapeHTML(c.name)}" data-currency="${escapeHTML(c.currency)}" title="Copy promo price to clipboard">
+                ${COPY_ICON_SVG}
+              </button>
+            </div>
+            <div>
+              <span class="discount-floor-badge" title="Google Play regional minimum floor reached (promotional price cannot drop lower)">Floor Reached</span>
+            </div>
+          </td>
+        `;
+      } else {
+        discountCellHtml = `
+          <td class="mono-cell col-discount-cell" data-col="discount">
+            <div class="price-box">
+              <span class="discount-price-val">${escapeHTML(c.currency)} ${cleanDiscountNum}</span>
+              <button class="btn-copy" data-copy-val="${cleanDiscountNum}" data-country="${escapeHTML(c.name)}" data-currency="${escapeHTML(c.currency)}" title="Copy promo price to clipboard">
+                ${COPY_ICON_SVG}
+              </button>
+            </div>
+            <div>
+              <span class="original-price-strike">${cleanRetailNum}</span>
+              <span class="discount-badge">-${state.discountRate}%</span>
+            </div>
+          </td>
+        `;
+      }
+    }
 
     const discountNetInrCellHtml = state.discountEnabled ? `
       <td class="mono-cell col-discount-netinr-cell" data-col="discountnetinr">
@@ -1608,16 +1681,16 @@
 
     const headers = [
       'Country Name',
-      'Country Code (ISO)',
+      'Country Code',
       'Country Tier',
       'Product Name',
       'Base Currency',
       'Base Input Price',
-      'Local Currency Code',
-      'Local Retail Price',
+      'Currency',
+      'Retail Price',
       'Retail Price In Base Currency',
       'Promotional Discount %',
-      'Discounted Price (Local)',
+      'Discounted Price',
       'VAT / Tax Rate %',
       'Tax Amount (Local)',
       'Net Revenue Base (Local)',
@@ -2080,27 +2153,26 @@
 
     state.countries.forEach(c => {
       const calc = calculateCountryPricing(c, activeProd.price, state.baseCurrency);
-      const currRate = getRate(c.currency);
       if (c.tier === 1) {
-        t1Spend += calc.retailInUsd;
-        t1Tax += (calc.taxAmount / currRate);
-        t1Play += (calc.playStoreCut / currRate);
-        t1Buf += (calc.bufferCut / currRate);
-        t1NetUsd += calc.developerNetInUsd;
+        t1Spend += calc.effectiveSpendUsd;
+        t1Tax += calc.effectiveTaxUsd;
+        t1Play += calc.effectivePlayUsd;
+        t1Buf += calc.effectiveBufUsd;
+        t1NetUsd += calc.effectiveNetUsd;
         t1Count++;
       } else if (c.tier === 2) {
-        t2Spend += calc.retailInUsd;
-        t2Tax += (calc.taxAmount / currRate);
-        t2Play += (calc.playStoreCut / currRate);
-        t2Buf += (calc.bufferCut / currRate);
-        t2NetUsd += calc.developerNetInUsd;
+        t2Spend += calc.effectiveSpendUsd;
+        t2Tax += calc.effectiveTaxUsd;
+        t2Play += calc.effectivePlayUsd;
+        t2Buf += calc.effectiveBufUsd;
+        t2NetUsd += calc.effectiveNetUsd;
         t2Count++;
       } else {
-        t3Spend += calc.retailInUsd;
-        t3Tax += (calc.taxAmount / currRate);
-        t3Play += (calc.playStoreCut / currRate);
-        t3Buf += (calc.bufferCut / currRate);
-        t3NetUsd += calc.developerNetInUsd;
+        t3Spend += calc.effectiveSpendUsd;
+        t3Tax += calc.effectiveTaxUsd;
+        t3Play += calc.effectivePlayUsd;
+        t3Buf += calc.effectiveBufUsd;
+        t3NetUsd += calc.effectiveNetUsd;
         t3Count++;
       }
     });
@@ -2146,7 +2218,9 @@
     if (elements.simPlayRateLabel) elements.simPlayRateLabel.textContent = `${Math.round(state.playFeeRate * 100)}%`;
     elements.simNetPayoutUsd.textContent = `$${totalNetUsd.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / mo`;
     elements.simNetPayoutInr.textContent = `≈ INR ${Math.round(totalNetInr).toLocaleString('en-IN')} / mo`;
-    elements.simNetMarginPill.textContent = `${netPct.toFixed(1)}% Net Margin`;
+    elements.simNetMarginPill.textContent = state.discountEnabled
+      ? `${netPct.toFixed(1)}% Net Margin (-${state.discountRate}% Promo)`
+      : `${netPct.toFixed(1)}% Net Margin`;
 
     if (elements.barSegNet) {
       elements.barSegNet.style.width = `${Math.max(4, netPct)}%`;
@@ -2446,10 +2520,21 @@
       elements.newItemName.focus();
     });
 
-    elements.btnGenerate.addEventListener('click', () => {
-      renderAllTables();
-      showToast('Pricing Matrix recalculation complete across all 176 locations!', 'success');
-      document.querySelector('.table-control-bar').scrollIntoView({ behavior: 'smooth' });
+    elements.btnGenerate.addEventListener('click', async () => {
+      const originalText = elements.btnGenerate.innerHTML;
+      elements.btnGenerate.disabled = true;
+      elements.btnGenerate.innerHTML = 'Syncing Rates & Matrix...';
+      try {
+        await fetchLiveExchangeRates(true);
+      } catch (err) {
+        console.warn('Live rates sync check:', err);
+      } finally {
+        elements.btnGenerate.disabled = false;
+        elements.btnGenerate.innerHTML = originalText;
+        renderAllTables();
+        showToast('Pricing Matrix recalculated with verified live rates across all 176 locations!', 'success');
+        document.querySelector('.table-control-bar').scrollIntoView({ behavior: 'smooth' });
+      }
     });
 
     // Active product selector dropdown

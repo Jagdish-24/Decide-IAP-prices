@@ -47,18 +47,21 @@ This guide provides end-to-end instructions for automating in-app purchase (IAP)
 
 ---
 
-### Step 2: Grant Permissions in Google Play Console
+### Step 2: Grant Permissions in Google Play Console (Current UI)
 1. Open the [Google Play Console](https://play.google.com/console).
-2. In the left sidebar, scroll down to the bottom and click **API access** (under *Developer account*).
-3. If prompted to link a project, link the Google Cloud project created in Step 1.
-4. Under the **Service accounts** section, find your newly created service account.
-5. Click **Manage Play Console permissions** (or **Grant access**).
-6. Under the **Account permissions** tab, enable:
-   - ✅ **View app information and download bulk reports (read-only)**
-   - ✅ **Manage in-app products and subscriptions** (under *Monetization*)
-7. Click **Invite user** / **Save changes** at the bottom right.
+2. In your developer account dashboard, click **Users and permissions** (found in the left sidebar under *Manage account* or as a card).
+3. Click the **Invite new users** button at the top right.
+4. In the **Email address** field, paste your **Service Account email address** (e.g. `play-pricing-updater@your-project-id.iam.gserviceaccount.com`).
+5. Leave **Set access expiry date** unchecked (service accounts used for API automation should not expire).
+6. Under permissions, select **Account permissions** (or use **App permissions** if you want to restrict access to a single specific app):
+   - Under **App access**:
+     - ✅ **View app information and download bulk reports (read only)** *(Note: "View app quality information" will be selected automatically)*
+   - Under **Store presence**:
+     - ✅ **Manage store presence** *(This explicitly grants permissions to: "edit pricing; manage in-app products; edit store listing...")*
+7. Click **Invite user** at the bottom right.
 
-Your service account is now fully authorized to manage in-app products and localized prices.
+*(Note: Service accounts are activated immediately upon clicking Invite—no email verification or confirmation link is needed).*
+
 
 ---
 
