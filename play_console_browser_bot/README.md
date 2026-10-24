@@ -47,10 +47,12 @@ The **PlayPrice In-Browser Automator** is a lightweight, zero-dependency in-brow
    - When hidden, the window is completely removed from view (zero clutter). When shown, the full command center appears instantly.
 
 4. **Select Mode & Load CSV:**
-   - Choose your operating mode:
-     - **`💰 Fixed Price Mode`**: Reads the `Discounted price` column to update prices.
-     - **`🏷️ Discount % Mode`**: Reads the `Discount %` column to update percentage discounts.
-   - Drag and drop your downloaded `bot_sale_prices_*.csv` file into the panel.
+   - Choose your target pricing category:
+     - **`🏷️ App Price`**: Automates base retail app pricing (Google Play Console **Pricing** tab) using the `Retail Price` column from CSV.
+     - **`🔥 App Sale Price`**: Automates promotional sales (Google Play Console **Edit sale** page). Selecting this reveals the two discount sub-modes:
+       - **`💰 Fixed Price Mode`**: Uses the `Discounted price` column.
+       - **`🏷️ Discount % Mode`**: Uses the `Discount %` column.
+   - Drag and drop your downloaded `bot_sale_prices_*.csv` or `bot_app_prices_*.csv` file into the panel.
    - You will see: `176 Countries Loaded`.
    - Click **`▶ Start`**!
 
@@ -67,7 +69,8 @@ The **PlayPrice In-Browser Automator** is a lightweight, zero-dependency in-brow
 
 ## 🛡️ Key Features & Edge-Case Protection
 
-- **Dual Mode Support:** Seamlessly switch between **Fixed price** and **Percentage** discount sale strategies matching Google Play Console's Discount Type configuration.
+- **Two-Tier Mode Hierarchy:** Seamlessly switch between **App Price** (base retail pricing on the *Pricing* tab) and **App Sale Price** (promotional sales with sub-modes for *Fixed Price* and *Discount %* on the *Sales* tab).
+
 - **Dual Real-time Timers:** Active stopwatch tracking execution duration and adaptive estimated time remaining with projected clock completion time (`ETA: HH:MM`).
 - **Safe Cadence & Anti-Bot Shield:**
   - *Safe & Steady (1600ms) [Default]:* Ideal human-like pacing for reliable processing.

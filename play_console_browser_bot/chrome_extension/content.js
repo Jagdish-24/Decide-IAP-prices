@@ -14,7 +14,8 @@
     isRunning: false,
     isPaused: false,
     speedDelay: 1600,     // Default: Safe & Steady (1600ms) to avoid rate limits
-    mode: 'fixed_price',  // 'fixed_price' or 'percentage'
+    mainCategory: 'app_sale_price', // 'app_price' or 'app_sale_price'
+    saleDiscountMode: 'fixed_price', // 'fixed_price' or 'percentage'
     autoSaveConsole: false,
     panelVisible: true,
     panelCollapsed: false,
@@ -109,15 +110,21 @@
     return items;
   }
 
-  // Update target values according to the currently active Mode (Fixed Price vs Percentage)
+  // Update target values according to active mode hierarchy (App Price vs App Sale Price [Fixed vs %])
   function applyModeTargets() {
     for (const c of state.countries) {
-      if (state.mode === 'percentage') {
+      if (state.mainCategory === 'app_price') {
+        const val = c.retailPrice !== null ? c.retailPrice : (c.salePrice !== null ? c.salePrice : 0);
+        c.targetValue = val;
+        c.priceFormatted = Number.isInteger(val) ? `${val}` : val.toFixed(2);
+        c.displayUnit = c.currency;
+      } else if (state.saleDiscountMode === 'percentage') {
         const val = c.discountPct !== null ? c.discountPct : 0;
         c.targetValue = val;
         c.priceFormatted = Number.isInteger(val) ? `${val}` : val.toFixed(2);
         c.displayUnit = '%';
       } else {
+        // App Sale Price -> Fixed Price Mode
         const val = c.salePrice !== null ? c.salePrice : (c.retailPrice !== null ? c.retailPrice : 0);
         c.targetValue = val;
         c.priceFormatted = Number.isInteger(val) ? `${val}` : val.toFixed(2);
@@ -125,6 +132,7 @@
       }
     }
   }
+
 
   // -------------------------------------------------------------
   // DOM Helper Utilities
@@ -350,7 +358,14 @@
     startTimers();
     updateUI();
 
-    const modeLabel = state.mode === 'percentage' ? '🏷️ Discount % Mode' : '💰 Fixed Price Mode';
+    let modeLabel = '';
+    if (state.mainCategory === 'app_price') {
+      modeLabel = '🏷️ App Price Mode (Retail Price column)';
+    } else if (state.saleDiscountMode === 'percentage') {
+      modeLabel = '🏷️ App Sale Price (Discount % Mode)';
+    } else {
+      modeLabel = '💰 App Sale Price (Fixed Price Mode)';
+    }
     log(`🚀 Starting automation in ${modeLabel} for ${state.countries.length} countries (Speed: ${state.speedDelay}ms)...`);
 
     const searchBox = findSearchBox();
@@ -387,8 +402,10 @@
       c.status = 'active';
       updateUI();
 
-      const unitText = state.mode === 'percentage' ? '%' : ` ${c.currency}`;
-      log(`📍 [${idx + 1}/${state.countries.length}] ${c.name} • Target ${state.mode === 'percentage' ? 'Discount' : 'Price'}: ${c.priceFormatted}${unitText}`);
+      const isPercentage = state.mainCategory === 'app_sale_price' && state.saleDiscountMode === 'percentage';
+      const unitText = isPercentage ? '%' : ` ${c.currency}`;
+      const typeLabel = state.mainCategory === 'app_price' ? 'App Price' : (isPercentage ? 'Sale Discount' : 'Sale Price');
+      log(`📍 [${idx + 1}/${state.countries.length}] ${c.name} • Target ${typeLabel}: ${c.priceFormatted}${unitText}`);
 
       try {
         // Step 1: Focus and double-click to select all text in search bar & paste country name
@@ -640,7 +657,19 @@
         </div>
 
         <div id="ppa-body">
-          <!-- Automation Mode Switcher -->
+          <!-- Main Target Category: App Sale Price vs App Price -->
+          <div id="ppa-category-card">
+            <div id="ppa-category-tabs">
+              <button class="ppa-cat-tab active" id="ppa-cat-btn-sale" data-cat="app_sale_price">
+                🔥 App Sale Price
+              </button>
+              <button class="ppa-cat-tab" id="ppa-cat-btn-app" data-cat="app_price">
+                🏷️ App Price
+              </button>
+            </div>
+          </div>
+
+          <!-- Sale Discount Sub-modes (Only shown when App Sale Price is selected) -->
           <div id="ppa-mode-card">
             <div id="ppa-mode-tabs">
               <button class="ppa-mode-tab active" id="ppa-mode-btn-fixed" data-mode="fixed_price">
@@ -652,17 +681,24 @@
             </div>
             <div id="ppa-mode-desc">
               <span id="ppa-mode-dot"></span>
-              <span id="ppa-mode-text"><strong>Fixed Price Mode:</strong> Automates local currency prices from <em>Discounted Price</em> column.</span>
+              <span id="ppa-mode-text"><strong>Fixed Price Mode:</strong> Automates local currency sale prices from <em>Discounted Price</em> column.</span>
             </div>
+          </div>
+
+          <!-- App Price Mode Description (Only shown when App Price is selected) -->
+          <div id="ppa-app-price-desc" style="display: none;">
+            <span id="ppa-app-dot"></span>
+            <span id="ppa-app-text"><strong>App Price Mode:</strong> Automates standard retail prices from <em>Retail Price</em> column (for Play Console <strong>Pricing</strong> tab).</span>
           </div>
 
           <!-- File Upload Zone -->
           <div id="ppa-upload-zone">
             <div id="ppa-upload-icon">📁</div>
             <div id="ppa-upload-text"><strong>Click or Drop CSV File Here</strong></div>
-            <div id="ppa-upload-sub">Accepts <code>bot_sale_prices_*.csv</code> from PlayPrice Engine</div>
+            <div id="ppa-upload-sub">Accepts <code>bot_sale_prices_*.csv</code> or <code>bot_app_prices_*.csv</code> from PlayPrice Engine</div>
             <input type="file" id="ppa-file-input" accept=".csv" style="display: none;" />
           </div>
+
 
           <div id="ppa-file-info" style="display: none;">
             <span id="ppa-file-name">-</span>
@@ -833,13 +869,70 @@
         gap: 12px;
       }
 
-      /* Mode Switcher Tabs */
+      /* Main Category Switcher (App Price vs App Sale Price) */
+      #ppa-category-card {
+        background: rgba(8, 13, 26, 0.7);
+        border: 1px solid #1E293B;
+        border-radius: 10px;
+        padding: 5px;
+      }
+      #ppa-category-tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+      .ppa-cat-tab {
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        color: #94A3B8;
+        padding: 9px 12px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .ppa-cat-tab:hover {
+        color: #F8FAFC;
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .ppa-cat-tab.active {
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(2, 132, 199, 0.3));
+        border-color: rgba(56, 189, 248, 0.55);
+        color: #38BDF8;
+        box-shadow: 0 2px 10px rgba(56, 189, 248, 0.15);
+      }
+      #ppa-app-price-desc {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        font-size: 11px;
+        color: #94A3B8;
+        background: rgba(8, 13, 26, 0.5);
+        border: 1px solid #1E293B;
+        border-radius: 8px;
+      }
+      #ppa-app-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #10B981;
+        flex-shrink: 0;
+      }
+
+      /* Sale Discount Sub-mode Tabs */
       #ppa-mode-card {
         background: rgba(8, 13, 26, 0.6);
         border: 1px solid #1E293B;
         border-radius: 10px;
         padding: 6px;
       }
+
       #ppa-mode-tabs {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -1135,19 +1228,53 @@
   }
 
   function attachEvents() {
-    // Mode Switcher Buttons
+    // Main Target Category (App Price vs App Sale Price)
+    const catBtnSale = document.getElementById('ppa-cat-btn-sale');
+    const catBtnApp = document.getElementById('ppa-cat-btn-app');
+    const modeCard = document.getElementById('ppa-mode-card');
+    const appDesc = document.getElementById('ppa-app-price-desc');
+
+    if (catBtnSale && catBtnApp) {
+      catBtnSale.addEventListener('click', () => {
+        if (state.mainCategory === 'app_sale_price') return;
+        state.mainCategory = 'app_sale_price';
+        catBtnSale.classList.add('active');
+        catBtnApp.classList.remove('active');
+        if (modeCard) modeCard.style.display = 'block';
+        if (appDesc) appDesc.style.display = 'none';
+
+        applyModeTargets();
+        updateUI();
+        log(`🔥 Switched to App Sale Price (${state.saleDiscountMode === 'percentage' ? 'Discount % Mode' : 'Fixed Price Mode'}).`);
+      });
+
+      catBtnApp.addEventListener('click', () => {
+        if (state.mainCategory === 'app_price') return;
+        state.mainCategory = 'app_price';
+        catBtnApp.classList.add('active');
+        catBtnSale.classList.remove('active');
+        if (modeCard) modeCard.style.display = 'none';
+        if (appDesc) appDesc.style.display = 'flex';
+
+        applyModeTargets();
+        updateUI();
+        log('🏷️ Switched to App Price Mode (Uses Retail Price column for Google Play Console Pricing tab).');
+      });
+    }
+
+    // Sale Discount Sub-mode Tabs (Fixed Price vs Discount %)
     const btnFixed = document.getElementById('ppa-mode-btn-fixed');
     const btnPct = document.getElementById('ppa-mode-btn-pct');
     const modeDescText = document.getElementById('ppa-mode-text');
 
     if (btnFixed && btnPct) {
       btnFixed.addEventListener('click', () => {
-        if (state.mode === 'fixed_price') return;
-        state.mode = 'fixed_price';
+        if (state.saleDiscountMode === 'fixed_price') return;
+        state.saleDiscountMode = 'fixed_price';
         btnFixed.classList.add('active');
         btnPct.classList.remove('active');
         if (modeDescText) {
-          modeDescText.innerHTML = '<strong>Fixed Price Mode:</strong> Automates local currency prices from <em>Discounted Price</em> column.';
+          modeDescText.innerHTML = '<strong>Fixed Price Mode:</strong> Automates local currency sale prices from <em>Discounted Price</em> column.';
         }
         applyModeTargets();
         log('💰 Switched to Fixed Price Mode (uses "Discounted Price" column).');
@@ -1155,8 +1282,8 @@
       });
 
       btnPct.addEventListener('click', () => {
-        if (state.mode === 'percentage') return;
-        state.mode = 'percentage';
+        if (state.saleDiscountMode === 'percentage') return;
+        state.saleDiscountMode = 'percentage';
         btnPct.classList.add('active');
         btnFixed.classList.remove('active');
         if (modeDescText) {
