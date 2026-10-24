@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Play Console Sale Price Automator (PlayPrice Engine)
 // @namespace    https://github.com/Jagdish-24/Decide-IAP-prices
-// @version      1.7.0
+// @version      1.7.1
 // @description  Automates setting country sale prices and app prices in Google Play Console with 1-click DOM injection and zero mouse movement.
 // @author       PlayPrice Engine Team
 // @match        https://play.google.com/console/*
@@ -15,7 +15,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.0...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.1...');
 
   // State Management
   const state = {
@@ -293,51 +293,96 @@
   // App Pricing Multi-Step DOM Automation Helpers
   // -------------------------------------------------------------
 
-  function isSetPricingActive() {
-    // Check if table rows have checkboxes OR if the bottom action bar with Continue is present
+  function normalizeCountry(str) {
+    if (!str) return '';
+    return str
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/\band\b/g, '&')
+      .replace(/[^\w\s&]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function rowMatchesCountry(row, targetName) {
+    if (!row || row.closest('[role="dialog"]') || row.closest('#play-price-automator-root')) return false;
+
+    const targetNorm = normalizeCountry(targetName);
+    if (!targetNorm) return false;
+
+    // 1. Check first column / cell (contains checkbox + country name)
+    const firstCell = row.querySelector('td:first-child, [role="gridcell"]:first-child, [role="cell"]:first-child, label, material-checkbox') || row;
+    const cellNorm = normalizeCountry(firstCell.textContent);
+
+    if (cellNorm === targetNorm) return true;
+    if (cellNorm.startsWith(targetNorm)) {
+      const nextChar = cellNorm.charAt(targetNorm.length);
+      if (!nextChar || /[\s&]/.test(nextChar)) return true;
+    }
+
+    // 2. Check full row text
+    const rowNorm = normalizeCountry(row.textContent);
+    if (rowNorm.startsWith(targetNorm)) {
+      const nextChar = rowNorm.charAt(targetNorm.length);
+      if (!nextChar || /[\s&]/.test(nextChar)) return true;
+    }
+
+    return false;
+  }
+
+  function isSelectionModeActive() {
+    // Check if table rows have checkboxes OR if the bottom action bar with Continue/Cancel is present
     const hasRowCheckbox = !!document.querySelector(
       'table input[type="checkbox"], [role="row"] input[type="checkbox"], [role="row"] [role="checkbox"], material-checkbox'
     );
-    const hasContinueBar = Array.from(document.querySelectorAll('button, [role="button"], div')).some(el => {
-      const txt = el.textContent.trim().toLowerCase();
-      return (txt === 'continue' || txt.includes('update exchange rates') || txt.includes('countries/regions selected') || txt.includes('country/region selected')) &&
-             el.offsetParent !== null && !el.closest('#play-price-automator-root');
+    const hasContinueBar = Array.from(document.querySelectorAll('button, [role="button"]')).some(b => {
+      const txt = b.textContent.trim().toLowerCase();
+      return (txt === 'continue' || txt === 'cancel') && b.offsetParent !== null && !b.closest('#play-price-automator-root');
     });
     return hasRowCheckbox || hasContinueBar;
   }
 
-  async function ensureSetPricingActive() {
-    if (isSetPricingActive()) return true;
-
-    log('🔍 Activating "Set pricing" mode in Google Play Console...');
-    // Look for the "Set pricing" or "Set price" button in the pricing section header
-    const candidates = Array.from(document.querySelectorAll('button, a, [role="button"], span, div'));
-    const setPricingBtn = candidates.find(el => {
-      const txt = el.textContent.trim().toLowerCase();
-      const isVisible = el.offsetParent !== null;
-      const notInPanel = !el.closest('#play-price-automator-root');
-      return (txt === 'set pricing' || txt === 'set price') && isVisible && notInPanel;
-    });
-
-    if (setPricingBtn) {
-      setPricingBtn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      await humanMicroPause(120, 240);
-      setPricingBtn.click();
-      log('👆 Clicked "Set pricing" button. Waiting for selection checkboxes...');
-
-      const start = Date.now();
-      while (Date.now() - start < 3500) {
-        if (isSetPricingActive()) {
-          log('✅ "Set pricing" selection mode is now active.');
-          await humanMicroPause(150, 300);
-          return true;
-        }
-        await sleep(150);
-      }
+  async function clickSetPricingButton(timeoutMs = 5000) {
+    if (isSelectionModeActive()) {
+      return true;
     }
 
-    log('⚠️ "Set pricing" button not detected or already active. Proceeding with country selection...');
-    return isSetPricingActive();
+    log('🔍 Finding "Set pricing" button in Google Play Console...');
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+      if (!state.isRunning) return false;
+
+      const candidates = Array.from(document.querySelectorAll('button, [role="button"], a, div, span'));
+      const btn = candidates.find(el => {
+        if (el.closest('#play-price-automator-root')) return false;
+        const txt = el.textContent.trim().toLowerCase();
+        const isVisible = el.offsetParent !== null;
+        return (txt === 'set pricing' || txt === 'set price') && isVisible;
+      });
+
+      if (btn) {
+        btn.scrollIntoView({ block: 'center' });
+        await humanMicroPause(120, 240);
+        btn.click();
+        log('👆 Clicked "Set pricing" button. Waiting for selection state...');
+
+        // Wait for checkboxes or continue bar to appear
+        const waitStart = Date.now();
+        while (Date.now() - waitStart < 3500) {
+          if (isSelectionModeActive()) {
+            log('✅ "Set pricing" selection state active.');
+            await humanMicroPause(150, 300);
+            return true;
+          }
+          await sleep(100);
+        }
+        return true;
+      }
+      await sleep(200);
+    }
+
+    log('⚠️ Could not find "Set pricing" button.');
+    return false;
   }
 
   function clearOtherRowSelections() {
@@ -355,8 +400,77 @@
     }
   }
 
-  async function checkRowCheckbox(row) {
+  async function findCountryRowInList(countryName, timeoutMs = 8000) {
+    const start = Date.now();
+
+    // 1. Search all currently rendered rows in the DOM
+    let rows = Array.from(document.querySelectorAll('tr, [role="row"], material-row, .table-row'));
+    for (const r of rows) {
+      if (rowMatchesCountry(r, countryName)) {
+        r.scrollIntoView({ block: 'center', inline: 'nearest' });
+        await humanMicroPause(120, 240);
+        return r;
+      }
+    }
+
+    // 2. If not found in current visible rows, scroll down progressively
+    let prevScrollY = -1;
+    while (Date.now() - start < timeoutMs) {
+      if (!state.isRunning) return null;
+
+      const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+      if (currentScrollY === prevScrollY) {
+        break; // Reached bottom
+      }
+      prevScrollY = currentScrollY;
+
+      window.scrollBy({ top: 600, behavior: 'instant' });
+      await sleep(200);
+
+      rows = Array.from(document.querySelectorAll('tr, [role="row"], material-row, .table-row'));
+      for (const r of rows) {
+        if (rowMatchesCountry(r, countryName)) {
+          r.scrollIntoView({ block: 'center', inline: 'nearest' });
+          await humanMicroPause(120, 240);
+          return r;
+        }
+      }
+    }
+
+    // 3. Check scrollable table containers
+    const scrollContainers = Array.from(document.querySelectorAll('.table-container, [role="grid"], material-table, table'));
+    for (const container of scrollContainers) {
+      if (container.scrollHeight > container.clientHeight && container.clientHeight > 0) {
+        let prevTop = -1;
+        container.scrollTop = 0;
+        await sleep(150);
+        while (container.scrollTop !== prevTop && Date.now() - start < timeoutMs) {
+          if (!state.isRunning) return null;
+          prevTop = container.scrollTop;
+          rows = Array.from(container.querySelectorAll('tr, [role="row"], material-row, .table-row'));
+          for (const r of rows) {
+            if (rowMatchesCountry(r, countryName)) {
+              r.scrollIntoView({ block: 'center', inline: 'nearest' });
+              await humanMicroPause(120, 240);
+              return r;
+            }
+          }
+          container.scrollTop += 500;
+          await sleep(200);
+        }
+      }
+    }
+
+    // Scroll back to top if not found
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return null;
+  }
+
+  async function checkCountryRowCheckbox(row) {
     if (!row) return false;
+
+    clearOtherRowSelections();
+
     const chk = row.querySelector('input[type="checkbox"], [role="checkbox"], material-checkbox');
     if (!chk) return false;
 
@@ -367,10 +481,10 @@
 
     if (!isChecked) {
       const clickTarget = chk.closest('material-checkbox, label') || chk;
-      clickTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      await humanMicroPause(100, 220);
+      clickTarget.scrollIntoView({ block: 'center', inline: 'nearest' });
+      await humanMicroPause(120, 240);
       clickTarget.click();
-      await humanMicroPause(100, 200);
+      await humanMicroPause(150, 300);
     }
     return true;
   }
@@ -659,17 +773,12 @@
     log(`🚀 Starting automation in ${modeLabel} for ${state.countries.length} countries (Speed: ${state.speedDelay}ms)...`);
 
     const searchBox = findSearchBox();
-    if (!searchBox) {
+    if (!searchBox && state.mainCategory === 'app_sale_price') {
       log('❌ Could not locate Google Play Console search bar! Are you on the "Availability and pricing" / "Edit sale" page?');
       state.isRunning = false;
       stopTimers();
       updateUI();
       return;
-    }
-
-    // In App Price mode, ensure "Set pricing" mode is activated before iterating
-    if (state.mainCategory === 'app_price') {
-      await ensureSetPricingActive();
     }
 
     let processedSinceLastCooldown = 0;
@@ -706,38 +815,31 @@
         if (state.mainCategory === 'app_price') {
           // =========================================================
           // WORKFLOW A: Multi-Step "App Price" Automation
-          // ("Set pricing" -> Search -> Row Checkbox -> Continue -> Modal Price & ISO Currency -> Update)
+          // ("Set pricing" button -> Look for country in list -> Checkbox -> Continue -> Price & Currency -> Update)
           // =========================================================
 
-          // Step 0: Ensure "Set pricing" selection mode is active
-          await ensureSetPricingActive();
-          clearOtherRowSelections();
+          // Step 1: Find and click the "Set pricing" button EACH time to enter selection state
+          const activated = await clickSetPricingButton(5000);
+          if (!activated) {
+            log(`⚠️ [${c.name}] Could not activate "Set pricing" state. Retrying...`);
+            await sleep(1000);
+            await clickSetPricingButton(3000);
+          }
 
-          // Step 1: Filter country by name in the search bar
-          searchBox.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-          searchBox.focus();
-          await humanMicroPause(70, 160);
-          searchBox.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
-          if (typeof searchBox.select === 'function') searchBox.select();
-          await humanMicroPause(50, 130);
-          setNativeValue(searchBox, c.name);
-
-          // Safe Humanized Delay with Cadence Jitter
-          await sleep(getHumanizedDelay(state.speedDelay));
-
-          // Step 2: Wait for filtered row in the pricing table
-          const row = await waitForFilteredRow(c.name, 4500);
+          // Step 2: Look for the country by name directly from the table list (bypassing search bar)
+          log(`🔎 [${c.name}] Locating country in table list...`);
+          const row = await findCountryRowInList(c.name, 8000);
           if (!row) {
-            log(`⚠️ Row not found for ${c.name}, skipping...`);
+            log(`⚠️ Country row not found in list for ${c.name}, skipping...`);
             c.status = 'failed';
-            c.message = 'Row not found';
+            c.message = 'Row not found in list';
             updateUI();
             continue;
           }
-          await humanMicroPause(100, 240);
+          await humanMicroPause(120, 240);
 
-          // Step 3: Check the country row's checkbox
-          const checked = await checkRowCheckbox(row);
+          // Step 3: Check mark the country's checkbox
+          const checked = await checkCountryRowCheckbox(row);
           if (!checked) {
             log(`⚠️ Could not check row checkbox for ${c.name}, skipping...`);
             c.status = 'failed';
@@ -745,9 +847,9 @@
             updateUI();
             continue;
           }
-          await humanMicroPause(120, 260);
+          await humanMicroPause(150, 300);
 
-          // Step 4: Click the bottom action bar's "Continue" button
+          // Step 4: Press the blue "Continue" button in the bottom action bar
           const continued = await clickBottomContinueButton(4000);
           if (!continued) {
             log(`⚠️ Bottom "Continue" button not active for ${c.name}, skipping...`);
@@ -758,7 +860,7 @@
           }
 
           // Step 5: Wait for "Set price for selected countries and regions" modal dialog
-          const modalObj = await waitForAppPricingModal(4500);
+          const modalObj = await waitForAppPricingModal(5000);
           if (!modalObj) {
             log(`⚠️ Pricing popup did not open for ${c.name}, skipping...`);
             c.status = 'failed';
@@ -768,58 +870,33 @@
           }
 
           const { dialog, input } = modalObj;
-          await humanMicroPause(150, 320);
+          await humanMicroPause(150, 300);
 
-          // Check current existing value and currency in modal
-          const existingVal = input.value.trim();
-          const numMatch = existingVal.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
-          const existingNum = numMatch ? parseFloat(numMatch[0]) : null;
-          const currentCurr = getCurrentModalCurrency(dialog);
+          // Step 6: Input the correct price number & select ISO currency
+          // (Even if existing value matches, user requested to set the value and press update)
+          log(`🔄 [${c.name}] Setting Price '${c.priceFormatted}' & Currency '${c.currency || 'default'}'...`);
+          setNativeValue(input, c.priceFormatted);
+          await humanMicroPause(220, 420);
 
-          const priceMatches = existingNum !== null && Math.abs(existingNum - c.targetValue) < 0.001;
-          const currMatches = !c.currency || currentCurr.toUpperCase() === c.currency.toUpperCase();
-
-          if (priceMatches && currMatches) {
-            log(`✨ [${c.name}] Price and currency already match (${existingVal} ${currentCurr} == ${c.priceFormatted} ${c.currency}). Dismissing modal...`);
-            c.status = 'matched';
-            c.message = 'Already matches';
-
-            await humanMicroPause(140, 280);
-            const cancelBtn = dialog.querySelector('button[aria-label*="Cancel" i]') ||
-                              Array.from(dialog.querySelectorAll('button')).find(b => b.textContent.toLowerCase().includes('cancel'));
-            if (cancelBtn) {
-              cancelBtn.click();
-            } else {
-              dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
-            }
-            await humanMicroPause(90, 190);
-          } else {
-            log(`🔄 [${c.name}] Setting price '${existingVal || 'empty'}' -> '${c.priceFormatted}' & Currency '${currentCurr}' -> '${c.currency}'...`);
-            setNativeValue(input, c.priceFormatted);
-            await humanMicroPause(220, 420);
-
-            if (c.currency) {
-              await selectModalCurrency(dialog, c.currency);
-              await humanMicroPause(160, 320);
-            }
-
-            const updated = await clickModalUpdateButton(dialog);
-            if (updated) {
-              c.status = 'done';
-              c.message = `Saved: ${c.priceFormatted} ${c.currency}`;
-              log(`✅ [${c.name}] Saved: ${c.priceFormatted} ${c.currency}`);
-              await humanMicroPause(110, 220);
-            } else {
-              log(`⚠️ [${c.name}] Update button could not be clicked.`);
-              c.status = 'failed';
-              c.message = 'Update failed';
-            }
+          if (c.currency) {
+            await selectModalCurrency(dialog, c.currency);
+            await humanMicroPause(160, 320);
           }
 
-          // Step 6: Post-Modal Cleanup: Clear search and row selections
-          setNativeValue(searchBox, '');
-          await sleep(120);
-          clearOtherRowSelections();
+          // Step 7: Press the blue "Update" button & wait for modal to close
+          const updated = await clickModalUpdateButton(dialog);
+          if (updated) {
+            c.status = 'done';
+            c.message = `Updated: ${c.priceFormatted} ${c.currency}`;
+            log(`✅ [${c.name}] Updated: ${c.priceFormatted} ${c.currency}`);
+          } else {
+            log(`⚠️ [${c.name}] Update button could not be clicked.`);
+            c.status = 'failed';
+            c.message = 'Update failed';
+          }
+
+          // Step 8: Wait for Play Console to settle and return to the normal Pricing table
+          await sleep(getHumanizedDelay(state.speedDelay));
 
         } else {
           // =========================================================
@@ -1068,7 +1145,7 @@
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.0</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.1</div>
             </div>
           </div>
           <div id="ppa-header-badge">

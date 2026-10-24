@@ -58,15 +58,13 @@ The **PlayPrice In-Browser Automator** is a lightweight, zero-dependency in-brow
 
 5. **Dual Multi-Step Robot Workflows:**
    - **When in `🏷️ App Price` Mode (Pricing Tab):**
-     1. Automatically clicks **"Set pricing"** to enter checkbox selection mode.
-     2. Queries the country name in the **"Search by country or region"** bar.
-     3. Selects the row checkbox for that specific filtered country.
+     1. Automatically clicks **"Set pricing"** for each country to enter the selection state.
+     2. Looks for the country by name directly from the table list (bypassing the search bar which is disabled in selection state).
+     3. Check marks the country's row checkbox.
      4. Clicks the bottom action bar's blue **"Continue"** button.
-     5. Waits for the **"Set price for selected countries and regions"** modal to appear.
-     6. Verifies current price & currency; if already identical, cleanly dismisses the modal.
-     7. Inputs the new retail price and selects the matching 3-letter ISO currency (e.g. `USD`, `EUR`, `ARS`, `DZD`) in the currency selector.
-     8. Clicks the blue **"Update"** button and waits for the table to refresh.
-     9. Clears the search bar and unchecks row checkboxes before advancing to the next country with randomized human jitter delays.
+     5. In the **"Set price for selected countries and regions"** modal, enters the target retail price and selects the matching 3-letter ISO currency (e.g. `USD`, `EUR`, `ARS`, `DZD`) from the dropdown.
+     6. Clicks the blue **"Update"** button and waits for the modal to close and the table to settle.
+     7. Clicks **"Set pricing"** again to begin the next country with randomized human jitter delays.
    - **When in `🔥 App Sale Price` Mode (Edit Sale Page):**
      1. Filters the country in the search bar.
      2. Opens the country row's edit modal (pencil button / cell).
