@@ -293,6 +293,24 @@
   // App Pricing Multi-Step DOM Automation Helpers
   // -------------------------------------------------------------
 
+  const COUNTRY_ALIASES = {
+    'czech republic': 'czechia',
+    'democratic republic of the congo': 'congo kinshasa',
+    'republic of the congo': 'congo brazzaville',
+    'dr congo': 'congo kinshasa',
+    'cabo verde': 'cape verde',
+    'cote d ivoire': 'cote divoire',
+    'ivory coast': 'cote divoire',
+    'turkey': 'turkiye',
+    'türkiye': 'turkiye',
+    'eswatini': 'swaziland',
+    'swaziland': 'eswatini',
+    'myanmar': 'myanmar burma',
+    'burma': 'myanmar burma',
+    'united states of america': 'united states',
+    'usa': 'united states'
+  };
+
   function normalizeCountry(str) {
     if (!str) return '';
     return str
@@ -309,18 +327,40 @@
 
     const targetNorm = normalizeCountry(targetName);
     if (!targetNorm) return false;
+    const aliasedTargetNorm = COUNTRY_ALIASES[targetNorm] || targetNorm;
 
-    // 1. Check first column / cell (contains checkbox + country name)
-    const firstCell = row.querySelector('td:first-child, [role="gridcell"]:first-child, [role="cell"]:first-child, label, material-checkbox') || row;
-    const cellNorm = normalizeCountry(firstCell.textContent);
+    // 1. Direct check on mat-checkbox[aria-label] inside the row
+    const chk = row.querySelector('mat-checkbox[aria-label], [role="checkbox"][aria-label]');
+    if (chk) {
+      const label = chk.getAttribute('aria-label') || '';
+      if (!label.toLowerCase().includes('select all')) {
+        const labelNorm = normalizeCountry(label);
+        const aliasedLabelNorm = COUNTRY_ALIASES[labelNorm] || labelNorm;
+        if (labelNorm === targetNorm || aliasedLabelNorm === aliasedTargetNorm ||
+            labelNorm === aliasedTargetNorm || aliasedLabelNorm === targetNorm) {
+          return true;
+        }
+        if (labelNorm.startsWith(targetNorm) || targetNorm.startsWith(labelNorm)) {
+          return true;
+        }
+      }
+    }
 
-    if (cellNorm === targetNorm) return true;
+    // 2. Check region column cell / main text inside the row
+    const regionCell = row.querySelector('ess-cell[essfield="region-column"], [role="gridcell"]:first-child, td:first-child') || row;
+    const cellNorm = normalizeCountry(regionCell.textContent);
+    const aliasedCellNorm = COUNTRY_ALIASES[cellNorm] || cellNorm;
+
+    if (cellNorm === targetNorm || aliasedCellNorm === aliasedTargetNorm ||
+        cellNorm === aliasedTargetNorm || aliasedCellNorm === targetNorm) {
+      return true;
+    }
     if (cellNorm.startsWith(targetNorm)) {
       const nextChar = cellNorm.charAt(targetNorm.length);
       if (!nextChar || /[\s&]/.test(nextChar)) return true;
     }
 
-    // 2. Check full row text
+    // 3. Fallback: check full row text
     const rowNorm = normalizeCountry(row.textContent);
     if (rowNorm.startsWith(targetNorm)) {
       const nextChar = rowNorm.charAt(targetNorm.length);
@@ -476,61 +516,143 @@
     return false;
   }
 
-  function clearOtherRowSelections() {
+  function findCountryCheckboxAndRow(targetName) {
+    if (!targetName) return null;
+    const targetNorm = normalizeCountry(targetName);
+    const aliasedTargetNorm = COUNTRY_ALIASES[targetNorm] || targetNorm;
+
+    // 1. Direct scan of all mat-checkbox elements with aria-label
+    const checkboxes = Array.from(document.querySelectorAll(
+      'mat-checkbox[aria-label], [role="checkbox"][aria-label]'
+    )).filter(c => !c.closest('#play-price-automator-root'));
+
+    // 1a. Exact match on aria-label
+    for (const chk of checkboxes) {
+      const label = chk.getAttribute('aria-label') || '';
+      if (label.toLowerCase().includes('select all')) continue;
+
+      const labelNorm = normalizeCountry(label);
+      const aliasedLabelNorm = COUNTRY_ALIASES[labelNorm] || labelNorm;
+
+      if (labelNorm === targetNorm || aliasedLabelNorm === aliasedTargetNorm ||
+          labelNorm === aliasedTargetNorm || aliasedLabelNorm === targetNorm) {
+        const row = chk.closest('.particle-table-row, [role="row"], tr') || chk.parentElement;
+        return { chk, row };
+      }
+    }
+
+    // 1b. Boundary / prefix match on aria-label
+    for (const chk of checkboxes) {
+      const label = chk.getAttribute('aria-label') || '';
+      if (label.toLowerCase().includes('select all')) continue;
+
+      const labelNorm = normalizeCountry(label);
+      if (labelNorm.startsWith(targetNorm) || targetNorm.startsWith(labelNorm) ||
+          (aliasedTargetNorm && labelNorm.startsWith(aliasedTargetNorm))) {
+        const row = chk.closest('.particle-table-row, [role="row"], tr') || chk.parentElement;
+        return { chk, row };
+      }
+    }
+
+    // 2. Scan all particle-table-row and [role="row"] elements
+    const rows = Array.from(document.querySelectorAll('.particle-table-row, [role="row"], tr'));
+    for (const r of rows) {
+      if (r.closest('#play-price-automator-root') || r.closest('[role="dialog"]')) continue;
+      if (rowMatchesCountry(r, targetName)) {
+        const chk = r.querySelector('mat-checkbox, [role="checkbox"], input[type="checkbox"], material-checkbox');
+        return { chk, row: r };
+      }
+    }
+
+    return null;
+  }
+
+  async function toggleCheckbox(chk, shouldBeChecked = true) {
+    if (!chk) return false;
+
+    const isChecked = () => {
+      return chk.getAttribute('aria-checked') === 'true' || 
+             chk.classList.contains('mat-checkbox-checked') ||
+             chk.classList.contains('is-checked') ||
+             chk.checked === true;
+    };
+
+    if (isChecked() === shouldBeChecked) {
+      return true; // Already desired state
+    }
+
+    chk.scrollIntoView({ block: 'center', inline: 'nearest' });
+    await humanMicroPause(80, 160);
+
+    // The inner container with delegate-events="" in Angular Material
+    const container = chk.querySelector('.mat-checkbox-container') || chk;
+
+    // 1. Full mouse/pointer sequence on .mat-checkbox-container (has delegate-events)
+    simulateFullClick(container);
+    await sleep(150);
+    if (isChecked() === shouldBeChecked) return true;
+
+    // 2. Full mouse/pointer sequence on mat-checkbox custom element
+    simulateFullClick(chk);
+    await sleep(150);
+    if (isChecked() === shouldBeChecked) return true;
+
+    // 3. Space keypress (standard for tabindex="0" role="checkbox")
+    try {
+      chk.focus();
+      chk.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', keyCode: 32, which: 32, bubbles: true }));
+      chk.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', keyCode: 32, which: 32, bubbles: true }));
+      await sleep(150);
+    } catch (e) {
+      // ignore
+    }
+    if (isChecked() === shouldBeChecked) return true;
+
+    // 4. Native click fallback
+    try {
+      if (typeof container.click === 'function') container.click();
+      else if (typeof chk.click === 'function') chk.click();
+      await sleep(150);
+    } catch (e) {
+      // ignore
+    }
+
+    return isChecked() === shouldBeChecked;
+  }
+
+  async function clearOtherRowSelections(exceptCheckbox = null) {
     try {
       const checkedBoxes = Array.from(document.querySelectorAll(
-        'table input[type="checkbox"]:checked, [role="row"] [aria-checked="true"], material-checkbox.is-checked'
+        'mat-checkbox[aria-checked="true"], [role="checkbox"][aria-checked="true"], input[type="checkbox"]:checked, material-checkbox.is-checked'
       ));
       for (const chk of checkedBoxes) {
-        if (!chk.closest('#play-price-automator-root')) {
-          chk.click();
-        }
+        if (chk.closest('#play-price-automator-root')) continue;
+        if (exceptCheckbox && (chk === exceptCheckbox || chk.contains(exceptCheckbox) || exceptCheckbox.contains(chk))) continue;
+
+        const label = (chk.getAttribute('aria-label') || '').toLowerCase();
+        // NEVER uncheck or click "Select all rows"!
+        if (label.includes('select all')) continue;
+
+        await toggleCheckbox(chk, false);
       }
     } catch (e) {
       // ignore
     }
   }
 
-  async function findCountryRowInList(countryName, timeoutMs = 8000) {
+  async function findCountryRowInList(countryName, timeoutMs = 10000) {
     const start = Date.now();
 
-    // 1. Search all currently rendered rows in the DOM
-    let rows = Array.from(document.querySelectorAll('tr, [role="row"], material-row, .table-row'));
-    for (const r of rows) {
-      if (rowMatchesCountry(r, countryName)) {
-        r.scrollIntoView({ block: 'center', inline: 'nearest' });
-        await humanMicroPause(120, 240);
-        return r;
-      }
+    // 1. Check currently rendered DOM first
+    let match = findCountryCheckboxAndRow(countryName);
+    if (match) {
+      match.row?.scrollIntoView({ block: 'center', inline: 'nearest' });
+      await humanMicroPause(100, 200);
+      return match;
     }
 
-    // 2. If not found in current visible rows, scroll down progressively
-    let prevScrollY = -1;
-    while (Date.now() - start < timeoutMs) {
-      if (!state.isRunning) return null;
-
-      const currentScrollY = window.scrollY || document.documentElement.scrollTop;
-      if (currentScrollY === prevScrollY) {
-        break; // Reached bottom
-      }
-      prevScrollY = currentScrollY;
-
-      window.scrollBy({ top: 600, behavior: 'instant' });
-      await sleep(200);
-
-      rows = Array.from(document.querySelectorAll('tr, [role="row"], material-row, .table-row'));
-      for (const r of rows) {
-        if (rowMatchesCountry(r, countryName)) {
-          r.scrollIntoView({ block: 'center', inline: 'nearest' });
-          await humanMicroPause(120, 240);
-          return r;
-        }
-      }
-    }
-
-    // 2. Identify all scroll hosts in Google Play Console (main-content, scroll-host, acxscrollhost)
+    // 2. Identify scroll containers in Google Play Console
     const scrollContainers = [
-      document.querySelector('.scroll-host'),
       document.querySelector('[acxscrollhost]'),
       document.getElementById('main-content'),
       document.querySelector('.main-content'),
@@ -540,81 +662,111 @@
 
     for (const container of scrollContainers) {
       const isWindow = container === window;
-      let prevTop = -1;
-      let currentTop = isWindow ? window.scrollY : container.scrollTop;
 
+      // Scroll to top first to ensure complete top-to-bottom scan
+      if (isWindow) {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      } else {
+        container.scrollTop = 0;
+      }
+      await sleep(150);
+
+      // Check top rows
+      match = findCountryCheckboxAndRow(countryName);
+      if (match) {
+        match.row?.scrollIntoView({ block: 'center', inline: 'nearest' });
+        await humanMicroPause(120, 240);
+        return match;
+      }
+
+      // Progressively scroll down
+      let prevScroll = -1;
       while (Date.now() - start < timeoutMs) {
         if (!state.isRunning) return null;
 
         if (isWindow) {
-          window.scrollBy({ top: 500, behavior: 'instant' });
+          window.scrollBy({ top: 450, behavior: 'instant' });
         } else {
-          container.scrollTop += 500;
+          container.scrollTop += 450;
         }
         await sleep(150);
 
-        rows = Array.from(document.querySelectorAll(
-          '.particle-table-row, [role="row"], tr, material-row, ess-cell[essfield="region-column"]'
-        ));
-        for (const r of rows) {
-          const rowEl = r.closest('.particle-table-row, [role="row"], tr') || r;
-          if (rowMatchesCountry(rowEl, countryName)) {
-            rowEl.scrollIntoView({ block: 'center', inline: 'nearest' });
-            await humanMicroPause(120, 240);
-            return rowEl;
-          }
+        match = findCountryCheckboxAndRow(countryName);
+        if (match) {
+          match.row?.scrollIntoView({ block: 'center', inline: 'nearest' });
+          await humanMicroPause(120, 240);
+          return match;
         }
 
-        const newTop = isWindow ? window.scrollY : container.scrollTop;
-        if (newTop === currentTop) break;
-        currentTop = newTop;
+        const currentScroll = isWindow ? (window.scrollY || document.documentElement.scrollTop) : container.scrollTop;
+        if (currentScroll === prevScroll) {
+          break; // Reached bottom of this scroll container
+        }
+        prevScroll = currentScroll;
       }
     }
 
     return null;
   }
 
-  async function checkCountryRowCheckbox(row) {
-    if (!row) return false;
+  async function checkCountryRowCheckbox(rowOrMatch, countryName) {
+    let chk = null;
 
-    clearOtherRowSelections();
+    if (!rowOrMatch) return false;
 
-    // In Google Play Console ess-table, check tool-cell, checkbox or material-checkbox
-    let chk = row.querySelector(
-      'material-checkbox, input[type="checkbox"], [role="checkbox"], .mdc-checkbox, console-table-tools-cell, .tools-cell'
-    );
+    // Case 1: Match object { chk, row }
+    if (rowOrMatch.chk) {
+      chk = rowOrMatch.chk;
+    } else if (rowOrMatch.tagName?.toLowerCase() === 'mat-checkbox' || rowOrMatch.getAttribute?.('role') === 'checkbox') {
+      // Case 2: Checkbox element passed directly
+      chk = rowOrMatch;
+    } else if (rowOrMatch.querySelector) {
+      // Case 3: Row element passed - strictly find mat-checkbox or role="checkbox", NEVER container cells!
+      chk = rowOrMatch.querySelector('mat-checkbox, [role="checkbox"], input[type="checkbox"], material-checkbox');
+    }
+
+    // Fallback: search globally by countryName
+    if (!chk && countryName) {
+      const match = findCountryCheckboxAndRow(countryName);
+      if (match) chk = match.chk;
+    }
 
     if (!chk) {
-      // Fallback: first cell in the row
-      chk = row.querySelector('ess-cell:first-child, [role="gridcell"]:first-child, td:first-child') || row;
+      log(`⚠️ Could not find mat-checkbox for ${countryName}`);
+      return false;
     }
 
-    const isChecked = chk.checked || 
-                      chk.getAttribute('aria-checked') === 'true' || 
-                      chk.classList.contains('is-checked') ||
-                      chk.classList.contains('checked') ||
-                      row.classList.contains('is-selected') ||
-                      row.classList.contains('selected');
+    // Clear other selections so only target country is checked
+    await clearOtherRowSelections(chk);
+    await humanMicroPause(80, 160);
 
-    if (!isChecked) {
-      const clickTarget = chk.closest('material-checkbox, label, console-table-tools-cell') || chk;
-      simulateFullClick(clickTarget);
-      await humanMicroPause(150, 300);
+    // Toggle target checkbox to checked
+    const success = await toggleCheckbox(chk, true);
+    if (success) {
+      log(`  ✅ Checked row checkbox for ${countryName || chk.getAttribute('aria-label')}`);
+      return true;
     }
-    return true;
+
+    log(`  ⚠️ Could not verify aria-checked="true" for ${countryName || chk.getAttribute('aria-label')}`);
+    return false;
   }
 
   async function clickBottomContinueButton(timeoutMs = 4500) {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
       if (!state.isRunning) return false;
-      const btns = Array.from(document.querySelectorAll('button, [role="button"], a, material-button'));
+      const btns = Array.from(document.querySelectorAll(
+        'console-bottom-action-bar button, .bottom-action-bar button, [debug-id*="continue"] button, button, [role="button"], a, material-button'
+      ));
       const continueBtn = btns.find(b => {
         if (b.closest('#play-price-automator-root')) return false;
         const txt = (b.textContent || '').replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase();
         const isVisible = isElementReallyVisible(b);
-        const isNotDisabled = !b.disabled && b.getAttribute('aria-disabled') !== 'true' && !b.classList.contains('disabled');
-        return (txt === 'continue' || txt === 'next') && isVisible && isNotDisabled;
+        const isNotDisabled = !b.disabled && 
+                              b.getAttribute('aria-disabled') !== 'true' && 
+                              !b.classList.contains('disabled') && 
+                              !b.classList.contains('mdc-button--disabled');
+        return (txt === 'continue' || txt === 'next' || txt === 'set price' || txt.startsWith('continue')) && isVisible && isNotDisabled;
       });
       if (continueBtn) {
         continueBtn.scrollIntoView({ block: 'nearest' });
@@ -1024,8 +1176,8 @@
 
           // Step 2: Look for the country by name directly from the table list (bypassing search bar)
           log(`🔎 [${c.name}] Locating country in table list...`);
-          const row = await findCountryRowInList(c.name, 8000);
-          if (!row) {
+          const match = await findCountryRowInList(c.name, 10000);
+          if (!match) {
             log(`⚠️ Country row not found in list for ${c.name}, skipping...`);
             c.status = 'failed';
             c.message = 'Row not found in list';
@@ -1035,11 +1187,11 @@
           await humanMicroPause(120, 240);
 
           // Step 3: Check mark the country's checkbox
-          const checked = await checkCountryRowCheckbox(row);
+          const checked = await checkCountryRowCheckbox(match, c.name);
           if (!checked) {
             log(`⚠️ Could not check row checkbox for ${c.name}, skipping...`);
             c.status = 'failed';
-            c.message = 'Checkbox not found';
+            c.message = 'Checkbox not checked';
             updateUI();
             continue;
           }
