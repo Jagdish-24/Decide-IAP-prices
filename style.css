@@ -2060,10 +2060,32 @@ body.hide-col-action [data-col="action"] {
   flex-direction: column;
 }
 
+.country-name-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .country-name {
   font-weight: 700;
   color: #fff;
   font-size: 0.85rem;
+  line-height: 1.2;
+}
+
+.btn-copy-country {
+  padding: 2px 4px;
+  font-size: 0.65rem;
+  margin-left: 0;
+  opacity: 0.6;
+  border-color: rgba(255, 255, 255, 0.1);
+  transition: opacity var(--transition-fast), background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.col-country:hover .btn-copy-country,
+.btn-copy-country:hover,
+.btn-copy-country.copied {
+  opacity: 1;
 }
 
 .country-iso {

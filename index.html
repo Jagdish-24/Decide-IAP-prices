@@ -775,6 +775,9 @@
           <div>
             <div class="modal-title-row">
               <h3 id="modalCountryName">India</h3>
+              <button class="btn-copy btn-copy-country" id="btnCopyModalCountry" title="Copy country name to clipboard">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              </button>
               <span class="modal-tier-badge" id="modalTierBadge">Tier 3</span>
               <span class="modal-iso" id="modalIsoCode">IN</span>
             </div>
@@ -888,6 +891,15 @@
           <code>Google Play Cut = Net Revenue Base &times; (15% or 30%)</code>
           <code>Buffer Cut = Net Revenue Base &times; Buffer%</code>
           <code>Developer Net Proceeds = Net Revenue Base - Google Play Cut - Buffer Cut</code>
+        </div>
+
+        <div class="logic-block">
+          <h4>5. Google Play Minimum Price Floors (Paid Apps vs. IAP Catalogue)</h4>
+          <p>Google Play enforces two distinct minimum transaction limits across regional storefronts:</p>
+          <ul>
+            <li><strong>Paid App (Download Price):</strong> Governed by <code>GOOGLE_PLAY_PAID_APP_MIN_PRICES</code>. Enforces standard upfront download minimums (e.g. $0.99 USD, €0.99 EUR, £0.79 GBP, ₹10.00 INR, R$ 2.00 BRL, ¥100 JPY), preventing paid apps from violating Google's minimum listing threshold.</li>
+            <li><strong>In-App Purchases (IAP) &amp; Promotional Sales:</strong> Governed by <code>GOOGLE_PLAY_IAP_MIN_PRICES</code>. Allows micro-pricing down to Google's official sub-dollar thresholds (e.g. $0.05 USD, €0.05 EUR, ₹4.00 INR, R$ 0.30 BRL, ¥7 JPY, 1,000 IDR) for consumable items, starter packs, and discounted sales.</li>
+          </ul>
         </div>
       </div>
       <div class="modal-footer">

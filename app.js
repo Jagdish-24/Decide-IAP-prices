@@ -66,22 +66,39 @@
     GLOBAL: new Set(['GLOBAL_USD', 'GLOBAL_EUR'])
   };
 
-  // Google Play Official Regional Minimum Transaction Floors (All 65 Supported Currencies)
-  const GOOGLE_PLAY_MIN_PRICES = {
-    AED: 1.00, ARS: 50.00, AUD: 0.10, AZN: 0.20, BDT: 10.00, BOB: 1.00, BRL: 0.99, CAD: 0.10,
-    CHF: 0.10, CLP: 100.00, COP: 500.00, CRC: 100.00, CZK: 5.00, DKK: 1.00, DZD: 30.00, EGP: 5.00,
-    ETB: 10.00, EUR: 0.10, GBP: 0.10, GEL: 0.50, GHS: 2.00, HKD: 1.00, HUF: 50.00, IDR: 3000.00,
-    ILS: 1.00, INR: 10.00, IQD: 500.00, JOD: 0.10, JPY: 50.00, KES: 20.00, KRW: 1000.00, KZT: 50.00,
-    LKR: 50.00, MAD: 2.00, MMK: 500.00, MNT: 500.00, MOP: 1.00, MXN: 5.00, MYR: 1.00, NGN: 50.00,
-    NOK: 1.00, NZD: 0.15, PEN: 1.00, PHP: 15.00, PKR: 20.00, PLN: 1.00, PYG: 1000.00, QAR: 1.00,
-    RON: 1.00, RSD: 20.00, RUB: 15.00, SAR: 1.00, SEK: 1.00, SGD: 0.20, THB: 10.00, TRY: 2.00,
-    TWD: 10.00, TZS: 500.00, UAH: 5.00, USD: 0.10, UZS: 2000.00, VND: 6000.00, XAF: 100.00, XOF: 100.00,
-    ZAR: 3.00
+  // Google Play Official Regional Minimum Transaction Floors for Paid Apps (Upfront Download)
+  const GOOGLE_PLAY_PAID_APP_MIN_PRICES = {
+    AED: 3.00, ARS: 50.00, AUD: 0.99, AZN: 1.00, BDT: 20.00, BOB: 6.00, BRL: 2.00, CAD: 0.99,
+    CHF: 1.00, CLP: 500.00, COP: 3000.00, CRC: 500.00, CZK: 10.00, DKK: 7.00, DZD: 100.00, EGP: 10.00,
+    ETB: 50.00, EUR: 0.99, GBP: 0.79, GEL: 2.50, GHS: 10.00, HKD: 8.00, HUF: 300.00, IDR: 3000.00,
+    ILS: 3.90, INR: 10.00, IQD: 250.00, JOD: 0.70, JPY: 100.00, KES: 100.00, KRW: 500.00, KZT: 400.00,
+    LKR: 200.00, MAD: 10.00, MMK: 250.00, MNT: 3000.00, MOP: 8.00, MXN: 10.00, MYR: 4.00, NGN: 500.00,
+    NOK: 10.00, NZD: 1.00, PEN: 3.00, PHP: 50.00, PKR: 100.00, PLN: 2.00, PYG: 500.00, QAR: 3.50,
+    RON: 4.00, RSD: 100.00, RUB: 10.00, SAR: 3.75, SEK: 10.00, SGD: 1.00, THB: 30.00, TRY: 3.00,
+    TWD: 30.00, TZS: 250.00, UAH: 25.00, USD: 0.99, UZS: 1000.00, VND: 20000.00, XAF: 500.00, XOF: 500.00,
+    ZAR: 10.00
   };
+
+  // Google Play Official Regional Minimum Floors for In-App Purchases (IAP), Micro-packs & Promotional Sales
+  const GOOGLE_PLAY_IAP_MIN_PRICES = {
+    AED: 0.30, ARS: 0.30, AUD: 0.10, AZN: 0.08, BDT: 5.00, BOB: 0.40, BRL: 0.30, CAD: 0.10,
+    CHF: 0.05, CLP: 50.00, COP: 221.00, CRC: 35.00, CZK: 1.00, DKK: 0.50, DZD: 30.00, EGP: 5.00,
+    ETB: 10.00, EUR: 0.05, GBP: 0.05, GEL: 0.50, GHS: 2.00, HKD: 0.50, HUF: 19.00, IDR: 1000.00,
+    ILS: 0.20, INR: 4.00, IQD: 80.00, JOD: 0.05, JPY: 7.00, KES: 6.40, KRW: 100.00, KZT: 25.00,
+    LKR: 50.00, MAD: 0.60, MMK: 100.00, MNT: 170.00, MOP: 0.50, MXN: 1.20, MYR: 0.30, NGN: 50.00,
+    NOK: 0.50, NZD: 0.15, PEN: 0.30, PHP: 15.00, PKR: 20.00, PLN: 0.20, PYG: 400.00, QAR: 1.00,
+    RON: 1.00, RSD: 20.00, RUB: 10.00, SAR: 1.00, SEK: 0.50, SGD: 0.20, THB: 10.00, TRY: 1.50,
+    TWD: 10.00, TZS: 250.00, UAH: 2.00, USD: 0.05, UZS: 600.00, VND: 1300.00, XAF: 100.00, XOF: 100.00,
+    ZAR: 0.90
+  };
+
+  // Backwards-compatibility alias
+  const GOOGLE_PLAY_MIN_PRICES = GOOGLE_PLAY_IAP_MIN_PRICES;
 
   // Google Play Zero-Decimal Currencies (Whole Integer Units Only)
   const ZERO_DECIMAL_CURRENCIES = new Set([
-    'JPY', 'KRW', 'VND', 'IDR', 'CLP', 'COP', 'HUF', 'PYG', 'TZS', 'UZS', 'MMK', 'MNT', 'XAF', 'XOF', 'IQD'
+    'JPY', 'KRW', 'VND', 'IDR', 'CLP', 'COP', 'HUF', 'PYG', 'TZS', 'UZS', 'MMK', 'MNT', 'XAF', 'XOF', 'IQD',
+    'ARS', 'NGN', 'CRC', 'KZT', 'BDT', 'DZD', 'KES', 'LKR', 'PKR', 'RSD'
   ]);
 
   // Quick Catalogue Monetization Presets
@@ -335,6 +352,7 @@
     // Modal Details elements
     elements.modalFlag = document.getElementById('modalFlag');
     elements.modalCountryName = document.getElementById('modalCountryName');
+    elements.btnCopyModalCountry = document.getElementById('btnCopyModalCountry');
     elements.modalTierBadge = document.getElementById('modalTierBadge');
     elements.modalIsoCode = document.getElementById('modalIsoCode');
     elements.modalCurrencyInfo = document.getElementById('modalCurrencyInfo');
@@ -455,12 +473,84 @@
     return item || { id: 'app_price', name: 'App Price', price: state.appPrice };
   }
 
+  // Psychological integer charm pricing for mid-to-large values
+  function charmIntegerPrice(rawPrice, maxPrice = Infinity) {
+    const n = Math.round(rawPrice);
+    if (n <= 10) return Math.min(Math.max(1, n), maxPrice < Infinity ? maxPrice : n);
+
+    if (n >= 1000) {
+      if (n % 100 === 99 && n < maxPrice) return n;
+      const cands = new Set();
+      const kFloor = Math.floor(n / 1000) * 1000 - 1;
+      const kCeil = Math.ceil(n / 1000) * 1000 - 1;
+      if (kFloor > 0) cands.add(kFloor);
+      cands.add(kCeil);
+
+      const hFloor = Math.floor(n / 100) * 100 - 1;
+      const hCeil = Math.ceil(n / 100) * 100 - 1;
+      if (hFloor > 0) cands.add(hFloor);
+      cands.add(hCeil);
+
+      let validCands = Array.from(cands).filter(c => c < maxPrice && c > 0);
+      if (validCands.length === 0) {
+        validCands = [Math.floor((maxPrice - 1) / 100) * 100 - 1, maxPrice - 1].filter(c => c > 0);
+      }
+
+      validCands.sort((a, b) => {
+        let distA = Math.abs(a - n);
+        let distB = Math.abs(b - n);
+        if (a % 1000 === 999 && distA <= n * 0.03) distA -= 5;
+        if (b % 1000 === 999 && distB <= n * 0.03) distB -= 5;
+        return distA - distB;
+      });
+      return validCands[0] || (maxPrice < Infinity ? Math.max(1, maxPrice - 1) : n);
+    } else if (n >= 100) {
+      if ((n % 100 === 99 || n % 10 === 9) && n < maxPrice) return n;
+      const cands = new Set();
+      const hFloor = Math.floor(n / 100) * 100 - 1;
+      const hCeil = Math.ceil(n / 100) * 100 - 1;
+      if (hFloor > 0) cands.add(hFloor);
+      cands.add(hCeil);
+
+      const tFloor = Math.floor(n / 10) * 10 - 1;
+      const tCeil = Math.floor(n / 10) * 10 + 9;
+      if (tFloor > 0) cands.add(tFloor);
+      cands.add(tCeil);
+
+      let validCands = Array.from(cands).filter(c => c < maxPrice && c > 0);
+      if (validCands.length === 0) {
+        validCands = [Math.floor((maxPrice - 1) / 10) * 10 - 1, maxPrice - 1].filter(c => c > 0);
+      }
+
+      validCands.sort((a, b) => {
+        let distA = Math.abs(a - n);
+        let distB = Math.abs(b - n);
+        if (a % 100 === 99 && distA <= 12) distA -= 3;
+        if (b % 100 === 99 && distB <= 12) distB -= 3;
+        return distA - distB;
+      });
+      return validCands[0] || (maxPrice < Infinity ? Math.max(1, maxPrice - 1) : n);
+    } else {
+      if (n % 10 === 9 && n < maxPrice) return n;
+      const tFloor = Math.floor(n / 10) * 10 - 1;
+      const tCeil = Math.floor(n / 10) * 10 + 9;
+      let validCands = [tFloor, tCeil].filter(c => c >= 10 && c < maxPrice);
+      if (validCands.length === 0) {
+        validCands = [maxPrice - 1].filter(c => c > 0);
+      }
+      validCands.sort((a, b) => Math.abs(a - n) - Math.abs(b - n));
+      return validCands[0] || (maxPrice < Infinity ? Math.max(1, maxPrice - 1) : n);
+    }
+  }
+
   // Apply psychological charm pricing
-  function applyCharmPricing(rawPrice, currencyCode) {
+  function applyCharmPricing(rawPrice, currencyCode, maxPrice = Infinity) {
     if (currencyCode === 'INR') {
-      let closest = INR_LADDER[0];
+      const candidates = INR_LADDER.filter(step => step < maxPrice);
+      if (candidates.length === 0) return Math.max(1, Math.min(Math.round(rawPrice), maxPrice - 1));
+      let closest = candidates[0];
       let minDiff = Math.abs(rawPrice - closest);
-      for (const step of INR_LADDER) {
+      for (const step of candidates) {
         const diff = Math.abs(rawPrice - step);
         if (diff < minDiff) {
           minDiff = diff;
@@ -471,23 +561,67 @@
     }
 
     if (currencyCode === 'JPY') {
-      return Math.max(10, Math.round(rawPrice / 10) * 10);
-    }
-
-    if (currencyCode === 'KRW') {
-      return Math.max(100, Math.round(rawPrice / 100) * 100);
-    }
-
-    if (currencyCode === 'IDR' || currencyCode === 'VND') {
-      return Math.max(1000, Math.round(rawPrice / 1000) * 1000);
+      const rounded = Math.max(10, Math.round(rawPrice / 10) * 10);
+      if (rounded < maxPrice) return rounded;
+      return Math.max(10, Math.floor((maxPrice - 1) / 10) * 10);
     }
 
     if (['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD'].includes(currencyCode)) {
-      if (rawPrice <= 0.05) return 0.05;
+      if (rawPrice <= 0.05) return Math.min(0.05, maxPrice < Infinity ? Math.max(0.01, maxPrice - 0.01) : 0.05);
       if (rawPrice < 1.00) {
-        let closest = SUB_DOLLAR_LADDER[0];
+        const candidates = SUB_DOLLAR_LADDER.filter(step => step < maxPrice);
+        if (candidates.length > 0) {
+          let closest = candidates[0];
+          let minDiff = Math.abs(rawPrice - closest);
+          for (const step of candidates) {
+            const diff = Math.abs(rawPrice - step);
+            if (diff < minDiff) {
+              minDiff = diff;
+              closest = step;
+            }
+          }
+          return closest;
+        }
+        return Math.max(0.01, Math.round((Math.min(rawPrice, maxPrice - 0.01)) * 100) / 100);
+      }
+      if (rawPrice >= 100) {
+        return charmIntegerPrice(rawPrice, maxPrice);
+      }
+      const floor = Math.floor(rawPrice);
+      const frac = rawPrice - floor;
+      let cand;
+      if (frac < 0.25) cand = Math.max(0.99, floor - 0.01);
+      else if (frac < 0.75) cand = floor + 0.49;
+      else cand = floor + 0.99;
+
+      if (cand < maxPrice) return cand;
+      if (cand - 0.50 < maxPrice && cand - 0.50 > 0) return cand - 0.50;
+      return Math.max(0.01, Math.round((maxPrice - 0.01) * 100) / 100);
+    }
+
+    if (currencyCode === 'BRL') {
+      if (rawPrice >= 100) {
+        return charmIntegerPrice(rawPrice, maxPrice);
+      }
+      const floor = Math.floor(rawPrice);
+      const frac = rawPrice - floor;
+      let cand = frac < 0.5 ? floor + 0.49 : floor + 0.90;
+      if (cand < maxPrice) return cand;
+      return Math.max(0.01, Math.round((maxPrice - 0.01) * 100) / 100);
+    }
+
+    // Zero-decimal currencies or any currency price >= 10
+    if (ZERO_DECIMAL_CURRENCIES.has(currencyCode) || rawPrice >= 10) {
+      return charmIntegerPrice(rawPrice, maxPrice);
+    }
+
+    // Sub-10 prices for other currencies
+    if (rawPrice < 1.00) {
+      const candidates = SUB_DOLLAR_LADDER.filter(step => step < maxPrice);
+      if (candidates.length > 0) {
+        let closest = candidates[0];
         let minDiff = Math.abs(rawPrice - closest);
-        for (const step of SUB_DOLLAR_LADDER) {
+        for (const step of candidates) {
           const diff = Math.abs(rawPrice - step);
           if (diff < minDiff) {
             minDiff = diff;
@@ -496,28 +630,21 @@
         }
         return closest;
       }
-      const floor = Math.floor(rawPrice);
-      const frac = rawPrice - floor;
-      if (frac < 0.25) return Math.max(0.99, floor - 0.01);
-      if (frac < 0.75) return floor + 0.49;
-      return floor + 0.99;
+      return Math.max(0.01, Math.round((Math.min(rawPrice, maxPrice - 0.01)) * 100) / 100);
     }
+    const floor = Math.floor(rawPrice);
+    const frac = rawPrice - floor;
+    let cand;
+    if (frac < 0.25) cand = Math.max(0.99, floor - 0.01);
+    else if (frac < 0.75) cand = floor + 0.49;
+    else cand = floor + 0.99;
 
-    if (currencyCode === 'BRL') {
-      const floor = Math.floor(rawPrice);
-      const frac = rawPrice - floor;
-      if (frac < 0.5) return floor + 0.49;
-      return floor + 0.90;
-    }
-
-    if (rawPrice >= 100) {
-      return Math.round(rawPrice);
-    }
-    return Math.round(rawPrice * 100) / 100;
+    if (cand < maxPrice) return cand;
+    return Math.max(0.01, Math.round((maxPrice - 0.01) * 100) / 100);
   }
 
   // Calculate pricing breakdown for a single country and product price
-  function calculateCountryPricing(country, basePrice, baseCurr) {
+  function calculateCountryPricing(country, basePrice, baseCurr, isPaidApp = false) {
     const baseToUsdRate = getRate(baseCurr);
     const usdPrice = baseCurr === 'USD' ? basePrice : (basePrice / baseToUsdRate);
 
@@ -534,7 +661,7 @@
     if (state.charmRounding) {
       retailPrice = applyCharmPricing(rawLocalPrice, country.currency);
     } else {
-      retailPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency)
+      retailPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency) || rawLocalPrice >= 100
         ? Math.round(rawLocalPrice)
         : Math.round(rawLocalPrice * 100) / 100;
     }
@@ -544,41 +671,19 @@
     if (state.discountEnabled) {
       const rawDiscounted = retailPrice * (1 - state.discountRate / 100);
       if (state.discountCharm) {
-        discountedPrice = applyCharmPricing(rawDiscounted, country.currency);
+        discountedPrice = applyCharmPricing(rawDiscounted, country.currency, retailPrice);
         // Safety guard: A promotional discount must always be strictly lower than the retail price
         if (discountedPrice >= retailPrice) {
-          if (['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD'].includes(country.currency) && retailPrice <= 1.00) {
-            const lowerTiers = SUB_DOLLAR_LADDER.filter(t => t < retailPrice);
-            if (lowerTiers.length > 0) {
-              discountedPrice = lowerTiers[lowerTiers.length - 1];
-            } else {
-              discountedPrice = Math.max(0.01, Math.round(rawDiscounted * 100) / 100);
-            }
-          } else if (country.currency === 'INR') {
-            const lowerTiers = INR_LADDER.filter(t => t < retailPrice);
-            if (lowerTiers.length > 0) {
-              discountedPrice = lowerTiers[lowerTiers.length - 1];
-            } else {
-              discountedPrice = Math.max(1, Math.round(rawDiscounted));
-            }
-          } else {
-            discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency)
-              ? Math.max(1, Math.round(rawDiscounted))
-              : Math.max(0.01, Math.round(rawDiscounted * 100) / 100);
-          }
-          // Strict fallback guarantee
-          if (discountedPrice >= retailPrice) {
-            discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency)
-              ? Math.max(1, Math.round(retailPrice - 1))
-              : Math.max(0.01, Math.round((retailPrice - 0.01) * 100) / 100);
-          }
+          discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency) || retailPrice >= 10
+            ? Math.max(1, Math.round(retailPrice - 1))
+            : Math.max(0.01, Math.round((retailPrice - 0.01) * 100) / 100);
         }
       } else {
-        discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency)
+        discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency) || rawDiscounted >= 100
           ? Math.round(rawDiscounted)
           : Math.round(rawDiscounted * 100) / 100;
         if (discountedPrice >= retailPrice) {
-          discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency)
+          discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency) || retailPrice >= 10
             ? Math.max(1, Math.round(retailPrice - 1))
             : Math.max(0.01, Math.round((retailPrice - 0.01) * 100) / 100);
         }
@@ -586,7 +691,13 @@
     }
 
     // Google Play Minimum Price Floor check & enforcement
-    const minFloor = GOOGLE_PLAY_MIN_PRICES[country.currency] || Math.max(0.10, Math.round(0.10 * localRate));
+    // Paid Apps enforce standard app download floors (e.g. $0.99 USD baseline)
+    // In-App Products (IAPs) enforce micro-transaction floors (sub-dollar down to $0.05 USD baseline)
+    const minFloorDict = isPaidApp ? GOOGLE_PLAY_PAID_APP_MIN_PRICES : GOOGLE_PLAY_IAP_MIN_PRICES;
+    const defaultFallback = isPaidApp
+      ? Math.max(0.99, Math.round(0.99 * localRate * 100) / 100)
+      : Math.max(0.05, Math.round(0.05 * localRate * 100) / 100);
+    const minFloor = minFloorDict[country.currency] || defaultFallback;
     let isClampedToMin = false;
     if (retailPrice < minFloor) {
       retailPrice = minFloor;
@@ -595,8 +706,13 @@
 
     let isDiscountAtFloor = false;
     if (state.discountEnabled) {
-      if (discountedPrice <= minFloor) {
-        discountedPrice = minFloor;
+      // Promotional discounts for IAPs use IAP floor; for paid app promotional sales they cannot drop below the micro-sale floor
+      const promoFloor = isPaidApp ? (GOOGLE_PLAY_IAP_MIN_PRICES[country.currency] || 0.05) : minFloor;
+      if (discountedPrice < promoFloor) {
+        discountedPrice = promoFloor;
+        isDiscountAtFloor = true;
+      } else if (discountedPrice === promoFloor) {
+        isDiscountAtFloor = true;
       }
       if (discountedPrice >= retailPrice) {
         discountedPrice = retailPrice;
@@ -604,9 +720,12 @@
       }
     }
 
-    // Ensure zero-decimal currencies remain strict integers
-    if (ZERO_DECIMAL_CURRENCIES.has(country.currency)) {
+    // Ensure zero-decimal currencies and large non-Western numbers remain strict integers
+    const isWesternTwoDecimal = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD', 'BRL'].includes(country.currency);
+    if (ZERO_DECIMAL_CURRENCIES.has(country.currency) || (!isWesternTwoDecimal && retailPrice >= 100)) {
       retailPrice = Math.round(retailPrice);
+    }
+    if (ZERO_DECIMAL_CURRENCIES.has(country.currency) || (!isWesternTwoDecimal && discountedPrice >= 100)) {
       discountedPrice = Math.round(discountedPrice);
     }
 
@@ -721,7 +840,10 @@
   function formatMoney(amount, currencyCode) {
     if (isNaN(amount)) return `${currencyCode} 0.00`;
     let formatted = '';
-    if (currencyCode === 'INR' || ZERO_DECIMAL_CURRENCIES.has(currencyCode)) {
+    const isZeroDecimal = currencyCode === 'INR' ||
+                          ZERO_DECIMAL_CURRENCIES.has(currencyCode) ||
+                          (!['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD', 'BRL'].includes(currencyCode) && (amount >= 100 || Number.isInteger(amount)));
+    if (isZeroDecimal) {
       formatted = Math.round(amount).toLocaleString('en-US');
     } else {
       formatted = amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -731,7 +853,10 @@
 
   function formatCleanNumber(amount, currencyCode) {
     if (isNaN(amount)) return '0.00';
-    if (currencyCode === 'INR' || ZERO_DECIMAL_CURRENCIES.has(currencyCode)) {
+    const isZeroDecimal = currencyCode === 'INR' ||
+                          ZERO_DECIMAL_CURRENCIES.has(currencyCode) ||
+                          (!['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD', 'BRL'].includes(currencyCode) && (amount >= 100 || Number.isInteger(amount)));
+    if (isZeroDecimal) {
       return String(Math.round(amount));
     }
     return amount.toFixed(2);
@@ -1318,8 +1443,9 @@
     });
 
     // Calculate economics for filtered countries
+    const isPaidApp = activeProd.id === 'app_price';
     let calculatedList = filteredCountries.map(country => {
-      return calculateCountryPricing(country, activeProd.price, state.baseCurrency);
+      return calculateCountryPricing(country, activeProd.price, state.baseCurrency, isPaidApp);
     });
 
     // Apply sorting if active
@@ -1483,7 +1609,12 @@
           <div class="col-country">
             <span class="table-flag">${c.flag}</span>
             <div class="country-meta">
-              <span class="country-name">${escapeHTML(c.name)}</span>
+              <div class="country-name-row">
+                <span class="country-name">${escapeHTML(c.name)}</span>
+                <button class="btn-copy btn-copy-country" data-copy-val="${escapeHTML(c.name)}" data-type="country" title="Copy ${escapeHTML(c.name)} to clipboard">
+                  ${COPY_ICON_SVG}
+                </button>
+              </div>
               <span class="country-iso">${escapeHTML(c.code)} • Tier ${c.tier}</span>
             </div>
           </div>
@@ -1552,6 +1683,7 @@
         const valToCopy = copyBtn.getAttribute('data-copy-val');
         const country = copyBtn.getAttribute('data-country');
         const currency = copyBtn.getAttribute('data-currency');
+        const type = copyBtn.getAttribute('data-type');
         if (!valToCopy) return;
 
         navigator.clipboard.writeText(valToCopy).then(() => {
@@ -1561,7 +1693,11 @@
             copyBtn.innerHTML = COPY_ICON_SVG;
             copyBtn.classList.remove('copied');
           }, 1200);
-          showToast(`Copied ${currency || ''} ${valToCopy} (${country || ''}) for Google Play!`, 'success');
+          if (type === 'country') {
+            showToast(`Copied country: ${valToCopy}`, 'success');
+          } else {
+            showToast(`Copied ${currency || ''} ${valToCopy} (${country || ''}) for Google Play!`, 'success');
+          }
         }).catch(err => {
           console.error(err);
           showToast('Could not copy to clipboard', 'warning');
@@ -1593,7 +1729,8 @@
     if (!country) return;
 
     const activeProd = getActiveProduct();
-    const calc = calculateCountryPricing(country, activeProd.price, state.baseCurrency);
+    const isPaidApp = activeProd.id === 'app_price';
+    const calc = calculateCountryPricing(country, activeProd.price, state.baseCurrency, isPaidApp);
     const baseCode = state.baseCurrency;
 
     elements.modalFlag.textContent = country.flag;
@@ -1608,7 +1745,11 @@
     elements.modalBaseEquiv.textContent = `${baseCode} ${calc.retailInBase.toFixed(2)}`;
 
     const pppDiscountPct = Math.round((1 - country.pppRatio) * state.pppStrength * 100);
-    elements.modalPppDiscount.textContent = pppDiscountPct > 0 ? `-${pppDiscountPct}% Regional Value Adjustment` : 'Standard Tier 1 Benchmark';
+    if (calc.isClampedToMin) {
+      elements.modalPppDiscount.textContent = `Google Play Minimum Floor (${isPaidApp ? 'Paid App' : 'IAP'}: ${formatMoney(calc.minFloor, country.currency)}) Enforced`;
+    } else {
+      elements.modalPppDiscount.textContent = pppDiscountPct > 0 ? `-${pppDiscountPct}% Regional Value Adjustment` : 'Standard Tier 1 Benchmark';
+    }
 
     // Waterfall Breakdown
     elements.modalWaterfallBars.innerHTML = `
@@ -1716,8 +1857,9 @@
     ];
 
     productsToExport.forEach(prod => {
+      const isPaidApp = prod.id === 'app_price';
       state.countries.forEach(country => {
-        const calc = calculateCountryPricing(country, prod.price, state.baseCurrency);
+        const calc = calculateCountryPricing(country, prod.price, state.baseCurrency, isPaidApp);
         rows.push([
           escapeCsvCell(country.name),
           escapeCsvCell(country.code),
@@ -1726,10 +1868,10 @@
           escapeCsvCell(state.baseCurrency),
           prod.price.toFixed(2),
           escapeCsvCell(country.currency),
-          calc.retailPrice.toFixed(2),
+          escapeCsvCell(formatCleanNumber(calc.retailPrice, country.currency)),
           calc.retailInBase.toFixed(2),
           state.discountEnabled ? `${state.discountRate}%` : 'None',
-          state.discountEnabled ? calc.discountedPrice.toFixed(2) : calc.retailPrice.toFixed(2),
+          state.discountEnabled ? escapeCsvCell(formatCleanNumber(calc.discountedPrice, country.currency)) : escapeCsvCell(formatCleanNumber(calc.retailPrice, country.currency)),
           calc.taxPct.toFixed(1),
           calc.taxAmount.toFixed(2),
           calc.netRevenueBase.toFixed(2),
@@ -1764,11 +1906,12 @@
   // Copy Google Play Console Pricing table
   function copyPlayConsoleFormat() {
     const activeProd = getActiveProduct();
+    const isPaidApp = activeProd.id === 'app_price';
     const lines = ['Country/Region,Currency,Default Price'];
     state.countries.forEach(country => {
-      const calc = calculateCountryPricing(country, activeProd.price, state.baseCurrency);
+      const calc = calculateCountryPricing(country, activeProd.price, state.baseCurrency, isPaidApp);
       const priceVal = state.discountEnabled ? calc.discountedPrice : calc.retailPrice;
-      lines.push(`${country.code},${country.currency},${priceVal.toFixed(2)}`);
+      lines.push(`${country.code},${country.currency},${formatCleanNumber(priceVal, country.currency)}`);
     });
 
     const text = lines.join('\n');
@@ -2062,7 +2205,8 @@
     state.countries.forEach(c => {
       const row = [c.code, `"${c.name.replace(/"/g, '""')}"`, c.currency, c.taxRate.toFixed(1)];
       items.forEach(item => {
-        const calc = calculateCountryPricing(c, item.price, baseCode);
+        const isPaidApp = item.id === 'app_price';
+        const calc = calculateCountryPricing(c, item.price, baseCode, isPaidApp);
         row.push(formatCleanNumber(calc.retailPrice, c.currency));
         row.push(calc.developerNetInUsd.toFixed(2));
         row.push(calc.developerNetInInr.toFixed(2));
@@ -2090,6 +2234,7 @@
   // 9c. Direct Google Play API JSON Payload Export (androidpublisher:v3 inappproducts format)
   function exportApiJsonPayload() {
     const activeProd = getActiveProduct();
+    const isPaidApp = activeProd.id === 'app_price';
     const ids = generateIapIds(state.appName, activeProd.name, state.discountRate);
     const skuId = ids.productId;
     const packageName = `com.${sanitizeSlug(state.appName || 'mygame')}.shop`;
@@ -2101,7 +2246,7 @@
       // Exclude global fallback pools from standard country dict
       if (c.code === 'GLOBAL_USD' || c.code === 'GLOBAL_EUR') return;
 
-      const calc = calculateCountryPricing(c, activeProd.price, state.baseCurrency);
+      const calc = calculateCountryPricing(c, activeProd.price, state.baseCurrency, isPaidApp);
       const priceMicros = String(Math.round(calc.retailPrice * 1000000));
       pricesPayload[c.code] = {
         currency: c.currency,
@@ -2141,6 +2286,7 @@
   function updateRevenueForecaster() {
     if (!elements.simTotalUnits) return;
     const activeProd = getActiveProduct();
+    const isPaidApp = activeProd.id === 'app_price';
     const v1 = parseInt(state.simVolumeT1, 10) || 0;
     const v2 = parseInt(state.simVolumeT2, 10) || 0;
     const v3 = parseInt(state.simVolumeT3, 10) || 0;
@@ -2152,7 +2298,7 @@
     let t1Count = 0, t2Count = 0, t3Count = 0;
 
     state.countries.forEach(c => {
-      const calc = calculateCountryPricing(c, activeProd.price, state.baseCurrency);
+      const calc = calculateCountryPricing(c, activeProd.price, state.baseCurrency, isPaidApp);
       if (c.tier === 1) {
         t1Spend += calc.effectiveSpendUsd;
         t1Tax += calc.effectiveTaxUsd;
@@ -2676,6 +2822,25 @@
     // Country Strategy Modal
     elements.btnCloseModal.addEventListener('click', closeCountryStrategyModal);
     elements.btnModalCloseAction.addEventListener('click', closeCountryStrategyModal);
+    if (elements.btnCopyModalCountry) {
+      elements.btnCopyModalCountry.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const countryName = elements.modalCountryName.textContent;
+        if (!countryName) return;
+        navigator.clipboard.writeText(countryName).then(() => {
+          elements.btnCopyModalCountry.innerHTML = CHECK_ICON_SVG;
+          elements.btnCopyModalCountry.classList.add('copied');
+          setTimeout(() => {
+            elements.btnCopyModalCountry.innerHTML = COPY_ICON_SVG;
+            elements.btnCopyModalCountry.classList.remove('copied');
+          }, 1200);
+          showToast(`Copied country: ${countryName}`, 'success');
+        }).catch(err => {
+          console.error(err);
+          showToast('Could not copy to clipboard', 'warning');
+        });
+      });
+    }
     elements.countryModalBackdrop.addEventListener('click', (e) => {
       if (e.target === elements.countryModalBackdrop) closeCountryStrategyModal();
     });
