@@ -37,18 +37,30 @@
     const header = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, '').toLowerCase());
     
     // Detect column indexes
+    // Detect column indexes with strict prioritization
     let nameIdx = header.findIndex(h => h.includes('country') || h.includes('region') || h.includes('name'));
     let codeIdx = header.findIndex(h => h.includes('code') || h.includes('iso') || h.includes('alpha'));
-    
-    let salePriceIdx = header.findIndex(h => h.includes('discounted price') || h.includes('sale price') || h.includes('promo price'));
-    if (salePriceIdx === -1) salePriceIdx = header.findIndex(h => h.includes('sale') || h.includes('discounted'));
-    
-    let discountPctIdx = header.findIndex(h => h.includes('discount %') || h.includes('discount diff') || h.includes('discount difference') || h.includes('discount rate'));
-    let retailPriceIdx = header.findIndex(h => h.includes('retail') || h.includes('base') || h.includes('end user') || h.includes('price'));
     let currIdx = header.findIndex(h => h.includes('currency') || h.includes('curr'));
 
+    // 1. Retail / End-User / Base Price (matches "End-User Retail Price", "Retail Price", "Base Price", etc.)
+    let retailPriceIdx = header.findIndex(h => 
+      h.includes('end-user') || h.includes('end user') || h.includes('retail') || h.includes('base')
+    );
+    if (retailPriceIdx === -1) {
+      retailPriceIdx = header.findIndex(h => h.includes('price') && !h.includes('discount') && !h.includes('sale') && !h.includes('promo'));
+    }
+
+    // 2. Sale / Discounted Price (matches "Discounted Price", "Sale Price", "Promo Price")
+    let salePriceIdx = header.findIndex(h => 
+      h.includes('discounted price') || h.includes('sale price') || h.includes('promo price') || h.includes('discounted') || (h.includes('sale') && !h.includes('wholesale'))
+    );
+
+    // 3. Discount Percentage (matches "Discount %", "Discount Difference", "Discount Diff", "Discount Rate")
+    let discountPctIdx = header.findIndex(h => 
+      h.includes('discount %') || h.includes('discount diff') || h.includes('discount difference') || h.includes('discount rate') || h.includes('pct') || h.includes('%')
+    );
+
     if (nameIdx === -1) nameIdx = 0;
-    const targetPriceIdx = (salePriceIdx !== -1) ? salePriceIdx : (retailPriceIdx !== -1 ? retailPriceIdx : 1);
 
     const items = [];
     for (let i = 1; i < lines.length; i++) {
@@ -72,25 +84,25 @@
       const code = (codeIdx !== -1 ? row[codeIdx] : '').replace(/^["']|["']$/g, '').trim();
       const curr = (currIdx !== -1 ? row[currIdx] : '').replace(/^["']|["']$/g, '').trim();
 
-      const rawSalePrice = (row[targetPriceIdx] || '').replace(/^["']|["']$/g, '').trim();
       const rawRetailPrice = (retailPriceIdx !== -1 ? row[retailPriceIdx] : '').replace(/^["']|["']$/g, '').trim();
+      const rawSalePrice = (salePriceIdx !== -1 ? row[salePriceIdx] : '').replace(/^["']|["']$/g, '').trim();
       const rawDiscountPct = (discountPctIdx !== -1 ? row[discountPctIdx] : '').replace(/^["']|["']$/g, '').trim();
 
       if (!name) continue;
 
       // Extract float numbers
-      const saleMatch = rawSalePrice.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
-      const salePrice = saleMatch ? parseFloat(saleMatch[0]) : null;
-
       const retailMatch = rawRetailPrice.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
       const retailPrice = retailMatch ? parseFloat(retailMatch[0]) : null;
+
+      const saleMatch = rawSalePrice.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
+      const salePrice = saleMatch ? parseFloat(saleMatch[0]) : null;
 
       const pctMatch = rawDiscountPct.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
       const discountPct = pctMatch ? Math.abs(parseFloat(pctMatch[0])) : null;
 
-      const baseSale = salePrice !== null ? salePrice : (retailPrice !== null ? retailPrice : 0);
-      const baseRetail = retailPrice !== null ? retailPrice : baseSale;
-      const basePct = discountPct !== null ? discountPct : (baseRetail > 0 ? Math.round(((baseRetail - baseSale) / baseRetail) * 100) : 0);
+      const baseRetail = retailPrice !== null ? retailPrice : (salePrice !== null ? salePrice : 0);
+      const baseSale = salePrice !== null ? salePrice : baseRetail;
+      const basePct = discountPct !== null ? discountPct : (baseRetail > 0 && baseSale < baseRetail ? parseFloat((((baseRetail - baseSale) / baseRetail) * 100).toFixed(2)) : 0);
 
       items.push({
         name: name,
@@ -109,6 +121,7 @@
 
     return items;
   }
+
 
   // Update target values according to active mode hierarchy (App Price vs App Sale Price [Fixed vs %])
   function applyModeTargets() {
@@ -237,12 +250,18 @@
       }) || btns[0];
     }
 
+    if (!pencil) {
+      // Fallback for Google Play Console App Pricing table: click the Price column cell or row itself
+      pencil = row.querySelector('td:nth-child(2), [role="gridcell"]:nth-child(2), [role="cell"]:nth-child(2)') || row;
+    }
+
     if (pencil) {
       pencil.scrollIntoView({ block: 'nearest', inline: 'nearest' });
       pencil.click();
       return true;
     }
     return false;
+
   }
 
   async function waitForEditPricePopup(timeoutMs = 4000) {
