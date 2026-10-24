@@ -603,21 +603,13 @@
   }
 
   // -------------------------------------------------------------
-  // Panel Visibility Management (Show / Hide + Launcher Pill)
+  // Panel Visibility Management (Completely Hide / Show Full Window)
   // -------------------------------------------------------------
   function setPanelVisibility(visible) {
     state.panelVisible = visible;
-    const container = document.getElementById('ppa-container');
-    const pill = document.getElementById('ppa-launcher-pill');
-
-    if (container && pill) {
-      if (visible) {
-        container.style.display = 'block';
-        pill.style.display = 'none';
-      } else {
-        container.style.display = 'none';
-        pill.style.display = 'flex';
-      }
+    const root = document.getElementById('play-price-automator-root');
+    if (root) {
+      root.style.display = visible ? 'block' : 'none';
     }
 
     try {
@@ -641,12 +633,6 @@
     root.id = 'play-price-automator-root';
 
     root.innerHTML = `
-      <!-- Launcher Pill (Appears when panel is closed/minimized) -->
-      <div id="ppa-launcher-pill" title="Click to open PlayPrice Automator (Alt + P)">
-        <span class="ppa-pill-icon">âš¡</span>
-        <span>PlayPrice Automator</span>
-      </div>
-
       <!-- Main Command Center (540px Wide) -->
       <div id="ppa-container">
         <!-- Draggable Header -->
@@ -658,9 +644,8 @@
               <div id="ppa-sub">Google Play Console DOM Robot â€¢ v1.6.1</div>
             </div>
           </div>
-          <div id="ppa-header-actions">
-            <button id="ppa-btn-collapse" title="Collapse / Expand panel">_</button>
-            <button id="ppa-btn-close" title="Hide panel (Restores to floating pill â€¢ Alt+P)">âœ•</button>
+          <div id="ppa-header-badge">
+            <span class="ppa-shortcut-tag" title="Show or Hide full window anytime with Alt + P">Alt + P to Hide</span>
           </div>
         </div>
 
@@ -792,32 +777,6 @@
         line-height: 1.4;
       }
 
-      /* Floating Launcher Pill */
-      #ppa-launcher-pill {
-        display: none;
-        align-items: center;
-        gap: 8px;
-        padding: 9px 18px;
-        background: linear-gradient(135deg, #0F172A, #1E293B);
-        border: 1px solid rgba(56, 189, 248, 0.45);
-        border-radius: 30px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 16px rgba(56, 189, 248, 0.25);
-        cursor: pointer;
-        color: #38BDF8;
-        font-weight: 700;
-        font-size: 13px;
-        transition: all 0.2s ease;
-        user-select: none;
-      }
-      #ppa-launcher-pill:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7), 0 0 22px rgba(56, 189, 248, 0.4);
-        border-color: #38BDF8;
-      }
-      .ppa-pill-icon {
-        font-size: 16px;
-      }
-
       /* Main Command Panel: 540px Width */
       #ppa-container {
         width: 540px;
@@ -861,20 +820,20 @@
         font-size: 11px;
         color: #94A3B8;
       }
-      #ppa-header-actions button {
-        background: transparent;
-        border: none;
-        color: #94A3B8;
-        cursor: pointer;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: 700;
-        transition: background 0.15s, color 0.15s;
+      #ppa-header-badge {
+        display: flex;
+        align-items: center;
       }
-      #ppa-header-actions button:hover {
-        background: rgba(255, 255, 255, 0.12);
-        color: #FFF;
+      .ppa-shortcut-tag {
+        background: rgba(30, 41, 59, 0.7);
+        color: #94A3B8;
+        font-size: 11px;
+        font-family: Consolas, monospace;
+        padding: 3px 8px;
+        border-radius: 6px;
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        letter-spacing: 0.2px;
+        user-select: none;
       }
 
       #ppa-body {
@@ -1319,35 +1278,7 @@
       });
     }
 
-    // Collapse button
-    const collapseBtn = document.getElementById('ppa-btn-collapse');
-    if (collapseBtn) {
-      collapseBtn.addEventListener('click', () => {
-        state.panelCollapsed = !state.panelCollapsed;
-        const body = document.getElementById('ppa-body');
-        if (body) body.style.display = state.panelCollapsed ? 'none' : 'flex';
-        collapseBtn.textContent = state.panelCollapsed ? 'â–¡' : '_';
-      });
-    }
-
-    // Close button (Hides panel and reveals launcher pill)
-    const closeBtn = document.getElementById('ppa-btn-close');
-    if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
-        setPanelVisibility(false);
-        log('ðŸ™ˆ Automator panel hidden. Click the floating âš¡ pill or press Alt+P to reopen.');
-      });
-    }
-
-    // Launcher pill (Click to restore full panel)
-    const launcherPill = document.getElementById('ppa-launcher-pill');
-    if (launcherPill) {
-      launcherPill.addEventListener('click', () => {
-        setPanelVisibility(true);
-      });
-    }
-
-    // Global Hotkey: Alt + P to toggle panel visibility
+    // Global Hotkey: Alt + P to toggle full window visibility (completely hides / shows full window)
     document.addEventListener('keydown', (e) => {
       if (e.altKey && (e.key.toLowerCase() === 'p')) {
         e.preventDefault();

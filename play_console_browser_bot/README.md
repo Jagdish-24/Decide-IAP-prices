@@ -44,7 +44,7 @@ The **PlayPrice In-Browser Automator** is a lightweight, zero-dependency in-brow
 
 3. **Launch or Show the Robot:**
    - Click the extension icon, use the **`⚡ Show / Hide Automator Panel`** button, or press **`Alt + P`** anywhere on the Play Console page.
-   - Alternatively, click the floating launcher pill or bookmarklet.
+   - When hidden, the window is completely removed from view (zero clutter). When shown, the full command center appears instantly.
 
 4. **Select Mode & Load CSV:**
    - Choose your operating mode:
@@ -75,8 +75,9 @@ The **PlayPrice In-Browser Automator** is a lightweight, zero-dependency in-brow
   - *Moderate (1000ms):* Balanced speed for tested setups.
   - *Maximum Caution (3500ms):* Slow and steady for turbulent network environments.
   - *Natural Jitter & Task Micro-Pauses Across ALL Options:* Every speed option automatically applies proportional natural human jitter (±15% to 25%) plus randomized human micro-delays between every sub-task (typing search, finding rows, opening popups, inspecting prices, entering numbers, and saving), alongside a natural ~3s breathing rest break every 25 rows to look authentically human.
-- **Easy Show/Hide Controls:** Toggle the UI with **`Alt + P`**, the extension popup button, or minimize it to a floating launcher pill.
+- **Clean Zero-Clutter Show/Hide:** Toggle the full automator window with **`Alt + P`** or the extension popup button. When hidden, it leaves your Play Console view 100% clean and unobstructed with zero floating pills or icons.
 - **Native Event Dispatching:** Dispatches `input`, `change`, and `Enter` keyboard events directly to Google's Angular/Material input elements.
 - **Smart Duplicate Protection:** Checks existing values first; skips already-configured countries to save time and prevent unnecessary network calls.
 - **Pause & Resume:** Easily pause, resume, or stop execution at any time.
+
 
