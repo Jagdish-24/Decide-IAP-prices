@@ -518,32 +518,49 @@
       }
     }
 
-    // 3. Check scrollable table containers
-    const scrollContainers = Array.from(document.querySelectorAll('.table-container, [role="grid"], material-table, table'));
+    // 2. Identify all scroll hosts in Google Play Console (main-content, scroll-host, acxscrollhost)
+    const scrollContainers = [
+      document.querySelector('.scroll-host'),
+      document.querySelector('[acxscrollhost]'),
+      document.getElementById('main-content'),
+      document.querySelector('.main-content'),
+      document.querySelector('.ess-table-canvas'),
+      window
+    ].filter(Boolean);
+
     for (const container of scrollContainers) {
-      if (container.scrollHeight > container.clientHeight && container.clientHeight > 0) {
-        let prevTop = -1;
-        container.scrollTop = 0;
-        await sleep(150);
-        while (container.scrollTop !== prevTop && Date.now() - start < timeoutMs) {
-          if (!state.isRunning) return null;
-          prevTop = container.scrollTop;
-          rows = Array.from(container.querySelectorAll('tr, [role="row"], material-row, .table-row'));
-          for (const r of rows) {
-            if (rowMatchesCountry(r, countryName)) {
-              r.scrollIntoView({ block: 'center', inline: 'nearest' });
-              await humanMicroPause(120, 240);
-              return r;
-            }
-          }
+      const isWindow = container === window;
+      let prevTop = -1;
+      let currentTop = isWindow ? window.scrollY : container.scrollTop;
+
+      while (Date.now() - start < timeoutMs) {
+        if (!state.isRunning) return null;
+
+        if (isWindow) {
+          window.scrollBy({ top: 500, behavior: 'instant' });
+        } else {
           container.scrollTop += 500;
-          await sleep(200);
         }
+        await sleep(150);
+
+        rows = Array.from(document.querySelectorAll(
+          '.particle-table-row, [role="row"], tr, material-row, ess-cell[essfield="region-column"]'
+        ));
+        for (const r of rows) {
+          const rowEl = r.closest('.particle-table-row, [role="row"], tr') || r;
+          if (rowMatchesCountry(rowEl, countryName)) {
+            rowEl.scrollIntoView({ block: 'center', inline: 'nearest' });
+            await humanMicroPause(120, 240);
+            return rowEl;
+          }
+        }
+
+        const newTop = isWindow ? window.scrollY : container.scrollTop;
+        if (newTop === currentTop) break;
+        currentTop = newTop;
       }
     }
 
-    // Scroll back to top if not found
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     return null;
   }
 
@@ -552,16 +569,25 @@
 
     clearOtherRowSelections();
 
-    const chk = row.querySelector('input[type="checkbox"], [role="checkbox"], material-checkbox');
-    if (!chk) return false;
+    // In Google Play Console ess-table, check tool-cell, checkbox or material-checkbox
+    let chk = row.querySelector(
+      'material-checkbox, input[type="checkbox"], [role="checkbox"], .mdc-checkbox, console-table-tools-cell, .tools-cell'
+    );
+
+    if (!chk) {
+      // Fallback: first cell in the row
+      chk = row.querySelector('ess-cell:first-child, [role="gridcell"]:first-child, td:first-child') || row;
+    }
 
     const isChecked = chk.checked || 
                       chk.getAttribute('aria-checked') === 'true' || 
                       chk.classList.contains('is-checked') ||
-                      chk.classList.contains('checked');
+                      chk.classList.contains('checked') ||
+                      row.classList.contains('is-selected') ||
+                      row.classList.contains('selected');
 
     if (!isChecked) {
-      const clickTarget = chk.closest('material-checkbox, label') || chk;
+      const clickTarget = chk.closest('material-checkbox, label, console-table-tools-cell') || chk;
       simulateFullClick(clickTarget);
       await humanMicroPause(150, 300);
     }
@@ -591,20 +617,71 @@
     return false;
   }
 
-  async function waitForAppPricingModal(timeoutMs = 4500) {
+  async function waitForAppPricingModal(timeoutMs = 6000) {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
       if (!state.isRunning) return null;
-      const dialog = document.querySelector('[role="dialog"], dialog, material-dialog, .modal-dialog');
-      if (dialog && !dialog.closest('#play-price-automator-root')) {
-        const input = dialog.querySelector('input:not([type="checkbox"])');
-        if (input) {
-          return { dialog, input };
+
+      // 1. Look for dialogs by container types (including Google's custom <modal> and <console-mega-overlay>)
+      const dialogCandidates = Array.from(document.querySelectorAll(
+        '[role="dialog"], dialog, material-dialog, modal, console-mega-overlay, .modal-dialog, .mdc-dialog, .cdk-overlay-pane'
+      )).filter(d => !d.closest('#play-price-automator-root') && isElementReallyVisible(d));
+
+      for (const d of dialogCandidates) {
+        const text = (d.textContent || '').toLowerCase();
+        if (text.includes('set price for selected') || text.includes('update') || text.includes('pricing for the selected')) {
+          const input = d.querySelector('input:not([type="checkbox"]):not([type="radio"])');
+          if (input) {
+            return { dialog: d, input };
+          }
         }
       }
-      await sleep(120);
+
+      // 2. Also search by modal title heading directly
+      const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, [role="heading"], div, span'));
+      for (const h of headings) {
+        if (h.closest('#play-price-automator-root')) continue;
+        const txt = (h.textContent || '').trim().toLowerCase();
+        if (txt.includes('set price for selected countries') || txt.includes('set price for selected')) {
+          const dialog = h.closest('modal, console-mega-overlay, [role="dialog"], material-dialog, .cdk-overlay-pane, div') || h.parentElement.parentElement;
+          if (dialog && isElementReallyVisible(dialog)) {
+            const input = dialog.querySelector('input:not([type="checkbox"]):not([type="radio"])');
+            if (input) {
+              return { dialog, input };
+            }
+          }
+        }
+      }
+
+      await sleep(150);
     }
     return null;
+  }
+
+  async function setModalPrice(input, priceValue) {
+    if (!input) return false;
+    input.scrollIntoView({ block: 'nearest' });
+    input.focus();
+    await humanMicroPause(60, 120);
+
+    // Select all & replace via execCommand (standard across modern browsers & Angular)
+    try {
+      input.select?.();
+      document.execCommand('selectAll', false, null);
+      document.execCommand('delete', false, null);
+      document.execCommand('insertText', false, priceValue);
+    } catch (e) {
+      // fallback
+    }
+
+    // Also set property directly on prototype
+    setNativeValue(input, priceValue);
+
+    input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    input.blur();
+    await humanMicroPause(100, 200);
+    return true;
   }
 
   function getCurrentModalCurrency(dialog) {
@@ -617,8 +694,11 @@
       if (sel.value) return sel.value.trim();
     }
     // 2. Dropdown buttons, material-select, combobox
-    const items = Array.from(dialog.querySelectorAll('[role="combobox"], material-select, [aria-haspopup="listbox"], button, div[role="button"]'));
+    const items = Array.from(dialog.querySelectorAll(
+      '[role="combobox"], material-select, [aria-haspopup="listbox"], .mdc-select__anchor, button, div[role="button"]'
+    ));
     for (const item of items) {
+      if (item.closest('input')) continue;
       const txt = item.textContent.trim();
       const match = txt.match(/\b([A-Z]{3})\b/);
       if (match) {
@@ -656,58 +736,85 @@
 
     // 3. Locate dropdown trigger button
     const triggers = Array.from(dialog.querySelectorAll(
-      '[role="combobox"], material-select, [aria-haspopup="listbox"], [aria-haspopup="true"], button, div[tabindex="0"]'
+      '[role="combobox"], material-select, [aria-haspopup="listbox"], [aria-haspopup="true"], .mdc-select__anchor, button, div[tabindex="0"]'
     ));
     const currTrigger = triggers.find(b => {
+      if (b.closest('input')) return false;
       const txt = b.textContent.trim();
-      return /\b[A-Z]{3}\b/.test(txt) || b.querySelector('svg, .material-icons, [data-icon*="arrow"], [data-icon*="down"]');
-    }) || dialog.querySelector('material-select, [role="combobox"]');
+      const hasCode = /\b[A-Z]{3}\b/.test(txt);
+      const hasArrow = b.querySelector('svg, .material-icons, .material-icon-i, [data-icon*="arrow"], [data-icon*="down"]');
+      return (hasCode && hasArrow) || (hasCode && b.getAttribute('role') === 'combobox');
+    }) || triggers.find(b => {
+      const txt = b.textContent.trim();
+      return /\b[A-Z]{3}\b/.test(txt) && !b.closest('input') && !b.closest('button[aria-label*="close" i]');
+    });
 
     if (!currTrigger) {
       log(`  ⚠️ Could not find currency dropdown in modal, proceeding with current currency.`);
       return false;
     }
 
-    // Click dropdown trigger
+    // Click dropdown trigger with full pointer sequence
     currTrigger.scrollIntoView({ block: 'nearest' });
     await humanMicroPause(120, 220);
-    currTrigger.click();
+    simulateFullClick(currTrigger);
     await sleep(400);
 
-    // 4. In opened list/overlay, find option matching targetCode
-    const options = Array.from(document.querySelectorAll(
-      '[role="option"], material-select-item, [role="menuitem"], .popup-item, li'
-    ));
-    const targetOpt = options.find(o => {
-      const t = o.textContent.trim().toUpperCase();
-      return t === targetCode || t.startsWith(targetCode + ' ') || t.includes(`(${targetCode})`) || t.includes(` ${targetCode} `);
-    });
+    // 4. In opened list/overlay, find option matching targetCode across whole DOM
+    const optionContainers = [
+      document.querySelector('.cdk-overlay-container'),
+      document.querySelector('material-popup'),
+      document.querySelector('[role="listbox"]'),
+      document.querySelector('.mdc-menu'),
+      document.body
+    ].filter(Boolean);
+
+    let targetOpt = null;
+    for (const container of optionContainers) {
+      const options = Array.from(container.querySelectorAll(
+        '[role="option"], material-select-item, [role="menuitem"], .mdc-list-item, .popup-item, li, button, div'
+      ));
+      targetOpt = options.find(o => {
+        if (!isElementReallyVisible(o)) return false;
+        const t = (o.textContent || '').trim().toUpperCase();
+        return t === targetCode || 
+               t.startsWith(targetCode + ' ') || 
+               t.includes(`(${targetCode})`) || 
+               t.includes(` ${targetCode} `) ||
+               t.endsWith(` ${targetCode}`);
+      });
+      if (targetOpt) break;
+    }
+
+    // 5. Check if dropdown has a search input
+    if (!targetOpt) {
+      const filterInput = document.querySelector(
+        '[role="listbox"] input, .cdk-overlay-container input, material-select-dropdown input, material-popup input'
+      );
+      if (filterInput && isElementReallyVisible(filterInput)) {
+        filterInput.focus();
+        setNativeValue(filterInput, targetCode);
+        await sleep(300);
+        for (const container of optionContainers) {
+          const filteredOptions = Array.from(container.querySelectorAll(
+            '[role="option"], material-select-item, .mdc-list-item, [role="menuitem"]'
+          ));
+          targetOpt = filteredOptions.find(o => {
+            const t = (o.textContent || '').trim().toUpperCase();
+            return t.includes(targetCode);
+          });
+          if (targetOpt) break;
+        }
+      }
+    }
 
     if (targetOpt) {
       targetOpt.scrollIntoView({ block: 'nearest' });
       await humanMicroPause(100, 200);
-      targetOpt.click();
+      simulateFullClick(targetOpt);
       log(`  Selected currency ${targetCode} in dropdown.`);
       await humanMicroPause(120, 250);
       return true;
-    }
-
-    // Check if dropdown has a search input
-    const filterInput = document.querySelector(
-      '[role="listbox"] input, .cdk-overlay-container input, material-select-dropdown input'
-    );
-    if (filterInput) {
-      setNativeValue(filterInput, targetCode);
-      await sleep(300);
-      const filteredOpt = Array.from(document.querySelectorAll('[role="option"], material-select-item')).find(o => 
-        o.textContent.trim().toUpperCase().includes(targetCode)
-      );
-      if (filteredOpt) {
-        filteredOpt.click();
-        log(`  Selected filtered currency ${targetCode}.`);
-        await humanMicroPause(120, 250);
-        return true;
-      }
     }
 
     log(`  ⚠️ Currency option ${targetCode} not found in dropdown list.`);
@@ -722,7 +829,7 @@
     const updateBtn = btns.find(b => {
       const txt = (b.textContent || '').replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase();
       const isVisible = isElementReallyVisible(b);
-      const isNotDisabled = !b.disabled && b.getAttribute('aria-disabled') !== 'true' && !b.classList.contains('disabled');
+      const isNotDisabled = !b.disabled && b.getAttribute('aria-disabled') !== 'true' && !b.classList.contains('disabled') && !b.classList.contains('mdc-button--disabled');
       return (txt === 'update' || txt === 'apply' || txt === 'save') && isVisible && isNotDisabled;
     });
 
@@ -732,7 +839,7 @@
       
       // Wait for dialog to disappear
       const start = Date.now();
-      while (Date.now() - start < 3500) {
+      while (Date.now() - start < 4000) {
         if (!document.body.contains(dialog) || !isElementReallyVisible(dialog)) {
           return true;
         }
@@ -954,7 +1061,7 @@
           // Step 6: Input the correct price number & select ISO currency
           // (Even if existing value matches, user requested to set the value and press update)
           log(`🔄 [${c.name}] Setting Price '${c.priceFormatted}' & Currency '${c.currency || 'default'}'...`);
-          setNativeValue(input, c.priceFormatted);
+          await setModalPrice(input, c.priceFormatted);
           await humanMicroPause(220, 420);
 
           if (c.currency) {
