@@ -74,7 +74,7 @@ The **PlayPrice In-Browser Automator** is a lightweight, zero-dependency in-brow
   - *Ultra-Safe (2500ms):* Maximum protection against rate-limits on sensitive accounts.
   - *Moderate (1000ms):* Balanced speed for tested setups.
   - *Maximum Caution (3500ms):* Slow and steady for turbulent network environments.
-  - *Natural Jitter & Breathing Breaks:* Automatically varies input timing by -150ms to +250ms and pauses for 3 seconds every 25 rows to look like natural human operation.
+  - *Natural Jitter & Task Micro-Pauses Across ALL Options:* Every speed option automatically applies proportional natural human jitter (±15% to 25%) plus randomized human micro-delays between every sub-task (typing search, finding rows, opening popups, inspecting prices, entering numbers, and saving), alongside a natural ~3s breathing rest break every 25 rows to look authentically human.
 - **Easy Show/Hide Controls:** Toggle the UI with **`Alt + P`**, the extension popup button, or minimize it to a floating launcher pill.
 - **Native Event Dispatching:** Dispatches `input`, `change`, and `Enter` keyboard events directly to Google's Angular/Material input elements.
 - **Smart Duplicate Protection:** Checks existing values first; skips already-configured countries to save time and prevent unnecessary network calls.

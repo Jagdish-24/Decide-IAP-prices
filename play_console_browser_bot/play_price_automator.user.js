@@ -141,10 +141,22 @@
   // -------------------------------------------------------------
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+  function randomBetween(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
   function getHumanizedDelay(baseDelay) {
-    // Add natural human jitter (-150ms to +250ms) to prevent robotic request frequency
-    const jitter = Math.floor(Math.random() * 400) - 150;
-    return Math.max(700, baseDelay + jitter);
+    // Proportional natural human jitter (Â±15% to 25%) ensuring EVERY cadence profile
+    // (Moderate 1000ms, Safe & Steady 1600ms, Ultra-Safe 2500ms, Maximum Caution 3500ms)
+    // has realistic non-periodic variance between each action.
+    const variance = Math.max(160, Math.round(baseDelay * 0.18));
+    const jitter = randomBetween(-Math.round(variance * 0.75), variance);
+    return Math.max(500, baseDelay + jitter);
+  }
+
+  // Realistic human micro-pause between sub-tasks (typing, clicking, inspecting, reviewing)
+  function humanMicroPause(minMs = 160, maxMs = 360) {
+    return sleep(randomBetween(minMs, maxMs));
   }
 
   function formatDuration(ms) {
@@ -210,7 +222,7 @@
   async function openRowEditModal(row) {
     row.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, composed: true }));
     row.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, composed: true }));
-    await sleep(100);
+    await humanMicroPause(90, 200);
 
     let pencil = row.querySelector('button[aria-label*="Edit" i]') ||
                  row.querySelector('button[title*="Edit" i]') ||
@@ -373,10 +385,11 @@
       }
       if (!state.isRunning) break;
 
-      // Anti-Bot Rate-Limiting Protection: 3-second breathing cooldown every 25 processed items
+      // Anti-Bot Rate-Limiting Protection: Breathing rest cooldown every 25 processed items with natural jitter
       if (processedSinceLastCooldown > 0 && processedSinceLastCooldown % 25 === 0 && idx < state.countries.length - 1) {
-        log(`ðŸ›¡ï¸ Rate-Limit Safeguard: Taking a natural 3s rest break... (${processedSinceLastCooldown} countries processed)`);
-        await sleep(3000);
+        const breakDuration = randomBetween(2800, 3600);
+        log(`ðŸ›¡ï¸ Rate-Limit Safeguard: Taking a natural ${(breakDuration / 1000).toFixed(1)}s rest break... (${processedSinceLastCooldown} countries processed)`);
+        await sleep(breakDuration);
       }
 
       state.currentIndex = idx;
@@ -391,11 +404,13 @@
         // Step 1: Focus and double-click to select all text in search bar & paste country name
         searchBox.scrollIntoView({ block: 'nearest', inline: 'nearest' });
         searchBox.focus();
+        await humanMicroPause(70, 160); // Random pause before selecting search input
         searchBox.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
         if (typeof searchBox.select === 'function') searchBox.select();
+        await humanMicroPause(50, 130); // Random keystroke pause
         setNativeValue(searchBox, c.name);
 
-        // Safe Humanized Delay
+        // Safe Humanized Delay with Cadence Jitter
         await sleep(getHumanizedDelay(state.speedDelay));
 
         // Step 2: Wait for filtered row
@@ -407,6 +422,7 @@
           updateUI();
           continue;
         }
+        await humanMicroPause(100, 240); // Random visual confirmation pause
 
         // Step 3: Open Edit Price / Discount modal
         const opened = await openRowEditModal(row);
@@ -431,6 +447,7 @@
         }
 
         const { dialog, input } = modalObj;
+        await humanMicroPause(150, 320); // Random inspection pause
 
         // Check current existing value in input
         const existingVal = input.value.trim();
@@ -443,6 +460,7 @@
           c.status = 'matched';
           c.message = 'Already matches';
 
+          await humanMicroPause(140, 280); // Random human hesitation pause before closing
           const cancelBtn = dialog.querySelector('button[aria-label*="Cancel" i]') ||
                             Array.from(dialog.querySelectorAll('button')).find(b => b.textContent.toLowerCase().includes('cancel'));
           if (cancelBtn) {
@@ -450,11 +468,12 @@
           } else {
             dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
           }
+          await humanMicroPause(90, 190);
         } else {
           // Mismatch or empty: set new target value
           log(`ðŸ”„ [${c.name}] Setting '${existingVal || 'empty'}' -> '${c.priceFormatted}${unitText}'...`);
           setNativeValue(input, c.priceFormatted);
-          await sleep(350);
+          await humanMicroPause(280, 520); // Random human verification pause before clicking Save
 
           // Find Save button in dialog
           const saveBtn = dialog.querySelector('button[aria-label*="Save" i]') ||
@@ -469,6 +488,7 @@
             c.status = 'done';
             c.message = `Saved: ${c.priceFormatted}${unitText}`;
             log(`âœ… [${c.name}] Saved: ${c.priceFormatted}${unitText}`);
+            await humanMicroPause(110, 220); // Random settling pause
           } else {
             log(`âš ï¸ [${c.name}] Save button disabled or not found.`);
             c.status = 'failed';
@@ -478,6 +498,7 @@
 
         processedSinceLastCooldown++;
         await sleep(getHumanizedDelay(state.speedDelay));
+
 
       } catch (err) {
         log(`âŒ Error processing ${c.name}: ${err.message}`);
@@ -502,7 +523,7 @@
 
   async function saveConsoleChanges() {
     log('ðŸ’¾ Looking for bottom "Save changes" bar in Google Play Console...');
-    await sleep(800);
+    await humanMicroPause(700, 1100);
     const saveAllBtn = Array.from(document.querySelectorAll('button')).find(b => {
       const txt = b.textContent.trim().toLowerCase();
       return txt === 'save changes' || (txt === 'save' && b.closest('.bottom-bar, footer, [role="region"]'));
@@ -510,6 +531,7 @@
 
     if (saveAllBtn && !saveAllBtn.disabled) {
       saveAllBtn.scrollIntoView({ block: 'nearest' });
+      await humanMicroPause(180, 340);
       saveAllBtn.click();
       log('ðŸŽ‰ Clicked main "Save changes" in Google Play Console!');
     } else {
