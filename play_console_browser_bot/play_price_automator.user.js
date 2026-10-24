@@ -1418,23 +1418,28 @@
         display: flex;
         align-items: center;
         gap: 10px;
+        pointer-events: none;
       }
       #ppa-logo {
         font-size: 20px;
+        pointer-events: none;
       }
       #ppa-title {
         font-weight: 700;
         font-size: 14px;
         color: #38BDF8;
         letter-spacing: 0.3px;
+        pointer-events: none;
       }
       #ppa-sub {
         font-size: 11px;
         color: #94A3B8;
+        pointer-events: none;
       }
       #ppa-header-badge {
         display: flex;
         align-items: center;
+        pointer-events: none;
       }
       .ppa-shortcut-tag {
         background: rgba(30, 41, 59, 0.7);
@@ -1446,6 +1451,7 @@
         border: 1px solid rgba(56, 189, 248, 0.25);
         letter-spacing: 0.2px;
         user-select: none;
+        pointer-events: none;
       }
 
       #ppa-body {
@@ -1990,7 +1996,7 @@
     });
 
     // Make panel draggable by header
-    makeDraggable(document.getElementById('ppa-header'), document.getElementById('ppa-container'));
+    makeDraggable(document.getElementById('ppa-header'), document.getElementById('play-price-automator-root'));
   }
 
   function handleFile(file) {
@@ -2021,30 +2027,78 @@
 
   function makeDraggable(handle, target) {
     if (!handle || !target) return;
-    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    handle.onmousedown = (e) => {
-      if (e.target.tagName.toLowerCase() === 'button') return;
-      e.preventDefault();
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      document.onmouseup = closeDragElement;
-      document.onmousemove = elementDrag;
-    };
 
-    function elementDrag(e) {
-      e.preventDefault();
-      pos1 = pos3 - e.clientX;
-      pos2 = pos4 - e.clientY;
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      target.style.top = (target.offsetTop - pos2) + "px";
-      target.style.left = (target.offsetLeft - pos1) + "px";
+    let isDragging = false;
+    let startMouseX = 0;
+    let startMouseY = 0;
+    let startPanelLeft = 0;
+    let startPanelTop = 0;
+
+    handle.addEventListener('mousedown', onDragStart);
+    handle.addEventListener('touchstart', onDragStart, { passive: false });
+
+    function onDragStart(e) {
+      if (e.target.closest('button, input, select, textarea, a')) return;
+
+      isDragging = true;
+      const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+      startMouseX = clientX;
+      startMouseY = clientY;
+
+      const rect = target.getBoundingClientRect();
+      startPanelLeft = rect.left;
+      startPanelTop = rect.top;
+
+      // Lock positioning to left/top so right:20px doesn't fight the movement
+      target.style.left = startPanelLeft + 'px';
+      target.style.top = startPanelTop + 'px';
       target.style.right = 'auto';
+      target.style.bottom = 'auto';
+
+      document.body.style.userSelect = 'none';
+
+      window.addEventListener('mousemove', onDragMove, { passive: false });
+      window.addEventListener('touchmove', onDragMove, { passive: false });
+      window.addEventListener('mouseup', onDragEnd);
+      window.addEventListener('touchend', onDragEnd);
     }
 
-    function closeDragElement() {
-      document.onmouseup = null;
-      document.onmousemove = null;
+    function onDragMove(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+
+      const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+      const deltaX = clientX - startMouseX;
+      const deltaY = clientY - startMouseY;
+
+      let newLeft = startPanelLeft + deltaX;
+      let newTop = startPanelTop + deltaY;
+
+      // Viewport safety boundary clamping
+      const panelWidth = target.offsetWidth || 540;
+      const maxLeft = Math.max(10, window.innerWidth - panelWidth - 10);
+      const maxTop = Math.max(10, window.innerHeight - 80);
+
+      newLeft = Math.max(10, Math.min(newLeft, maxLeft));
+      newTop = Math.max(10, Math.min(newTop, maxTop));
+
+      target.style.left = newLeft + 'px';
+      target.style.top = newTop + 'px';
+    }
+
+    function onDragEnd() {
+      if (!isDragging) return;
+      isDragging = false;
+      document.body.style.userSelect = '';
+
+      window.removeEventListener('mousemove', onDragMove);
+      window.removeEventListener('touchmove', onDragMove);
+      window.removeEventListener('mouseup', onDragEnd);
+      window.removeEventListener('touchend', onDragEnd);
     }
   }
 
