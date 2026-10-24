@@ -6,6 +6,10 @@
 (function () {
   'use strict';
 
+  // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
+  const APP_VERSION = '1.3.1';
+  const APP_LAST_UPDATED = '24 Oct 2026';
+
   // 1. Initial State
   const state = {
     baseCurrency: 'USD',
@@ -350,6 +354,14 @@
     elements.codeDryRunCmd = document.getElementById('codeDryRunCmd');
     elements.codeLiveCmd = document.getElementById('codeLiveCmd');
     elements.apiModalActiveSku = document.getElementById('apiModalActiveSku');
+
+    // Version & Changelog Modal elements
+    elements.headerVersionPill = document.getElementById('headerVersionPill');
+    elements.appVersionText = document.getElementById('appVersionText');
+    elements.lastUpdatedDateText = document.getElementById('lastUpdatedDateText');
+    elements.versionModalBackdrop = document.getElementById('versionModalBackdrop');
+    elements.btnCloseVersionModal = document.getElementById('btnCloseVersionModal');
+    elements.btnAcceptVersionModal = document.getElementById('btnAcceptVersionModal');
 
     // Modal Details elements
     elements.modalFlag = document.getElementById('modalFlag');
@@ -2512,6 +2524,16 @@
     if (elements.apiModalBackdrop) elements.apiModalBackdrop.classList.remove('active');
   }
 
+  // 9g. Version History & Changelog Modal Controllers
+  function openVersionModal() {
+    if (!elements.versionModalBackdrop) return;
+    elements.versionModalBackdrop.classList.add('active');
+  }
+
+  function closeVersionModal() {
+    if (elements.versionModalBackdrop) elements.versionModalBackdrop.classList.remove('active');
+  }
+
   function downloadPythonSyncScript() {
     const a = document.createElement('a');
     a.href = 'sync_prices_to_play_console.py';
@@ -2779,6 +2801,10 @@
     elements.globalCountrySearch.addEventListener('input', (e) => {
       state.searchQuery = e.target.value.slice(0, 100);
       elements.btnClearSearch.style.display = state.searchQuery ? 'inline-flex' : 'none';
+      const searchBox = elements.globalCountrySearch.closest('.search-box');
+      if (searchBox) {
+        searchBox.classList.toggle('has-value', Boolean(state.searchQuery));
+      }
       scheduleRenderAllTables();
     });
 
@@ -2786,6 +2812,10 @@
       elements.globalCountrySearch.value = '';
       state.searchQuery = '';
       elements.btnClearSearch.style.display = 'none';
+      const searchBox = elements.globalCountrySearch.closest('.search-box');
+      if (searchBox) {
+        searchBox.classList.remove('has-value');
+      }
       scheduleRenderAllTables();
     });
 
@@ -2976,11 +3006,49 @@
       });
     }
 
+    // Version & Changelog Modal Listeners
+    if (elements.headerVersionPill) {
+      elements.headerVersionPill.addEventListener('click', openVersionModal);
+      elements.headerVersionPill.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openVersionModal();
+        }
+      });
+    }
+    if (elements.btnCloseVersionModal) {
+      elements.btnCloseVersionModal.addEventListener('click', closeVersionModal);
+    }
+    if (elements.btnAcceptVersionModal) {
+      elements.btnAcceptVersionModal.addEventListener('click', closeVersionModal);
+    }
+    if (elements.versionModalBackdrop) {
+      elements.versionModalBackdrop.addEventListener('click', (e) => {
+        if (e.target === elements.versionModalBackdrop) closeVersionModal();
+      });
+    }
+
+    // Global Keyboard Shortcuts (Press '/' to search, 'Esc' to close/dismiss)
     document.addEventListener('keydown', (e) => {
+      // '/' Shortcut to jump to search box from anywhere
+      if (e.key === '/' && document.activeElement !== elements.globalCountrySearch) {
+        const tagName = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        if (tagName !== 'input' && tagName !== 'textarea' && tagName !== 'select') {
+          e.preventDefault();
+          if (elements.globalCountrySearch) {
+            elements.globalCountrySearch.focus();
+            elements.globalCountrySearch.select();
+          }
+        }
+      }
       if (e.key === 'Escape') {
         closeCountryStrategyModal();
         closeLogicModal();
         closeApiModal();
+        closeVersionModal();
+        if (document.activeElement === elements.globalCountrySearch) {
+          elements.globalCountrySearch.blur();
+        }
       }
     });
   }

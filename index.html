@@ -62,6 +62,15 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"></path><path d="M14 2v6h6"></path><path d="M8 13h2"></path><path d="M14 13h2"></path><path d="M8 17h2"></path><path d="M14 17h2"></path></svg>
           Export CSV
         </button>
+
+        <!-- Semantic Version & Telemetry Badge -->
+        <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
+          <span class="version-dot"></span>
+          <span class="version-tag" id="appVersionText">v1.3.1</span>
+          <span class="version-sep">•</span>
+          <span class="version-date" id="lastUpdatedDateText">Updated 24 Oct 2026</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        </div>
       </div>
     </div>
   </header>
@@ -522,82 +531,92 @@
 
     <!-- Active Item Selector Bar -->
     <div class="table-control-bar">
-      <div class="control-item-selector">
-        <label for="activeProductSelector">Preview Pricing For:</label>
-        <select id="activeProductSelector" class="custom-select">
-          <!-- Filled dynamically -->
-        </select>
-      </div>
-
-      <!-- Quick Regional / Continent Filter Chips -->
-      <div class="region-filter-bar" id="regionFilterBar">
-        <button type="button" class="btn-region-pill active" data-region="ALL">All (176)</button>
-        <button type="button" class="btn-region-pill" data-region="EUROPE">Europe (44)</button>
-        <button type="button" class="btn-region-pill" data-region="ASIA">Asia (41)</button>
-        <button type="button" class="btn-region-pill" data-region="AMERICAS">Americas (35)</button>
-        <button type="button" class="btn-region-pill" data-region="AFRICA">Africa (44)</button>
-        <button type="button" class="btn-region-pill" data-region="OCEANIA">Oceania (10)</button>
-        <button type="button" class="btn-region-pill" data-region="ZERO_TAX">Zero Tax (32)</button>
-      </div>
-      
-      <div class="search-box">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-        <input type="text" id="globalCountrySearch" placeholder="Filter countries by name, currency, or ISO code...">
-        <button class="btn-clear" id="btnClearSearch" title="Clear search">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      </div>
-
-      <div class="quick-export-group">
-        <!-- Column Visibility Dropdown -->
-        <div class="column-picker-container" id="columnPickerContainer">
-          <button type="button" class="btn btn-secondary btn-sm" id="btnColumnToggle" aria-haspopup="true" aria-expanded="false" title="Customize visible table columns">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7m0-18H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7m0-18v18"></path></svg>
-            <span>Columns</span>
-            <span class="column-count-tag" id="visibleColumnsCount">11/11</span>
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="dropdown-chevron-icon"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </button>
-
-          <!-- Dropdown Popover Menu -->
-          <div class="column-picker-menu" id="columnPickerMenu" style="display: none;">
-            <div class="column-menu-header">
-              <div>
-                <span class="column-menu-title">Toggle Columns</span>
-                <span class="column-menu-desc">Select metrics to display across all tables</span>
-              </div>
-              <button type="button" class="btn-menu-close" id="btnCloseColMenu" title="Close menu">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-            </div>
-
-            <div class="column-presets-bar">
-              <span class="presets-label">Presets:</span>
-              <button type="button" class="btn-preset-pill active" data-preset="all">All</button>
-              <button type="button" class="btn-preset-pill" data-preset="essential">Essential</button>
-              <button type="button" class="btn-preset-pill" data-preset="earnings">Earnings</button>
-              <button type="button" class="btn-preset-pill" data-preset="cuts">Cuts &amp; Tax</button>
-            </div>
-
-            <div class="column-checkbox-grid" id="columnCheckboxGrid">
-              <!-- Dynamically populated via JS -->
-            </div>
-          </div>
+      <!-- Top Tier: Product Picker & Region Filters -->
+      <div class="table-control-row table-control-top">
+        <div class="control-item-selector">
+          <label for="activeProductSelector">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v12M15 9.5H9.5a2.5 2.5 0 0 0 0 5h5"></path></svg>
+            Preview Pricing For:
+          </label>
+          <select id="activeProductSelector" class="custom-select">
+            <!-- Filled dynamically -->
+          </select>
         </div>
 
-        <button class="btn btn-secondary btn-sm" id="btnCopyPlayConsole" title="Copy Google Play Console friendly format">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-          Copy Play Store Format
-        </button>
+        <!-- Quick Regional / Continent Filter Chips -->
+        <div class="region-filter-bar" id="regionFilterBar">
+          <button type="button" class="btn-region-pill active" data-region="ALL">All (176)</button>
+          <button type="button" class="btn-region-pill" data-region="EUROPE">Europe (44)</button>
+          <button type="button" class="btn-region-pill" data-region="ASIA">Asia (41)</button>
+          <button type="button" class="btn-region-pill" data-region="AMERICAS">Americas (35)</button>
+          <button type="button" class="btn-region-pill" data-region="AFRICA">Africa (44)</button>
+          <button type="button" class="btn-region-pill" data-region="OCEANIA">Oceania (10)</button>
+          <button type="button" class="btn-region-pill" data-region="ZERO_TAX">Zero Tax (32)</button>
+        </div>
+      </div>
 
-        <button class="btn btn-secondary btn-sm" id="btnExportMasterCsv" title="Export unified CSV matrix containing ALL catalogue SKUs across 176 countries">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-          Master CSV (All SKUs)
-        </button>
+      <!-- Bottom Tier: Search and Table Action Tools -->
+      <div class="table-control-row table-control-bottom">
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="globalCountrySearch" placeholder="Filter countries by name, currency, or ISO code...">
+          <kbd class="search-kbd-hint" title="Press '/' anywhere to search">/</kbd>
+          <button class="btn-clear" id="btnClearSearch" title="Clear search">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
 
-        <button class="btn btn-secondary btn-sm btn-bot-export" id="btnExportBotCsv" title="Export clean Country &amp; Price CSV for Bot Automation (Single-window Play Console Bot)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line></svg>
-          <span id="btnExportBotCsvLabel">Bot CSV (App Prices)</span>
-        </button>
+        <div class="quick-export-group">
+          <!-- Column Visibility Dropdown -->
+          <div class="column-picker-container" id="columnPickerContainer">
+            <button type="button" class="btn btn-secondary btn-sm" id="btnColumnToggle" aria-haspopup="true" aria-expanded="false" title="Customize visible table columns">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7m0-18H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7m0-18v18"></path></svg>
+              <span>Columns</span>
+              <span class="column-count-tag" id="visibleColumnsCount">11/11</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="dropdown-chevron-icon"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+
+            <!-- Dropdown Popover Menu -->
+            <div class="column-picker-menu" id="columnPickerMenu" style="display: none;">
+              <div class="column-menu-header">
+                <div>
+                  <span class="column-menu-title">Toggle Columns</span>
+                  <span class="column-menu-desc">Select metrics to display across all tables</span>
+                </div>
+                <button type="button" class="btn-menu-close" id="btnCloseColMenu" title="Close menu">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+
+              <div class="column-presets-bar">
+                <span class="presets-label">Presets:</span>
+                <button type="button" class="btn-preset-pill active" data-preset="all">All</button>
+                <button type="button" class="btn-preset-pill" data-preset="essential">Essential</button>
+                <button type="button" class="btn-preset-pill" data-preset="earnings">Earnings</button>
+                <button type="button" class="btn-preset-pill" data-preset="cuts">Cuts &amp; Tax</button>
+              </div>
+
+              <div class="column-checkbox-grid" id="columnCheckboxGrid">
+                <!-- Dynamically populated via JS -->
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary btn-sm" id="btnCopyPlayConsole" title="Copy Google Play Console friendly format">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            Copy Play Store Format
+          </button>
+
+          <button class="btn btn-secondary btn-sm" id="btnExportMasterCsv" title="Export unified CSV matrix containing ALL catalogue SKUs across 176 countries">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            Master CSV (All SKUs)
+          </button>
+
+          <button class="btn btn-secondary btn-sm btn-bot-export" id="btnExportBotCsv" title="Export clean Country &amp; Price CSV for Bot Automation (Single-window Play Console Bot)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line></svg>
+            <span id="btnExportBotCsvLabel">Bot CSV (App Prices)</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1029,6 +1048,131 @@
 
       <div class="modal-footer">
         <button class="btn btn-primary" id="btnAcceptApiModal">Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Version History & Release Notes Modal -->
+  <div class="modal-backdrop" id="versionModalBackdrop">
+    <div class="modal-card modal-card-wide" id="versionModal">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="card-icon" style="background: rgba(56, 189, 248, 0.12); color: var(--accent-blue);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+          <div>
+            <div class="modal-title-row">
+              <h3>PlayPrice Engine Version History</h3>
+              <span class="version-tag-pill">v1.3.1 (Latest)</span>
+            </div>
+            <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 24 Oct 2026</p>
+          </div>
+        </div>
+        <button class="modal-close" id="btnCloseVersionModal" title="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body version-modal-body">
+        <!-- SemVer Overview Banner -->
+        <div class="semver-explainer-banner">
+          <span class="semver-badge major">MAJOR</span> Architectural overhaul or core redesign
+          <span class="semver-badge minor">MINOR</span> Functional features, new export modes &amp; bot automations
+          <span class="semver-badge micro">MICRO</span> Bug fixes, calibrations, and UI/UX polish
+        </div>
+
+        <div class="changelog-timeline">
+          <!-- Release v1.3.1 -->
+          <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.3.1</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">24 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Superseded 2-Windows Screen Copy Removed:</strong> Completely removed the deprecated 2-windows screen copy mode in favor of the 100% reliable, file-fed 1-Window Google Play Console automation.</li>
+                <li><strong>Streamlined Calibration:</strong> Cleaned calibration points down to the 5 essential Google Play Console controls, eliminating dual-window coordinate setup.</li>
+                <li><strong>Polished Header &amp; Scope Badge:</strong> Added a clean single-window status pill and simplified task mode options.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.3.0 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.3.0</span>
+                <span class="changelog-tag tag-minor">Minor Release</span>
+                <span class="changelog-date">24 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Desktop Automator UI/UX Overhaul:</strong> Redesigned desktop robot layout specifically crafted for split-screen dual display alongside Google Play Console without overflow or clipped buttons.</li>
+                <li><strong>Organized Task &amp; Source Cards:</strong> Separated pricing mode, execution scope, and pricing matrix file selector into responsive modular cards.</li>
+                <li><strong>Country Queue Tier Filtering:</strong> Instant filter chips for All, Tier 1, Tier 2, and Tier 3 with alternating row striping and prominent target pricing.</li>
+                <li><strong>Refined Calibration &amp; Diagnostics:</strong> Grouped coordinate pickers with visual status pills, test click simulation, and persistent timing controls.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.2.0 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.2.0</span>
+                <span class="changelog-tag tag-minor">Minor Release</span>
+                <span class="changelog-date">24 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Bot Automation CSV Export:</strong> Added dedicated single-click <code>Bot CSV (Sale Prices)</code> and <code>Bot CSV (App Prices)</code> button directly next to Master CSV.</li>
+                <li><strong>Play Sale Automator Integration:</strong> Built desktop companion bot for Google Play Console with auto-mode detection, smart price mismatch overwrite, and safe duplicate escape.</li>
+                <li><strong>Header Version Telemetry:</strong> Added synchronized version badge and last-updated timestamp across both web app and desktop program following Semantic Versioning (Major.Minor.Micro).</li>
+                <li><strong>UI &amp; UX Polish:</strong> Two-tier responsive command bar, tabular number alignment, sticky blurred table headers, and keyboard shortcut (<code>/</code>) for instant search.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.1.0 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.1.0</span>
+                <span class="changelog-tag tag-minor">Minor Release</span>
+                <span class="changelog-date">20 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Promotional Discount Simulator:</strong> Added interactive percentage slider (-1% to -90%), promotional charm pricing, and real-time developer take-home margin recalculations.</li>
+                <li><strong>Multi-SKU Master CSV:</strong> Added unified matrix export for all catalogue items across all 176 locations.</li>
+                <li><strong>Google Play Developer API v3:</strong> Added direct androidpublisher JSON payload export.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.0.0 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.0.0</span>
+                <span class="changelog-tag tag-major">Major Initial Release</span>
+                <span class="changelog-date">15 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Initial Public Release:</strong> Complete pricing engine for 176 global Google Play territories with World Bank Purchasing Power Parity (PPP), local VAT/GST tax rates, and 15%/30% Google Play cuts.</li>
+                <li><strong>Psychological Charm Pricing:</strong> Localized price points (.99, .49, sub-50 INR tiers).</li>
+                <li><strong>Catalogue Manager &amp; Simulator:</strong> Live revenue simulations and country waterfall breakdowns.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btnAcceptVersionModal">Got It</button>
       </div>
     </div>
   </div>

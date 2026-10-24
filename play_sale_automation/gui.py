@@ -1,7 +1,8 @@
 """
 GUI Interface for Google Play Sale Price Automator.
-Features modern dark mode aesthetic, live progress tracking, country selector queue,
-point calibration helpers, and global hotkeys (F8 start / F9 stop).
+Features modern PlayPrice Engine inspired aesthetic, split-screen optimized layout,
+live progress tracking, tier-filtered country queue, visual coordinate calibration with preview,
+and global hotkeys (F8 start / F9 stop).
 """
 
 import os
@@ -11,8 +12,15 @@ import threading
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import pyautogui
+import sys
+import webbrowser
 
-from config import load_config, save_config, get_default_coordinates
+# Ensure local package modules can be imported regardless of execution working directory
+_pkg_dir = os.path.dirname(os.path.abspath(__file__))
+if _pkg_dir not in sys.path:
+    sys.path.insert(0, _pkg_dir)
+
+from config import load_config, save_config, get_default_coordinates, APP_VERSION, APP_LAST_UPDATED
 from mouse_detector import MouseInterventionDetector
 from automator_engine import PlaySaleAutomatorEngine, AutomatorState
 from window_locator import WindowLocator
@@ -25,19 +33,22 @@ try:
 except ImportError:
     HAS_PYNPUT = False
 
+
 class PlaySaleAutomatorGUI(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.title("Play Sale Price Automator • Google Play Console Robot")
-        self.geometry("1040x780")
-        self.minsize(880, 640)
-        self.configure(bg="#0B0F19")
+        self.title("PlayPrice Automator • Google Play Console Robot")
+        # Optimized default geometry for half-screen split layout (width 1120px fits cleanly on 50% split)
+        self.geometry("1120x760")
+        self.minsize(920, 620)
+        self.configure(bg="#080D1A")
 
         # Load data and configuration
         self.config_data = load_config()
         self.countries = self._load_countries()
         self.loaded_file_name = "default_pricing_matrix.csv"
+        self.current_tier_filter = "all"
         self._load_initial_pricing_matrix()
 
         # Initialize core components
@@ -56,8 +67,8 @@ class PlaySaleAutomatorGUI(tk.Tk):
         # Build UI layout
         self._init_theme()
         self._build_header()
-        self._build_mode_bar()
-        self._build_status_card()
+        self._build_config_card()
+        self._build_hero_card()
         self._build_tabs()
         self._build_footer()
 
@@ -94,20 +105,25 @@ class PlaySaleAutomatorGUI(tk.Tk):
 
     def _init_theme(self):
         self.colors = {
-            "bg": "#0B0F19",
-            "card_bg": "#131B2E",
+            "bg": "#080D1A",
+            "card_bg": "#0F172A",
             "card_border": "#1E293B",
             "accent": "#38BDF8",
             "accent_hover": "#0284C7",
-            "success": "#22C55E",
-            "success_hover": "#16A34A",
+            "accent_subtle": "#0c4a6e",
+            "success": "#10B981",
+            "success_hover": "#059669",
             "danger": "#EF4444",
             "danger_hover": "#DC2626",
             "warning": "#F59E0B",
             "text": "#F8FAFC",
             "text_muted": "#94A3B8",
-            "input_bg": "#0F172A",
-            "input_border": "#334155"
+            "text_dim": "#64748B",
+            "input_bg": "#090D16",
+            "input_border": "#334155",
+            "tree_even": "#0E1626",
+            "tree_odd": "#121E36",
+            "tree_select": "#1E3A5F"
         }
 
         style = ttk.Style(self)
@@ -116,101 +132,155 @@ class PlaySaleAutomatorGUI(tk.Tk):
         # Custom Notebook Tabs
         style.configure("TNotebook", background=self.colors["bg"], borderwidth=0)
         style.configure("TNotebook.Tab", background=self.colors["card_bg"],
-                        foreground=self.colors["text_muted"], padding=[16, 8],
-                        font=("Segoe UI", 10, "bold"), borderwidth=0)
+                        foreground=self.colors["text_muted"], padding=[16, 7],
+                        font=("Segoe UI", 9, "bold"), borderwidth=0)
         style.map("TNotebook.Tab",
-                  background=[("selected", self.colors["card_border"]), ("active", "#1E293B")],
+                  background=[("selected", self.colors["tree_select"]), ("active", "#1E293B")],
                   foreground=[("selected", self.colors["accent"]), ("active", self.colors["text"])])
 
         # Custom Treeview
-        style.configure("Treeview", background=self.colors["input_bg"],
-                        foreground=self.colors["text"], fieldbackground=self.colors["input_bg"],
-                        font=("Segoe UI", 9), rowheight=26, borderwidth=0)
-        style.configure("Treeview.Heading", background=self.colors["card_bg"],
+        style.configure("Treeview", background=self.colors["card_bg"],
+                        foreground=self.colors["text"], fieldbackground=self.colors["card_bg"],
+                        font=("Segoe UI", 9), rowheight=27, borderwidth=0)
+        style.configure("Treeview.Heading", background="#131F37",
                         foreground=self.colors["accent"], font=("Segoe UI", 9, "bold"), borderwidth=0)
-        style.map("Treeview", background=[("selected", "#1E3A5F")], foreground=[("selected", "#FFFFFF")])
+        style.map("Treeview", background=[("selected", self.colors["tree_select"])],
+                  foreground=[("selected", "#FFFFFF")])
 
         # Progress bar
         style.configure("Horizontal.TProgressbar", background=self.colors["accent"],
                         troughcolor=self.colors["input_bg"], borderwidth=0)
 
     def _build_header(self):
-        hdr = tk.Frame(self, bg=self.colors["bg"], padx=20, pady=14)
+        hdr = tk.Frame(self, bg=self.colors["bg"], padx=18, pady=10)
         hdr.pack(fill="x")
 
+        # Left branding block
         left = tk.Frame(hdr, bg=self.colors["bg"])
         left.pack(side="left")
 
-        title_lbl = tk.Label(left, text="Play Sale Price Automator",
-                             font=("Segoe UI", 16, "bold"), fg=self.colors["text"], bg=self.colors["bg"])
-        title_lbl.pack(anchor="w")
+        brand_row = tk.Frame(left, bg=self.colors["bg"])
+        brand_row.pack(anchor="w")
 
-        sub_lbl = tk.Label(left, text="Automated Pricing Robot for Google Play Console",
-                           font=("Segoe UI", 9), fg=self.colors["text_muted"], bg=self.colors["bg"])
-        sub_lbl.pack(anchor="w")
+        # Logo star badge
+        star_badge = tk.Label(brand_row, text="★", font=("Segoe UI", 12, "bold"),
+                              fg=self.colors["accent"], bg="#0F172A", padx=7, pady=2,
+                              relief="flat", highlightbackground=self.colors["accent_subtle"], highlightthickness=1)
+        star_badge.pack(side="left", padx=(0, 8))
+
+        title_lbl = tk.Label(brand_row, text="PlayPrice Automator",
+                             font=("Segoe UI", 15, "bold"), fg=self.colors["text"], bg=self.colors["bg"])
+        title_lbl.pack(side="left")
+
+        sub_lbl = tk.Label(left, text="Google Play Console Pricing Robot • Single & Dual Window Sync",
+                           font=("Segoe UI", 8), fg=self.colors["text_muted"], bg=self.colors["bg"])
+        sub_lbl.pack(anchor="w", padx=(33, 0))
+
+        # Right side meta container: Version, Status, and Web Launcher
+        right_meta = tk.Frame(hdr, bg=self.colors["bg"])
+        right_meta.pack(side="right")
+
+        # Version & Last Updated badge
+        ver_badge = tk.Frame(right_meta, bg="#0F172A", padx=9, pady=4,
+                             highlightbackground=self.colors["card_border"], highlightthickness=1)
+        ver_badge.pack(side="right", padx=(8, 0))
+
+        tk.Label(ver_badge, text=f"v{APP_VERSION}", font=("Segoe UI", 8, "bold"),
+                 fg=self.colors["accent"], bg="#0F172A").pack(side="left")
+        tk.Label(ver_badge, text="•", font=("Segoe UI", 8),
+                 fg=self.colors["text_dim"], bg="#0F172A").pack(side="left", padx=4)
+        tk.Label(ver_badge, text=f"Updated {APP_LAST_UPDATED}", font=("Segoe UI", 8),
+                 fg=self.colors["text_muted"], bg="#0F172A").pack(side="left")
 
         # Window detection pill
-        self.win_status_pill = tk.Label(hdr, text="⚡ Single Window Active (Play Console Only)",
-                                        font=("Segoe UI", 9, "bold"), bg="#064E3B", fg="#34D399",
-                                        padx=12, pady=5)
-        self.win_status_pill.pack(side="right")
+        self.win_status_pill = tk.Label(right_meta, text="⚡ Single Window Active",
+                                        font=("Segoe UI", 8, "bold"), bg="#064E3B", fg="#34D399",
+                                        padx=10, pady=4, highlightthickness=1, highlightbackground="#047857")
+        self.win_status_pill.pack(side="right", padx=(8, 0))
 
-    def _build_mode_bar(self):
-        bar = tk.Frame(self, bg="#131B2E", padx=16, pady=9,
-                       highlightbackground=self.colors["card_border"], highlightthickness=1)
-        bar.pack(fill="x", padx=20, pady=(0, 12))
+        # Direct Web App Link Button
+        web_btn = tk.Button(right_meta, text="🌐 Open Web Engine", font=("Segoe UI", 8, "bold"),
+                            bg="#131F37", fg=self.colors["accent"],
+                            activebackground=self.colors["card_border"], activeforeground="#fff",
+                            bd=0, padx=9, pady=4, cursor="hand2", relief="flat",
+                            highlightthickness=1, highlightbackground=self.colors["card_border"],
+                            command=self._open_web_engine)
+        web_btn.pack(side="right")
 
-        # Mode Selection: 2. Set App Sale Prices vs 1. Set App Prices
-        tk.Label(bar, text="Task Mode:", font=("Segoe UI", 9, "bold"),
-                 fg=self.colors["accent"], bg="#131B2E").pack(side="left", padx=(0, 8))
+    def _open_web_engine(self):
+        try:
+            webbrowser.open("http://localhost:8080/index.html")
+        except Exception:
+            webbrowser.open("https://jagdish-24.github.io/Decide-IAP-prices/")
+
+    def _build_config_card(self):
+        """
+        Organized 2-Column Configuration Card:
+        Column 1 (Left): Task Mode (Sale vs Base) & Execution Scope (1-Window vs 2-Windows)
+        Column 2 (Right): Active Pricing File & Load File action
+        """
+        card = tk.Frame(self, bg=self.colors["card_bg"], padx=14, pady=8,
+                        highlightbackground=self.colors["card_border"], highlightthickness=1)
+        card.pack(fill="x", padx=18, pady=(0, 10))
+
+        col_left = tk.Frame(card, bg=self.colors["card_bg"])
+        col_left.pack(side="left", fill="x", expand=True)
+
+        col_right = tk.Frame(card, bg=self.colors["card_bg"])
+        col_right.pack(side="right")
+
+        # Row 1 Left: Task Mode Selection
+        mode_row = tk.Frame(col_left, bg=self.colors["card_bg"])
+        mode_row.pack(anchor="w", pady=(0, 4))
+
+        tk.Label(mode_row, text="Task Mode:", font=("Segoe UI", 8, "bold"),
+                 fg=self.colors["accent"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 8))
 
         self.pricing_mode_var = tk.StringVar(value=self.config_data.get("pricing_target_mode", "sale"))
 
-        rb_sale = tk.Radiobutton(bar, text="Mode 2: Set App Sale Prices (Promotional)",
+        rb_sale = tk.Radiobutton(mode_row, text="Mode 2: Sale Prices (Promotional)",
                                  variable=self.pricing_mode_var, value="sale",
-                                 font=("Segoe UI", 9, "bold"), fg=self.colors["text"],
-                                 bg="#131B2E", selectcolor="#0F172A", activebackground="#131B2E",
-                                 activeforeground=self.colors["accent"],
+                                 font=("Segoe UI", 8, "bold"), fg=self.colors["text"],
+                                 bg=self.colors["card_bg"], selectcolor="#090D16",
+                                 activebackground=self.colors["card_bg"], activeforeground=self.colors["accent"],
                                  command=self._on_change_pricing_mode)
         rb_sale.pack(side="left", padx=(0, 10))
 
-        rb_retail = tk.Radiobutton(bar, text="Mode 1: Set App Prices (Regular Base)",
+        rb_retail = tk.Radiobutton(mode_row, text="Mode 1: Base Prices (Regular)",
                                    variable=self.pricing_mode_var, value="retail",
-                                   font=("Segoe UI", 9), fg=self.colors["text_muted"],
-                                   bg="#131B2E", selectcolor="#0F172A", activebackground="#131B2E",
-                                   activeforeground=self.colors["accent"],
+                                   font=("Segoe UI", 8), fg=self.colors["text_muted"],
+                                   bg=self.colors["card_bg"], selectcolor="#090D16",
+                                   activebackground=self.colors["card_bg"], activeforeground=self.colors["accent"],
                                    command=self._on_change_pricing_mode)
-        rb_retail.pack(side="left", padx=(0, 18))
+        rb_retail.pack(side="left")
 
-        # Automation Scope: 1-Window vs 2-Windows
-        self.window_mode_var = tk.StringVar(value=self.config_data.get("automation_mode", "single_window"))
+        # Row 2 Left: Scope Info Badge (1-Window Play Console Direct)
+        scope_row = tk.Frame(col_left, bg=self.colors["card_bg"])
+        scope_row.pack(anchor="w")
 
-        rb_single = tk.Radiobutton(bar, text="⚡ 1-Window (Play Console Only)",
-                                   variable=self.window_mode_var, value="single_window",
-                                   font=("Segoe UI", 9, "bold"), fg=self.colors["success"],
-                                   bg="#131B2E", selectcolor="#0F172A", activebackground="#131B2E",
-                                   activeforeground=self.colors["success"],
-                                   command=self._on_change_window_mode)
-        rb_single.pack(side="left", padx=(0, 8))
+        scope_pill = tk.Frame(scope_row, bg="#064E3B", padx=7, pady=2,
+                              highlightbackground="#047857", highlightthickness=1)
+        scope_pill.pack(side="left")
 
-        rb_dual = tk.Radiobutton(bar, text="🔄 2-Windows (Screen Copy)",
-                                 variable=self.window_mode_var, value="dual_window",
-                                 font=("Segoe UI", 9), fg=self.colors["text_muted"],
-                                 bg="#131B2E", selectcolor="#0F172A", activebackground="#131B2E",
-                                 activeforeground=self.colors["text"],
-                                 command=self._on_change_window_mode)
-        rb_dual.pack(side="left", padx=(0, 16))
+        tk.Label(scope_pill, text="⚡ 1-Window Mode Active", font=("Segoe UI", 8, "bold"),
+                 fg="#34D399", bg="#064E3B").pack(side="left", padx=(0, 6))
+        tk.Label(scope_pill, text="Directly feeds target prices from matrix file into Google Play Console (no screen copy needed)",
+                 font=("Segoe UI", 8), fg="#A7F3D0", bg="#064E3B").pack(side="left")
 
-        # File load button on the right
-        btn_load = tk.Button(bar, text="📁 Load File (CSV/JSON)", font=("Segoe UI", 9, "bold"),
-                             bg="#334155", fg=self.colors["text"], activebackground="#475569",
-                             activeforeground="#FFFFFF", relief="flat", padx=10, pady=3,
+        # Column Right: Matrix File & Load Button
+        file_box = tk.Frame(col_right, bg="#090D16", padx=10, pady=5,
+                            highlightbackground=self.colors["card_border"], highlightthickness=1)
+        file_box.pack(anchor="e")
+
+        self.loaded_file_lbl = tk.Label(file_box, text=f"📄 {self.loaded_file_name}",
+                                        font=("Segoe UI", 8, "bold"), fg=self.colors["accent"], bg="#090D16")
+        self.loaded_file_lbl.pack(side="left", padx=(0, 10))
+
+        btn_load = tk.Button(file_box, text="📁 Change File", font=("Segoe UI", 8, "bold"),
+                             bg="#1E293B", fg=self.colors["text"], activebackground="#334155",
+                             activeforeground="#FFFFFF", relief="flat", padx=8, pady=2,
                              cursor="hand2", command=self._on_click_load_file)
-        btn_load.pack(side="right", padx=(8, 0))
-
-        self.loaded_file_lbl = tk.Label(bar, text=f"File: {self.loaded_file_name}",
-                                        font=("Segoe UI", 8), fg=self.colors["text_muted"], bg="#131B2E")
-        self.loaded_file_lbl.pack(side="right")
+        btn_load.pack(side="right")
 
     def _on_change_pricing_mode(self):
         mode = self.pricing_mode_var.get()
@@ -219,19 +289,6 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self._populate_country_tree()
         label = "Mode 2: Set App Sale Prices" if mode == "sale" else "Mode 1: Set App Regular Prices"
         self._on_engine_log(f"🔄 Switched to {label}")
-
-    def _on_change_window_mode(self):
-        w_mode = self.window_mode_var.get()
-        self.config_data["automation_mode"] = w_mode
-        save_config(self.config_data)
-        if w_mode == "single_window":
-            self.win_status_pill.config(text="⚡ Single Window Active (Play Console Only)",
-                                        bg="#064E3B", fg="#34D399")
-            self._on_engine_log("⚡ Single Window Mode enabled: Bot only interacts with Google Play Console (Reading target prices from file)!")
-        else:
-            self.win_status_pill.config(text="🔄 Dual Window Mode (Play Console + PlayPrice)",
-                                        bg="#1E293B", fg="#94A3B8")
-            self._on_engine_log("🔄 Dual Window Mode enabled: Bot will copy prices from right window to left window.")
 
     def _on_click_load_file(self):
         path = filedialog.askopenfilename(
@@ -252,28 +309,34 @@ class PlaySaleAutomatorGUI(tk.Tk):
                 self.pricing_mode_var.set("retail")
 
             if hasattr(self, "loaded_file_lbl"):
-                self.loaded_file_lbl.config(text=f"File: {self.loaded_file_name}")
+                self.loaded_file_lbl.config(text=f"📄 {self.loaded_file_name}")
             self._populate_country_tree()
             self._on_engine_log(f"✅ Successfully loaded {len(parsed)} prices from: {self.loaded_file_name}")
             messagebox.showinfo("File Loaded", f"Successfully loaded pricing matrix from {self.loaded_file_name} ({len(parsed)} countries)")
         except Exception as e:
             messagebox.showerror("Error Loading File", f"Could not parse file:\n{e}")
 
-    def _build_status_card(self):
-        card = tk.Frame(self, bg=self.colors["card_bg"], padx=18, pady=14,
+    def _build_hero_card(self):
+        """
+        Hero Dashboard Card:
+        Top: Status & percentage count
+        Middle: Progress Bar
+        Bottom: Big action buttons & failsafe hint
+        """
+        card = tk.Frame(self, bg=self.colors["card_bg"], padx=16, pady=12,
                         highlightbackground=self.colors["card_border"], highlightthickness=1)
-        card.pack(fill="x", padx=20, pady=(0, 12))
+        card.pack(fill="x", padx=18, pady=(0, 10))
 
         # Status text row
         top_row = tk.Frame(card, bg=self.colors["card_bg"])
-        top_row.pack(fill="x", pady=(0, 8))
+        top_row.pack(fill="x", pady=(0, 6))
 
-        self.status_icon_lbl = tk.Label(top_row, text="⚪", font=("Segoe UI", 14),
+        self.status_icon_lbl = tk.Label(top_row, text="⚪", font=("Segoe UI", 12),
                                         bg=self.colors["card_bg"], fg=self.colors["text_muted"])
         self.status_icon_lbl.pack(side="left", padx=(0, 6))
 
         self.status_text_lbl = tk.Label(top_row, text="IDLE — Press Start (F8) to begin automation",
-                                        font=("Segoe UI", 11, "bold"), bg=self.colors["card_bg"],
+                                        font=("Segoe UI", 10, "bold"), bg=self.colors["card_bg"],
                                         fg=self.colors["text"])
         self.status_text_lbl.pack(side="left")
 
@@ -285,38 +348,38 @@ class PlaySaleAutomatorGUI(tk.Tk):
         # Progress bar
         self.progress_bar = ttk.Progressbar(card, style="Horizontal.TProgressbar",
                                            orient="horizontal", mode="determinate", maximum=len(self.countries))
-        self.progress_bar.pack(fill="x", pady=(0, 10))
+        self.progress_bar.pack(fill="x", pady=(0, 8))
 
         # Control buttons row
         btn_row = tk.Frame(card, bg=self.colors["card_bg"])
         btn_row.pack(fill="x")
 
-        self.btn_start = tk.Button(btn_row, text="▶ START (F8)", font=("Segoe UI", 11, "bold"),
+        self.btn_start = tk.Button(btn_row, text="▶ START (F8)", font=("Segoe UI", 10, "bold"),
                                    bg=self.colors["success"], fg="#FFFFFF", activebackground=self.colors["success_hover"],
-                                   activeforeground="#FFFFFF", relief="flat", padx=24, pady=8,
+                                   activeforeground="#FFFFFF", relief="flat", padx=20, pady=6,
                                    cursor="hand2", command=self._on_click_start)
-        self.btn_start.pack(side="left", padx=(0, 10))
+        self.btn_start.pack(side="left", padx=(0, 8))
 
-        self.btn_stop = tk.Button(btn_row, text="■ STOP (F9 / Esc)", font=("Segoe UI", 11, "bold"),
+        self.btn_stop = tk.Button(btn_row, text="■ STOP (F9 / Esc)", font=("Segoe UI", 10, "bold"),
                                   bg=self.colors["danger"], fg="#FFFFFF", activebackground=self.colors["danger_hover"],
-                                  activeforeground="#FFFFFF", relief="flat", padx=20, pady=8,
+                                  activeforeground="#FFFFFF", relief="flat", padx=18, pady=6,
                                   cursor="hand2", command=self._on_click_stop, state="disabled")
-        self.btn_stop.pack(side="left", padx=(0, 10))
+        self.btn_stop.pack(side="left", padx=(0, 8))
 
-        self.btn_test_one = tk.Button(btn_row, text="🧪 Test 1 Country", font=("Segoe UI", 10, "bold"),
-                                      bg="#334155", fg=self.colors["text"], activebackground="#475569",
-                                      activeforeground="#FFFFFF", relief="flat", padx=16, pady=8,
+        self.btn_test_one = tk.Button(btn_row, text="⚡ Test 1 Country", font=("Segoe UI", 9, "bold"),
+                                      bg="#1E293B", fg=self.colors["text"], activebackground="#334155",
+                                      activeforeground="#FFFFFF", relief="flat", padx=14, pady=6,
                                       cursor="hand2", command=self._on_click_test_one)
-        self.btn_test_one.pack(side="left")
+        self.btn_test_one.pack(side="left", padx=(0, 8))
 
-        # Current action indicator
+        # Current live action indicator
         self.active_task_lbl = tk.Label(btn_row, text="Ready", font=("Segoe UI", 9, "italic"),
                                         bg=self.colors["card_bg"], fg=self.colors["text_muted"])
-        self.active_task_lbl.pack(side="right", padx=8)
+        self.active_task_lbl.pack(side="right", padx=6)
 
     def _build_tabs(self):
         tab_frame = tk.Frame(self, bg=self.colors["bg"])
-        tab_frame.pack(fill="both", expand=True, padx=20, pady=(0, 10))
+        tab_frame.pack(fill="both", expand=True, padx=18, pady=(0, 6))
 
         self.notebook = ttk.Notebook(tab_frame)
         self.notebook.pack(fill="both", expand=True)
@@ -333,7 +396,7 @@ class PlaySaleAutomatorGUI(tk.Tk):
 
         # Tab 3: Delays & Timing
         self.timing_tab = tk.Frame(self.notebook, bg=self.colors["card_bg"])
-        self.notebook.add(self.timing_tab, text="  ⚙️ Timings & Delays  ")
+        self.notebook.add(self.timing_tab, text="  ⏱️ Timings & Delays  ")
         self._build_timing_tab()
 
         # Tab 4: Activity Log
@@ -342,39 +405,65 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self._build_log_tab()
 
     def _build_queue_tab(self):
-        top_bar = tk.Frame(self.queue_tab, bg=self.colors["card_bg"], padx=14, pady=10)
+        top_bar = tk.Frame(self.queue_tab, bg=self.colors["card_bg"], padx=12, pady=7)
         top_bar.pack(fill="x")
 
-        tk.Label(top_bar, text="Filter:", font=("Segoe UI", 9, "bold"),
-                 fg=self.colors["text_muted"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 6))
+        # Quick Search Input
+        tk.Label(top_bar, text="🔍", font=("Segoe UI", 9),
+                 fg=self.colors["text_muted"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 4))
 
         self.queue_search_var = tk.StringVar()
         self.queue_search_var.trace("w", self._filter_country_tree)
         search_entry = tk.Entry(top_bar, textvariable=self.queue_search_var, font=("Segoe UI", 9),
                                 bg=self.colors["input_bg"], fg=self.colors["text"],
-                                insertbackground=self.colors["text"], width=28, relief="flat",
+                                insertbackground=self.colors["text"], width=20, relief="flat",
                                 highlightthickness=1, highlightbackground=self.colors["input_border"])
-        search_entry.pack(side="left", padx=(0, 14), ipady=3)
+        search_entry.pack(side="left", padx=(0, 10), ipady=2)
 
-        btn_start_from = tk.Button(top_bar, text="Set Start Point at Selected", font=("Segoe UI", 9, "bold"),
-                                   bg="#334155", fg=self.colors["text"], relief="flat", padx=12, pady=4,
+        # Tier filter chips (inspired by website's region pills)
+        tk.Label(top_bar, text="Tiers:", font=("Segoe UI", 8, "bold"),
+                 fg=self.colors["text_muted"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 4))
+
+        self.tier_btn_all = tk.Button(top_bar, text="All", font=("Segoe UI", 8, "bold"),
+                                      bg=self.colors["accent"], fg="#000", relief="flat", padx=7, pady=1,
+                                      cursor="hand2", command=lambda: self._set_tier_filter("all"))
+        self.tier_btn_all.pack(side="left", padx=2)
+
+        self.tier_btn_t1 = tk.Button(top_bar, text="Tier 1", font=("Segoe UI", 8),
+                                     bg="#1E293B", fg=self.colors["text_muted"], relief="flat", padx=7, pady=1,
+                                     cursor="hand2", command=lambda: self._set_tier_filter("1"))
+        self.tier_btn_t1.pack(side="left", padx=2)
+
+        self.tier_btn_t2 = tk.Button(top_bar, text="Tier 2", font=("Segoe UI", 8),
+                                     bg="#1E293B", fg=self.colors["text_muted"], relief="flat", padx=7, pady=1,
+                                     cursor="hand2", command=lambda: self._set_tier_filter("2"))
+        self.tier_btn_t2.pack(side="left", padx=2)
+
+        self.tier_btn_t3 = tk.Button(top_bar, text="Tier 3", font=("Segoe UI", 8),
+                                     bg="#1E293B", fg=self.colors["text_muted"], relief="flat", padx=7, pady=1,
+                                     cursor="hand2", command=lambda: self._set_tier_filter("3"))
+        self.tier_btn_t3.pack(side="left", padx=2)
+
+        # Start from selected & Reset
+        btn_start_from = tk.Button(top_bar, text="📌 Start At Selected", font=("Segoe UI", 8, "bold"),
+                                   bg="#1E293B", fg=self.colors["accent"], relief="flat", padx=9, pady=2,
                                    cursor="hand2", command=self._set_selected_as_start)
-        btn_start_from.pack(side="left", padx=4)
+        btn_start_from.pack(side="left", padx=(10, 0))
 
-        btn_reset_statuses = tk.Button(top_bar, text="Reset Queue", font=("Segoe UI", 9),
-                                       bg="#1E293B", fg=self.colors["text_muted"], relief="flat", padx=10, pady=4,
+        btn_reset_statuses = tk.Button(top_bar, text="Reset Queue", font=("Segoe UI", 8),
+                                       bg="#1E293B", fg=self.colors["text_muted"], relief="flat", padx=8, pady=2,
                                        cursor="hand2", command=self._reset_queue_statuses)
         btn_reset_statuses.pack(side="right")
 
         # Bottom Live Action Ticker
-        ticker_frame = tk.Frame(self.queue_tab, bg="#0F172A", padx=12, pady=6,
+        ticker_frame = tk.Frame(self.queue_tab, bg="#090D16", padx=10, pady=5,
                                 highlightbackground=self.colors["card_border"], highlightthickness=1)
-        ticker_frame.pack(side="bottom", fill="x", padx=14, pady=(6, 10))
+        ticker_frame.pack(side="bottom", fill="x", padx=12, pady=(4, 6))
 
         tk.Label(ticker_frame, text="⚡ Live Action:", font=("Segoe UI", 8, "bold"),
-                 fg=self.colors["accent"], bg="#0F172A").pack(side="left", padx=(0, 8))
+                 fg=self.colors["accent"], bg="#090D16").pack(side="left", padx=(0, 6))
         self.mini_log_lbl = tk.Label(ticker_frame, text="Ready. Press Start (F8) to begin.",
-                                     font=("Segoe UI", 9), fg=self.colors["text"], bg="#0F172A")
+                                     font=("Segoe UI", 8), fg=self.colors["text"], bg="#090D16")
         self.mini_log_lbl.pack(side="left", fill="x")
 
         # Treeview for countries
@@ -386,13 +475,13 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self.tree.heading("code", text="ISO")
         self.tree.heading("currency", text="Currency")
         self.tree.heading("tier", text="Tier")
-        self.tree.heading("price", text="Price Set")
+        self.tree.heading("price", text="Target Price")
         self.tree.heading("status", text="Status")
 
-        self.tree.column("idx", width=45, anchor="center")
-        self.tree.column("name", width=230, anchor="w")
-        self.tree.column("code", width=55, anchor="center")
-        self.tree.column("currency", width=80, anchor="center")
+        self.tree.column("idx", width=38, anchor="center")
+        self.tree.column("name", width=200, anchor="w")
+        self.tree.column("code", width=45, anchor="center")
+        self.tree.column("currency", width=65, anchor="center")
         self.tree.column("tier", width=60, anchor="center")
         self.tree.column("price", width=110, anchor="center")
         self.tree.column("status", width=120, anchor="center")
@@ -400,20 +489,40 @@ class PlaySaleAutomatorGUI(tk.Tk):
         tree_scroll = ttk.Scrollbar(self.queue_tab, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=tree_scroll.set)
 
-        self.tree.pack(side="left", fill="both", expand=True, padx=(14, 0), pady=(0, 6))
-        tree_scroll.pack(side="right", fill="y", padx=(0, 14), pady=(0, 6))
+        self.tree.pack(side="left", fill="both", expand=True, padx=(12, 0), pady=(0, 4))
+        tree_scroll.pack(side="right", fill="y", padx=(0, 12), pady=(0, 4))
 
+        self._populate_country_tree()
+
+    def _set_tier_filter(self, tier_val):
+        self.current_tier_filter = tier_val
+        # Update button visual states
+        btns = [("all", self.tier_btn_all), ("1", self.tier_btn_t1), ("2", self.tier_btn_t2), ("3", self.tier_btn_t3)]
+        for val, btn in btns:
+            if val == tier_val:
+                btn.config(bg=self.colors["accent"], fg="#000", font=("Segoe UI", 8, "bold"))
+            else:
+                btn.config(bg="#1E293B", fg=self.colors["text_muted"], font=("Segoe UI", 8))
         self._populate_country_tree()
 
     def _populate_country_tree(self):
         self.tree.delete(*self.tree.get_children())
         query = self.queue_search_var.get().strip().lower()
         pricing_mode = self.pricing_mode_var.get() if hasattr(self, "pricing_mode_var") else "sale"
+        tier_filter = getattr(self, "current_tier_filter", "all")
 
+        row_count = 0
         for idx, c in enumerate(self.countries):
             name = c.get("name", "")
             code = c.get("code", "")
             curr = c.get("currency", "")
+            c_tier = str(c.get("tier", 3))
+
+            # Tier filter check
+            if tier_filter != "all" and c_tier != tier_filter:
+                continue
+
+            # Query filter check
             if query and (query not in name.lower() and query not in code.lower() and query not in curr.lower()):
                 continue
 
@@ -433,17 +542,25 @@ class PlaySaleAutomatorGUI(tk.Tk):
             else:
                 price_val = "—"
 
-            status = "Pending"
+            status = "⚪ Pending"
+            tag = "pending"
             if idx < self.engine.current_country_index:
                 status = "✅ Done"
+                tag = "done"
             elif idx == self.engine.current_country_index and self.engine.state == AutomatorState.RUNNING:
                 status = "⏳ In Progress"
+                tag = "active"
 
-            tag = "done" if "Done" in status else ("active" if "Progress" in status else "pending")
+            # Alternating row background for crystal clear scanning
+            stripe_tag = "even" if row_count % 2 == 0 else "odd"
+            row_count += 1
+
             self.tree.insert("", "end", iid=str(idx),
-                             values=(idx + 1, name, code, curr, f"Tier {c.get('tier', 3)}", price_val, status),
-                             tags=(tag,))
+                             values=(idx + 1, name, code, curr, f"Tier {c_tier}", price_val, status),
+                             tags=(tag, stripe_tag))
 
+        self.tree.tag_configure("even", background=self.colors["tree_even"])
+        self.tree.tag_configure("odd", background=self.colors["tree_odd"])
         self.tree.tag_configure("done", foreground=self.colors["success"])
         self.tree.tag_configure("active", foreground=self.colors["accent"])
         self.tree.tag_configure("pending", foreground=self.colors["text_muted"])
@@ -469,23 +586,21 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self._on_engine_log("🔄 Queue reset to country #1.")
 
     def _build_calibration_tab(self):
-        container = tk.Frame(self.calib_tab, bg=self.colors["card_bg"], padx=18, pady=16)
+        container = tk.Frame(self.calib_tab, bg=self.colors["card_bg"], padx=16, pady=12)
         container.pack(fill="both", expand=True)
 
         desc = tk.Label(container,
-                        text="Click 'Pick' on any point to capture its exact pixel coordinates on your monitor.\n"
-                             "A 3-second countdown will start: simply hover your mouse over the element until captured!",
-                        font=("Segoe UI", 9), fg=self.colors["text_muted"], bg=self.colors["card_bg"], justify="left")
-        desc.pack(anchor="w", pady=(0, 14))
+                        text="Calibration Assistant: Click '🎯 Pick' to capture a coordinate with a 3s countdown.\n"
+                             "Click '👁️ Preview' to glide mouse to verify exact positioning before running automation.",
+                        font=("Segoe UI", 8), fg=self.colors["text_muted"], bg=self.colors["card_bg"], justify="left")
+        desc.pack(anchor="w", pady=(0, 10))
 
         points = [
-            ("right_search_box", "1. Right Window Search Box", "Filter countries search box in PlayPriceEngine"),
-            ("right_copy_button", "2. Right Window Copy Button", "Copy button next to the discounted price in first row"),
-            ("left_search_box", "3. Left Window Search Box", "'Search by country or region' input in Play Console"),
-            ("left_row_pencil", "4. Left Window Pencil Icon", "Edit pencil icon in the filtered country table row"),
-            ("left_popup_input", "5. Left Window Popup Input", "Price entry input box inside the Edit Price popup"),
-            ("left_popup_cancel", "6. Left Window Popup Cancel", "'Cancel' button in Edit Price popup"),
-            ("left_popup_save", "7. Left Window Popup Save Button", "Blue 'Save' button in Edit Price popup")
+            ("left_search_box", "1. Country Search Box", "Google Play Console 'Search by country or region' input"),
+            ("left_row_pencil", "2. Edit Pencil Icon", "Edit price pencil icon in filtered country row"),
+            ("left_popup_input", "3. Popup Price Input", "Price value entry field inside the Edit Price popup dialog"),
+            ("left_popup_cancel", "4. Popup Cancel Button", "'Cancel' button in Edit Price popup (to exit without saving)"),
+            ("left_popup_save", "5. Popup Save Button", "Blue 'Save' button in Edit Price popup")
         ]
 
         self.coord_labels = {}
@@ -498,31 +613,50 @@ class PlaySaleAutomatorGUI(tk.Tk):
         for row_idx, (key, title, subtitle) in enumerate(points):
             pt = coords.get(key, {"x": 0, "y": 0})
 
-            title_col = tk.Label(grid_frame, text=title, font=("Segoe UI", 9, "bold"),
+            title_col = tk.Label(grid_frame, text=title, font=("Segoe UI", 8, "bold"),
                                  fg=self.colors["text"], bg=self.colors["card_bg"], anchor="w")
-            title_col.grid(row=row_idx, column=0, sticky="w", pady=6, padx=(0, 16))
+            title_col.grid(row=row_idx, column=0, sticky="w", pady=4, padx=(0, 12))
 
             sub_col = tk.Label(grid_frame, text=subtitle, font=("Segoe UI", 8),
-                               fg=self.colors["text_muted"], bg=self.colors["card_bg"], anchor="w")
-            sub_col.grid(row=row_idx, column=1, sticky="w", pady=6, padx=(0, 20))
+                               fg=self.colors["text_dim"], bg=self.colors["card_bg"], anchor="w")
+            sub_col.grid(row=row_idx, column=1, sticky="w", pady=4, padx=(0, 16))
 
             val_col = tk.Label(grid_frame, text=f"X: {pt['x']}  |  Y: {pt['y']}",
-                               font=("Consolas", 10, "bold"), fg=self.colors["accent"],
-                               bg=self.colors["input_bg"], padx=10, pady=3, relief="flat")
-            val_col.grid(row=row_idx, column=2, sticky="e", pady=6, padx=(0, 10))
+                               font=("Consolas", 9, "bold"), fg=self.colors["accent"],
+                               bg=self.colors["input_bg"], padx=8, pady=2, relief="flat",
+                               highlightthickness=1, highlightbackground=self.colors["card_border"])
+            val_col.grid(row=row_idx, column=2, sticky="e", pady=4, padx=(0, 8))
             self.coord_labels[key] = val_col
 
-            pick_btn = tk.Button(grid_frame, text="🎯 Pick", font=("Segoe UI", 9, "bold"),
-                                 bg="#334155", fg=self.colors["text"], activebackground="#475569",
-                                 activeforeground="#FFFFFF", relief="flat", padx=12, pady=2,
+            pick_btn = tk.Button(grid_frame, text="🎯 Pick", font=("Segoe UI", 8, "bold"),
+                                 bg="#1E293B", fg=self.colors["text"], activebackground="#334155",
+                                 activeforeground="#FFFFFF", relief="flat", padx=10, pady=2,
                                  cursor="hand2", command=lambda k=key, t=title: self._pick_coordinate(k, t))
-            pick_btn.grid(row=row_idx, column=3, pady=6)
+            pick_btn.grid(row=row_idx, column=3, pady=4, padx=(0, 4))
+
+            preview_btn = tk.Button(grid_frame, text="👁️ Preview", font=("Segoe UI", 8),
+                                   bg="#090D16", fg=self.colors["accent"], activebackground="#1E293B",
+                                   activeforeground="#FFFFFF", relief="flat", padx=8, pady=2,
+                                   cursor="hand2", command=lambda k=key: self._preview_coordinate(k))
+            preview_btn.grid(row=row_idx, column=4, pady=4)
 
         # Reset button
         btn_reset = tk.Button(container, text="Restore Default Coordinates (2560x1440 Proportional)",
-                              font=("Segoe UI", 9), bg="#1E293B", fg=self.colors["text_muted"],
-                              relief="flat", padx=14, pady=6, cursor="hand2", command=self._restore_default_coords)
-        btn_reset.pack(anchor="w", pady=(16, 0))
+                              font=("Segoe UI", 8), bg="#1E293B", fg=self.colors["text_muted"],
+                              relief="flat", padx=12, pady=4, cursor="hand2", command=self._restore_default_coords)
+        btn_reset.pack(anchor="w", pady=(12, 0))
+
+    def _preview_coordinate(self, key):
+        coords = self.config_data.get("coordinates", {})
+        pt = coords.get(key)
+        if pt and pt.get("x") and pt.get("y"):
+            def glide():
+                orig_pos = pyautogui.position()
+                pyautogui.moveTo(pt["x"], pt["y"], duration=0.4)
+                time.sleep(1.2)
+                pyautogui.moveTo(orig_pos[0], orig_pos[1], duration=0.3)
+            threading.Thread(target=glide, daemon=True).start()
+            self._on_engine_log(f"👁️ Previewing cursor position for [{key}]: ({pt['x']}, {pt['y']})")
 
     def _pick_coordinate(self, key, title):
         def worker():
@@ -550,7 +684,7 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self._on_engine_log("🔄 Restored default proportional coordinates.")
 
     def _build_timing_tab(self):
-        container = tk.Frame(self.timing_tab, bg=self.colors["card_bg"], padx=18, pady=16)
+        container = tk.Frame(self.timing_tab, bg=self.colors["card_bg"], padx=16, pady=12)
         container.pack(fill="both", expand=True)
 
         timing = self.config_data.get("timing", {})
@@ -572,15 +706,15 @@ class PlaySaleAutomatorGUI(tk.Tk):
 
         for key, title, min_val, max_val, cur_val, desc in sliders:
             row = tk.Frame(container, bg=self.colors["card_bg"])
-            row.pack(fill="x", pady=8)
+            row.pack(fill="x", pady=5)
 
-            lbl_title = tk.Label(row, text=title, font=("Segoe UI", 9, "bold"),
+            lbl_title = tk.Label(row, text=title, font=("Segoe UI", 8, "bold"),
                                  fg=self.colors["text"], bg=self.colors["card_bg"], anchor="w")
             lbl_title.pack(anchor="w")
 
-            lbl_desc = tk.Label(row, text=desc, font=("Segoe UI", 8),
-                                fg=self.colors["text_muted"], bg=self.colors["card_bg"], anchor="w")
-            lbl_desc.pack(anchor="w", pady=(0, 4))
+            lbl_desc = tk.Label(row, text=desc, font=("Segoe UI", 7),
+                                fg=self.colors["text_dim"], bg=self.colors["card_bg"], anchor="w")
+            lbl_desc.pack(anchor="w", pady=(0, 2))
 
             ctrl_row = tk.Frame(row, bg=self.colors["card_bg"])
             ctrl_row.pack(fill="x")
@@ -591,7 +725,7 @@ class PlaySaleAutomatorGUI(tk.Tk):
             slider = tk.Scale(ctrl_row, from_=min_val, to=max_val, resolution=0.1, orient="horizontal",
                               variable=var, bg=self.colors["input_bg"], fg=self.colors["text"],
                               troughcolor=self.colors["card_border"], activebackground=self.colors["accent"],
-                              highlightthickness=0, borderwidth=0, length=400,
+                              highlightthickness=0, borderwidth=0, length=380,
                               command=lambda val, k=key: self._on_timing_slider_change(k, val))
             slider.pack(side="left")
 
@@ -601,17 +735,22 @@ class PlaySaleAutomatorGUI(tk.Tk):
         save_config(self.config_data)
 
     def _build_log_tab(self):
-        container = tk.Frame(self.log_tab, bg=self.colors["card_bg"], padx=14, pady=12)
+        container = tk.Frame(self.log_tab, bg=self.colors["card_bg"], padx=12, pady=10)
         container.pack(fill="both", expand=True)
 
         top = tk.Frame(container, bg=self.colors["card_bg"])
         top.pack(fill="x", pady=(0, 6))
 
-        tk.Label(top, text="Execution Trace & Live Events:", font=("Segoe UI", 9, "bold"),
+        tk.Label(top, text="Execution Trace & Live Events:", font=("Segoe UI", 8, "bold"),
                  fg=self.colors["text_muted"], bg=self.colors["card_bg"]).pack(side="left")
 
+        btn_copy = tk.Button(top, text="📋 Copy Log", font=("Segoe UI", 8),
+                             bg="#1E293B", fg=self.colors["accent"], relief="flat", padx=8, pady=1,
+                             cursor="hand2", command=self._copy_log)
+        btn_copy.pack(side="right", padx=(6, 0))
+
         btn_clear = tk.Button(top, text="Clear Log", font=("Segoe UI", 8),
-                              bg="#1E293B", fg=self.colors["text_muted"], relief="flat", padx=8, pady=2,
+                              bg="#1E293B", fg=self.colors["text_dim"], relief="flat", padx=8, pady=1,
                               cursor="hand2", command=self._clear_log)
         btn_clear.pack(side="right")
 
@@ -628,16 +767,26 @@ class PlaySaleAutomatorGUI(tk.Tk):
     def _clear_log(self):
         self.log_text.delete("1.0", tk.END)
 
+    def _copy_log(self):
+        content = self.log_text.get("1.0", tk.END)
+        self.clipboard_clear()
+        self.clipboard_append(content)
+        self._on_engine_log("📋 Full activity log copied to clipboard.")
+
     def _build_footer(self):
-        ftr = tk.Frame(self, bg=self.colors["bg"], padx=20, pady=8)
+        ftr = tk.Frame(self, bg=self.colors["bg"], padx=18, pady=6)
         ftr.pack(fill="x", side="bottom")
 
         hotkey_hint = tk.Label(ftr, text="Global Hotkeys: F8 = Start / Resume  •  F9 / Esc = Emergency Stop",
-                               font=("Segoe UI", 9, "bold"), fg=self.colors["text_muted"], bg=self.colors["bg"])
+                               font=("Segoe UI", 8, "bold"), fg=self.colors["text_muted"], bg=self.colors["bg"])
         hotkey_hint.pack(side="left")
 
-        ver = tk.Label(ftr, text="v1.0 • Fail-safe Mouse Pause Active",
-                       font=("Segoe UI", 8), fg="#64748B", bg=self.colors["bg"])
+        failsafe_hint = tk.Label(ftr, text="🛡️ Mouse Pause Guard Active",
+                                 font=("Segoe UI", 8), fg=self.colors["success"], bg=self.colors["bg"])
+        failsafe_hint.pack(side="left", padx=(14, 0))
+
+        ver = tk.Label(ftr, text=f"v{APP_VERSION} (Updated {APP_LAST_UPDATED})",
+                       font=("Segoe UI", 8), fg=self.colors["text_dim"], bg=self.colors["bg"])
         ver.pack(side="right")
 
     def _init_hotkeys(self):
@@ -658,33 +807,16 @@ class PlaySaleAutomatorGUI(tk.Tk):
         listener.start()
 
     def _periodic_window_check(self):
-        """Checks for Google Play Console and PlayPriceEngine windows."""
+        """Checks for Google Play Console window on screen."""
         res = self.window_locator.check_dual_windows()
-        play_found = res["play_console_found"]
-        engine_found = res["engine_found"]
+        play_found = res.get("play_console_found", False)
 
-        w_mode = self.window_mode_var.get() if hasattr(self, "window_mode_var") else "single_window"
-
-        if w_mode == "single_window":
-            if play_found:
-                self.win_status_pill.config(text="🟢 Play Console Detected • Ready (1-Window)",
-                                            bg="#064E3B", fg="#34D399")
-            else:
-                self.win_status_pill.config(text="⚡ 1-Window Mode (Focus Play Console on screen)",
-                                            bg="#0F172A", fg="#38BDF8")
+        if play_found:
+            self.win_status_pill.config(text="🟢 Play Console Detected • Ready",
+                                        bg="#064E3B", fg="#34D399")
         else:
-            if play_found and engine_found:
-                self.win_status_pill.config(text="🟢 Dual Windows Ready (Play Console + PlayPrice)",
-                                            bg="#064E3B", fg="#34D399")
-            elif play_found:
-                self.win_status_pill.config(text="🟡 Play Console Detected (Open PlayPrice on right)",
-                                            bg="#451A03", fg="#FBBF24")
-            elif engine_found:
-                self.win_status_pill.config(text="🟡 PlayPrice Detected (Open Play Console on left)",
-                                            bg="#451A03", fg="#FBBF24")
-            else:
-                self.win_status_pill.config(text="⚪ Dual Windows Active (Left: Play Console | Right: PlayPrice)",
-                                            bg="#1E293B", fg="#94A3B8")
+            self.win_status_pill.config(text="⚡ Focus Play Console on Screen",
+                                        bg="#0F172A", fg="#38BDF8")
 
         self.after(4000, self._periodic_window_check)
 
@@ -781,6 +913,7 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self.log_text.see(tk.END)
         if hasattr(self, "mini_log_lbl"):
             self.mini_log_lbl.config(text=f"[{ts}] {message}")
+
 
 if __name__ == "__main__":
     app = PlaySaleAutomatorGUI()
