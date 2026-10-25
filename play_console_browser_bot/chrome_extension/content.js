@@ -60,12 +60,22 @@
       h.includes('discount %') || h.includes('discount diff') || h.includes('discount difference') || h.includes('discount rate') || h.includes('pct') || h.includes('%')
     );
 
-    // 4. Retail Price in EUR (e.g. "Retail Price (EUR)", "Retail Price EUR", "Price EUR", "EUR")
-    let eurPriceIdx = header.findIndex(h => 
-      (h.includes('eur') || h.includes('euro')) && (h.includes('retail') || h.includes('price'))
-    );
-    if (eurPriceIdx === -1) {
-      eurPriceIdx = header.findIndex(h => h.includes('eur') || h.includes('euro'));
+    // 4. Retail Price in Base Currency (e.g. "Retail Price (EUR)", "Retail Price (USD)", "Retail Price (INR)", etc.)
+    let basePriceIdx = -1;
+    let baseCurrencyCode = 'EUR';
+
+    for (let i = 0; i < header.length; i++) {
+      const h = header[i];
+      const match = h.match(/retail\s*price\s*\(([a-z]{3})\)/i) || h.match(/price\s*\(([a-z]{3})\)/i);
+      if (match) {
+        basePriceIdx = i;
+        baseCurrencyCode = match[1].toUpperCase();
+        break;
+      }
+    }
+
+    if (basePriceIdx === -1) {
+      basePriceIdx = header.findIndex(h => h.includes('eur') || h.includes('euro') || h.includes('base'));
     }
 
     if (nameIdx === -1) nameIdx = 0;
@@ -95,7 +105,7 @@
       const rawRetailPrice = (retailPriceIdx !== -1 ? row[retailPriceIdx] : '').replace(/^["']|["']$/g, '').trim();
       const rawSalePrice = (salePriceIdx !== -1 ? row[salePriceIdx] : '').replace(/^["']|["']$/g, '').trim();
       const rawDiscountPct = (discountPctIdx !== -1 ? row[discountPctIdx] : '').replace(/^["']|["']$/g, '').trim();
-      const rawEurPrice = (eurPriceIdx !== -1 ? row[eurPriceIdx] : '').replace(/^["']|["']$/g, '').trim();
+      const rawBasePrice = (basePriceIdx !== -1 ? row[basePriceIdx] : '').replace(/^["']|["']$/g, '').trim();
 
       if (!name) continue;
 
@@ -109,8 +119,8 @@
       const pctMatch = rawDiscountPct.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
       const discountPct = pctMatch ? Math.abs(parseFloat(pctMatch[0])) : null;
 
-      const eurMatch = rawEurPrice.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
-      const retailEurPrice = eurMatch ? parseFloat(eurMatch[0]) : null;
+      const baseMatch = rawBasePrice.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
+      const retailBasePrice = baseMatch ? parseFloat(baseMatch[0]) : null;
 
       const baseRetail = retailPrice !== null ? retailPrice : (salePrice !== null ? salePrice : 0);
       const baseSale = salePrice !== null ? salePrice : baseRetail;
@@ -121,7 +131,8 @@
         code: code,
         salePrice: baseSale,
         retailPrice: baseRetail,
-        retailEurPrice: retailEurPrice,
+        retailBasePrice: retailBasePrice,
+        baseCurrency: baseCurrencyCode,
         discountPct: basePct,
         targetValue: baseSale,
         priceFormatted: Number.isInteger(baseSale) ? `${baseSale}` : baseSale.toFixed(2),
@@ -140,12 +151,12 @@
   function applyModeTargets() {
     for (const c of state.countries) {
       if (state.mainCategory === 'app_price') {
-        // App Price Mode: Target EUR price by default to skip ISO currency dropdown
-        if (c.retailEurPrice !== null && c.retailEurPrice > 0) {
-          c.targetValue = c.retailEurPrice;
-          c.priceFormatted = c.retailEurPrice.toFixed(2);
-          c.displayUnit = 'EUR';
-          c.currency = 'EUR';
+        // App Price Mode: Target Base Currency price (EUR, USD, INR, etc.) to skip ISO currency dropdown
+        if (c.retailBasePrice !== null && c.retailBasePrice > 0) {
+          c.targetValue = c.retailBasePrice;
+          c.priceFormatted = c.retailBasePrice.toFixed(2);
+          c.displayUnit = c.baseCurrency || 'EUR';
+          c.currency = c.baseCurrency || 'EUR';
         } else {
           const val = c.retailPrice !== null ? c.retailPrice : (c.salePrice !== null ? c.salePrice : 0);
           c.targetValue = val;
@@ -1300,10 +1311,10 @@
           const { dialog, input } = modalObj;
           await humanMicroPause(150, 300);
 
-          // Step 6: Input the EUR price number directly into the input field!
-          // SKIPPING ISO CURRENCY SELECTION: In Google Play Console, the modal defaults to EUR.
-          // Setting the EUR number directly avoids dropdown instability and currency mismatch errors.
-          log(`🔄 [${c.name}] Setting EUR Price '${c.priceFormatted}' (skipping ISO dropdown)...`);
+          // Step 6: Input the Base Currency price number directly into the input field!
+          // SKIPPING ISO CURRENCY SELECTION: In Google Play Console, the modal defaults to your account Base Currency.
+          // Directly pasting the base price number avoids dropdown instability and currency mismatch errors.
+          log(`🔄 [${c.name}] Setting ${c.currency} Price '${c.priceFormatted}' (skipping ISO dropdown)...`);
           await setModalPrice(input, c.priceFormatted);
           await humanMicroPause(180, 320);
 
@@ -1311,8 +1322,8 @@
           const updated = await clickModalUpdateButton(dialog);
           if (updated) {
             c.status = 'done';
-            c.message = `Updated: €${c.priceFormatted} EUR`;
-            log(`✅ [${c.name}] Update clicked: €${c.priceFormatted} EUR`);
+            c.message = `Updated: ${c.priceFormatted} ${c.currency}`;
+            log(`✅ [${c.name}] Update clicked: ${c.priceFormatted} ${c.currency}`);
           } else {
             log(`⚠️ [${c.name}] Update button could not be clicked.`);
             c.status = 'failed';

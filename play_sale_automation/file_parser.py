@@ -92,10 +92,20 @@ def _parse_csv(file_path):
                 "0%"
             )
 
-            # Identify Retail Price (EUR) if exported
-            retail_eur_str = (
+            # Identify Base Currency Price (EUR, USD, INR, GBP, etc.)
+            base_col = None
+            base_curr = "EUR"
+            for k in row_dict.keys():
+                m = re.search(r"(?:retail\s*price|price)\s*\(([a-zA-Z]{3})\)", k)
+                if m:
+                    base_col = k
+                    base_curr = m.group(1).upper()
+                    break
+
+            base_price_str = row_dict.get(base_col, "") if base_col else (
                 row_dict.get("retail price (eur)") or 
-                row_dict.get("retail price eur") or 
+                row_dict.get("retail price (usd)") or 
+                row_dict.get("retail price (inr)") or 
                 row_dict.get("price eur") or 
                 "0"
             )
@@ -105,11 +115,12 @@ def _parse_csv(file_path):
                 "code": code,
                 "currency": curr,
                 "retail_price": _clean_number(retail_str),
-                "retail_price_eur": _clean_number(retail_eur_str),
+                "retail_price_base": _clean_number(base_price_str),
+                "base_currency": base_curr,
                 "sale_price": _clean_number(sale_str),
                 "discount_pct": _clean_number(discount_pct_str),
                 "retail_raw": str(retail_str).strip(),
-                "retail_eur_raw": str(retail_eur_str).strip(),
+                "retail_base_raw": str(base_price_str).strip(),
                 "sale_raw": str(sale_str).strip(),
                 "discount_pct_raw": str(discount_pct_str).strip()
             }
