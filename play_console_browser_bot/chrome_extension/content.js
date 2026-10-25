@@ -5,7 +5,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.4...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.6...');
 
   // State Management
   const state = {
@@ -24,7 +24,8 @@
     timerStartTime: null,
     totalPausedMs: 0,
     pauseStartTime: null,
-    timerIntervalId: null
+    timerIntervalId: null,
+    lastEtaUiUpdateTime: 0
   };
 
   // -------------------------------------------------------------
@@ -1109,14 +1110,15 @@
       state.timerStartTime = Date.now();
       state.totalPausedMs = 0;
       state.pauseStartTime = null;
+      state.lastEtaUiUpdateTime = 0;
     } else if (state.pauseStartTime) {
       state.totalPausedMs += (Date.now() - state.pauseStartTime);
       state.pauseStartTime = null;
     }
 
     if (state.timerIntervalId) clearInterval(state.timerIntervalId);
-    state.timerIntervalId = setInterval(updateTimersTick, 200);
-    updateTimersTick();
+    state.timerIntervalId = setInterval(() => updateTimersTick(false), 200);
+    updateTimersTick(true);
   }
 
   function pauseTimers() {
@@ -1136,6 +1138,7 @@
       state.timerStartTime = null;
       state.totalPausedMs = 0;
       state.pauseStartTime = null;
+      state.lastEtaUiUpdateTime = 0;
       const elElapsed = document.getElementById('ppa-timer-elapsed');
       const elRemain = document.getElementById('ppa-timer-remaining');
       if (elElapsed) elElapsed.textContent = '00:00';
@@ -1143,7 +1146,7 @@
     }
   }
 
-  function updateTimersTick() {
+  function updateTimersTick(forceEta = false) {
     if (!state.timerStartTime) return;
 
     const now = Date.now();
@@ -1161,6 +1164,7 @@
     const total = state.countries.length;
     if (total === 0) {
       elRemain.textContent = '--:--';
+      state.lastEtaUiUpdateTime = 0;
       return;
     }
 
@@ -1172,16 +1176,27 @@
       return;
     }
 
-    if (completed >= 2) {
-      const avgMsPerCountry = elapsedMs / completed;
-      const remainingMs = remaining * avgMsPerCountry;
-      const etaDate = new Date(now + remainingMs);
-      const etaStr = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      elRemain.textContent = `${formatDuration(remainingMs)} (ETA: ${etaStr})`;
-    } else {
-      // Projected baseline using safe speed delay + average modal transaction overhead (1,500ms)
-      const estimatedMs = remaining * (state.speedDelay + 1500);
-      elRemain.textContent = `~${formatDuration(estimatedMs)}`;
+    // Keep calculation mechanics real-time, but throttle the Est. Completion UI display updates
+    // to once every 3 seconds so the user can easily read the remaining time without rapid text jitter.
+    const ETA_UI_CADENCE_MS = 3000;
+    const shouldUpdateEta = forceEta || 
+                            !state.lastEtaUiUpdateTime || 
+                            (now - state.lastEtaUiUpdateTime >= ETA_UI_CADENCE_MS);
+
+    if (shouldUpdateEta) {
+      state.lastEtaUiUpdateTime = now;
+
+      if (completed >= 2) {
+        const avgMsPerCountry = elapsedMs / completed;
+        const remainingMs = remaining * avgMsPerCountry;
+        const etaDate = new Date(now + remainingMs);
+        const etaStr = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        elRemain.textContent = `${formatDuration(remainingMs)} (ETA: ${etaStr})`;
+      } else {
+        // Projected baseline using safe speed delay + average modal transaction overhead (1,500ms)
+        const estimatedMs = remaining * (state.speedDelay + 1500);
+        elRemain.textContent = `~${formatDuration(estimatedMs)}`;
+      }
     }
   }
 
@@ -1499,7 +1514,7 @@
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.2</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.6</div>
             </div>
           </div>
           <div id="ppa-header-badge">
@@ -2304,6 +2319,7 @@
       speedSelect.addEventListener('change', (e) => {
         state.speedDelay = parseInt(e.target.value, 10);
         log(`⏱ Safe cadence set to ${state.speedDelay}ms per country.`);
+        updateTimersTick(true);
       });
     }
 
