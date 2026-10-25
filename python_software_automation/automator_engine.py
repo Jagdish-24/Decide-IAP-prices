@@ -251,10 +251,27 @@ class PlaySaleAutomatorEngine:
             self.log(f"⚠️ User mouse movement detected! Pausing for {duration:.0f}s before resuming...")
 
     def _handle_user_resume(self):
-        self.resume_timers()
+        if not getattr(self, "user_manual_pause", False):
+            self.resume_timers()
+            if self.state == AutomatorState.PAUSED and not self.stop_requested:
+                self.set_state(AutomatorState.RUNNING, "Resuming automation...")
+                self.log("✅ Mouse is steady. Resuming automation...")
+
+    def pause(self):
+        """Manually pauses automation from GUI control."""
+        if self.state in [AutomatorState.RUNNING, AutomatorState.COUNTDOWN]:
+            self.user_manual_pause = True
+            self.pause_timers()
+            self.set_state(AutomatorState.PAUSED, "Automation paused by user.")
+            self.log("⏸ Automation paused by user.")
+
+    def resume(self):
+        """Resumes automation from manual user pause."""
         if self.state == AutomatorState.PAUSED and not self.stop_requested:
+            self.user_manual_pause = False
+            self.resume_timers()
             self.set_state(AutomatorState.RUNNING, "Resuming automation...")
-            self.log("✅ Mouse is steady. Resuming automation...")
+            self.log("▶ Resuming automation...")
 
     def start(self, start_index=0):
         """Starts automation loop from start_index in a background thread."""
@@ -262,6 +279,7 @@ class PlaySaleAutomatorEngine:
             return
         
         self.stop_requested = False
+        self.user_manual_pause = False
         self.current_country_index = start_index
         self.mouse_detector.start()
         self.start_timers()
@@ -272,6 +290,7 @@ class PlaySaleAutomatorEngine:
     def stop(self):
         """Requests immediate stop of automation."""
         self.stop_requested = True
+        self.user_manual_pause = False
         self.pause_timers()
         self.set_state(AutomatorState.STOPPED, "Automation stopped by user.")
         self.log("🛑 Automation stopped.")
@@ -283,6 +302,7 @@ class PlaySaleAutomatorEngine:
             return
         
         self.stop_requested = False
+        self.user_manual_pause = False
         self.current_country_index = country_index
         self.mouse_detector.start()
         self.start_timers()
@@ -294,6 +314,12 @@ class PlaySaleAutomatorEngine:
         """Sleeps in small slices while checking for stop or user-pause events."""
         end_time = time.time() + seconds
         while time.time() < end_time:
+            if self.stop_requested:
+                return False
+
+            # If user manually paused via GUI button
+            while getattr(self, "user_manual_pause", False) and not self.stop_requested:
+                time.sleep(0.1)
             if self.stop_requested:
                 return False
 

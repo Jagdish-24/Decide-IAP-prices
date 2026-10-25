@@ -65,6 +65,12 @@ TASK_MODES = [
 CODE_TO_DISPLAY = {k: v for k, v in TASK_MODES}
 DISPLAY_TO_CODE = {v: k for k, v in TASK_MODES}
 
+MODE_DESCRIPTIONS = {
+    "retail": "Set Retail Price: Automates standard prices in Google Play Console \"Price\" column.",
+    "sale": "Set Discounted Retail Price: Sets promotional sale prices in Play Console \"Sale price\" column.",
+    "discount_pct": "Set Discount Percentage: Sets percentage discounts in Play Console \"Sale price\" column."
+}
+
 
 class PlaySaleAutomatorGUI(tk.Tk):
     def __init__(self):
@@ -96,11 +102,15 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self.engine.on_pause_tick = self._on_engine_pause_tick
         self.engine.on_log = self._on_engine_log
 
-        # Build UI layout
+        # Stat Badges Counters (Browser Bot Telemetry)
+        self.stat_done_count = 0
+        self.stat_matched_count = 0
+        self.stat_failed_count = 0
+
+        # Build UI layout (Unified Browser Bot Aesthetic)
         self._init_theme()
         self._build_header()
-        self._build_config_card()
-        self._build_hero_card()
+        self._build_browser_bot_panel()
         self._build_tabs()
         self._build_footer()
 
@@ -270,28 +280,28 @@ class PlaySaleAutomatorGUI(tk.Tk):
         except Exception:
             webbrowser.open("https://jagdish-24.github.io/Decide-IAP-prices/")
 
-    def _build_config_card(self):
+    def _build_browser_bot_panel(self):
         """
-        Organized Configuration Control Strip:
-        Left: Task Automation Mode Dropdown
-        Right: Active Pricing Matrix File & Change File button
+        Builds the unified Browser-Bot style command center:
+        1. TARGET AUTOMATION MODE Card (with dynamic description bullet)
+        2. FILE IMPORT DROPZONE & ACTIVE FILE STRIP
+        3. PROGRESS & REAL-TIME STAT BADGES STRIP (✅ X Done, ✨ X Matches, ⚠️ X Issues)
+        4. REAL-TIME TIMERS ROW (⏱️ Elapsed Stopwatch, ⏳ Est. Completion)
+        5. CONTROLS BAR (▶ Start, ⏸ Pause, ⏹ Stop, ↺ Reset, ⚡ Test Single)
+        6. SAFETY CADENCE & OPTIONS STRIP (🛡️ Ultra-Safe 2500ms Cadence Dropdown + Mouse Guard)
         """
-        card = tk.Frame(self, bg=self.colors["card_bg"], padx=18, pady=10,
-                        highlightbackground=self.colors["card_border"], highlightthickness=1)
-        card.pack(fill="x", padx=20, pady=(0, 10))
+        panel_container = tk.Frame(self, bg=self.colors["bg"])
+        panel_container.pack(fill="x", padx=18, pady=(0, 6))
 
-        col_left = tk.Frame(card, bg=self.colors["card_bg"])
-        col_left.pack(side="left", fill="x", expand=True)
+        # -------------------------------------------------------------
+        # 1. TARGET AUTOMATION MODE CARD
+        # -------------------------------------------------------------
+        mode_card = tk.Frame(panel_container, bg=self.colors["card_bg"], padx=14, pady=8,
+                             highlightbackground=self.colors["card_border"], highlightthickness=1)
+        mode_card.pack(fill="x", pady=(0, 5))
 
-        col_right = tk.Frame(card, bg=self.colors["card_bg"])
-        col_right.pack(side="right")
-
-        # Left: Task Mode Selection Dropdown + Safety Cadence Selector
-        mode_row = tk.Frame(col_left, bg=self.colors["card_bg"])
-        mode_row.pack(anchor="w")
-
-        tk.Label(mode_row, text="🎯 Task Mode:", font=("Segoe UI", 9, "bold"),
-                 fg=self.colors["accent"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 6))
+        tk.Label(mode_card, text="TARGET AUTOMATION MODE:", font=("Segoe UI", 9, "bold"),
+                 fg=self.colors["accent"], bg=self.colors["card_bg"]).pack(anchor="w", pady=(0, 3))
 
         curr_mode = self.config_data.get("pricing_target_mode", "sale")
         if curr_mode not in CODE_TO_DISPLAY:
@@ -300,19 +310,217 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self.mode_display_var = tk.StringVar(value=CODE_TO_DISPLAY[curr_mode])
 
         self.mode_dropdown = ttk.Combobox(
-            mode_row,
+            mode_card,
             textvariable=self.mode_display_var,
             values=[v for _, v in TASK_MODES],
             state="readonly",
-            font=("Segoe UI", 9, "bold"),
-            width=26
+            font=("Segoe UI", 10, "bold")
         )
-        self.mode_dropdown.pack(side="left", padx=(0, 16))
+        self.mode_dropdown.pack(fill="x", pady=(0, 3))
         self.mode_dropdown.bind("<<ComboboxSelected>>", self._on_change_pricing_mode)
 
-        # Cadence Speed Preset
-        tk.Label(mode_row, text="⏱️ Cadence:", font=("Segoe UI", 9, "bold"),
-                 fg=self.colors["accent"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 6))
+        # Dynamic Description Bullet
+        mode_desc_row = tk.Frame(mode_card, bg=self.colors["card_bg"])
+        mode_desc_row.pack(anchor="w")
+
+        tk.Label(mode_desc_row, text="●", font=("Segoe UI", 8),
+                 fg=self.colors["success"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 6))
+
+        self.mode_desc_lbl = tk.Label(mode_desc_row, text=MODE_DESCRIPTIONS.get(curr_mode, ""),
+                                      font=("Segoe UI", 8), fg=self.colors["text_muted"], bg=self.colors["card_bg"])
+        self.mode_desc_lbl.pack(side="left")
+
+        # -------------------------------------------------------------
+        # 2. INTERACTIVE FILE IMPORT DROPZONE & ACTIVE FILE BANNER
+        # -------------------------------------------------------------
+        file_card = tk.Frame(panel_container, bg=self.colors["card_bg"], padx=12, pady=7,
+                             highlightbackground=self.colors["card_border"], highlightthickness=1)
+        file_card.pack(fill="x", pady=(0, 5))
+
+        # Dashed-feel interactive dropzone banner
+        drop_zone = tk.Frame(file_card, bg=self.colors["card_inner"], padx=12, pady=6,
+                             highlightbackground="#1E293B", highlightthickness=1, cursor="hand2")
+        drop_zone.pack(fill="x", pady=(0, 4))
+        drop_zone.bind("<Button-1>", lambda e: self._on_click_load_file())
+
+        dz_left = tk.Frame(drop_zone, bg=self.colors["card_inner"])
+        dz_left.pack(side="left")
+        icon_lbl = tk.Label(dz_left, text="📁", font=("Segoe UI", 16), bg=self.colors["card_inner"], cursor="hand2")
+        icon_lbl.pack(side="left", padx=(0, 8))
+        icon_lbl.bind("<Button-1>", lambda e: self._on_click_load_file())
+
+        dz_text_col = tk.Frame(dz_left, bg=self.colors["card_inner"])
+        dz_text_col.pack(side="left")
+        t_lbl = tk.Label(dz_text_col, text="Click to Browse & Load CSV Pricing Matrix File",
+                         font=("Segoe UI", 9, "bold"), fg=self.colors["text"], bg=self.colors["card_inner"], cursor="hand2")
+        t_lbl.pack(anchor="w")
+        t_lbl.bind("<Button-1>", lambda e: self._on_click_load_file())
+
+        s_lbl = tk.Label(dz_text_col, text="Accepts bot_sale_prices_*.csv, bot_app_prices_*.csv, or default_pricing_matrix.csv",
+                         font=("Segoe UI", 8), fg=self.colors["text_muted"], bg=self.colors["card_inner"], cursor="hand2")
+        s_lbl.pack(anchor="w")
+        s_lbl.bind("<Button-1>", lambda e: self._on_click_load_file())
+
+        btn_load = tk.Button(drop_zone, text="📁 Browse CSV", font=("Segoe UI", 9, "bold"),
+                             bg="#1E293B", fg=self.colors["accent"], activebackground="#334155",
+                             activeforeground="#FFFFFF", relief="flat", padx=12, pady=3,
+                             cursor="hand2", command=self._on_click_load_file)
+        btn_load.pack(side="right")
+
+        # Active File Banner Strip
+        file_strip = tk.Frame(file_card, bg=self.colors["card_inner"], padx=10, pady=4,
+                              highlightbackground=self.colors["card_inner_border"], highlightthickness=1)
+        file_strip.pack(fill="x")
+
+        self.loaded_file_lbl = tk.Label(file_strip, text=f"📄 {self.loaded_file_name}",
+                                        font=("Segoe UI", 9, "bold"), fg=self.colors["accent"], bg=self.colors["card_inner"])
+        self.loaded_file_lbl.pack(side="left")
+
+        self.file_count_lbl = tk.Label(file_strip, text=f"{len(self.countries)} Countries Queued",
+                                       font=("Segoe UI", 9, "bold"), fg=self.colors["success"], bg=self.colors["card_inner"])
+        self.file_count_lbl.pack(side="right")
+
+        # -------------------------------------------------------------
+        # 3. PROGRESS SECTION WITH LIVE STAT BADGES STRIP
+        # -------------------------------------------------------------
+        progress_card = tk.Frame(panel_container, bg=self.colors["card_bg"], padx=14, pady=7,
+                                 highlightbackground=self.colors["card_border"], highlightthickness=1)
+        progress_card.pack(fill="x", pady=(0, 5))
+
+        # Top row: Status on left, % on right
+        p_top = tk.Frame(progress_card, bg=self.colors["card_bg"])
+        p_top.pack(fill="x", pady=(0, 4))
+
+        self.status_icon_lbl = tk.Label(p_top, text="⚪", font=("Segoe UI", 10),
+                                        bg=self.colors["card_bg"], fg=self.colors["text_muted"])
+        self.status_icon_lbl.pack(side="left", padx=(0, 6))
+
+        self.status_text_lbl = tk.Label(p_top, text=f"Ready ({len(self.countries)} countries queued)",
+                                        font=("Segoe UI", 9, "bold"), bg=self.colors["card_bg"],
+                                        fg="#CBD5E1")
+        self.status_text_lbl.pack(side="left")
+
+        self.progress_count_lbl = tk.Label(p_top, text="0%", font=("Segoe UI", 10, "bold"),
+                                           bg=self.colors["card_bg"], fg=self.colors["accent"])
+        self.progress_count_lbl.pack(side="right")
+
+        # Sleek Progress bar
+        self.progress_bar = ttk.Progressbar(progress_card, style="Horizontal.TProgressbar",
+                                           orient="horizontal", mode="determinate", maximum=len(self.countries))
+        self.progress_bar.pack(fill="x", pady=(0, 6))
+
+        # The 3 Stat Badges Strip (Done, Matches, Issues)
+        badges_row = tk.Frame(progress_card, bg=self.colors["card_bg"])
+        badges_row.pack(anchor="w")
+
+        # 1. Done Badge
+        self.badge_done_frame = tk.Frame(badges_row, bg="#062A1F", padx=8, pady=2,
+                                         highlightbackground="#059669", highlightthickness=1)
+        self.badge_done_frame.pack(side="left", padx=(0, 6))
+        self.badge_done_lbl = tk.Label(self.badge_done_frame, text="✅ 0 Done",
+                                       font=("Segoe UI", 9, "bold"), fg="#10B981", bg="#062A1F")
+        self.badge_done_lbl.pack()
+
+        # 2. Matches Badge
+        self.badge_matched_frame = tk.Frame(badges_row, bg="#0E254A", padx=8, pady=2,
+                                           highlightbackground="#2563EB", highlightthickness=1)
+        self.badge_matched_frame.pack(side="left", padx=(0, 6))
+        self.badge_matched_lbl = tk.Label(self.badge_matched_frame, text="✨ 0 Matches",
+                                          font=("Segoe UI", 9, "bold"), fg="#38BDF8", bg="#0E254A")
+        self.badge_matched_lbl.pack()
+
+        # 3. Issues Badge
+        self.badge_failed_frame = tk.Frame(badges_row, bg="#381A05", padx=8, pady=2,
+                                          highlightbackground="#D97706", highlightthickness=1)
+        self.badge_failed_frame.pack(side="left")
+        self.badge_failed_lbl = tk.Label(self.badge_failed_frame, text="⚠️ 0 Issues",
+                                         font=("Segoe UI", 9, "bold"), fg="#F59E0B", bg="#381A05")
+        self.badge_failed_lbl.pack()
+
+        # -------------------------------------------------------------
+        # 4. REAL-TIME TIMERS ROW (Stopwatch & Countdown ETA)
+        # -------------------------------------------------------------
+        timers_card = tk.Frame(panel_container, bg=self.colors["bg"])
+        timers_card.pack(fill="x", pady=(0, 5))
+
+        # Left Card: Elapsed Stopwatch
+        card_elapsed = tk.Frame(timers_card, bg=self.colors["card_inner"], padx=12, pady=6,
+                                highlightbackground=self.colors["card_inner_border"], highlightthickness=1)
+        card_elapsed.pack(side="left", fill="x", expand=True, padx=(0, 4))
+
+        tk.Label(card_elapsed, text="⏱️", font=("Segoe UI", 13), bg=self.colors["card_inner"]).pack(side="left", padx=(0, 8))
+        el_content = tk.Frame(card_elapsed, bg=self.colors["card_inner"])
+        el_content.pack(side="left", fill="x")
+        tk.Label(el_content, text="ELAPSED STOPWATCH", font=("Segoe UI", 8, "bold"),
+                 fg=self.colors["text_dim"], bg=self.colors["card_inner"]).pack(anchor="w")
+        self.timer_elapsed_lbl = tk.Label(el_content, text="00:00", font=("Consolas", 11, "bold"),
+                                          fg=self.colors["accent"], bg=self.colors["card_inner"])
+        self.timer_elapsed_lbl.pack(anchor="w")
+
+        # Right Card: Est. Completion
+        card_remaining = tk.Frame(timers_card, bg=self.colors["card_inner"], padx=12, pady=6,
+                                 highlightbackground=self.colors["card_inner_border"], highlightthickness=1)
+        card_remaining.pack(side="left", fill="x", expand=True, padx=(4, 0))
+
+        tk.Label(card_remaining, text="⏳", font=("Segoe UI", 13), bg=self.colors["card_inner"]).pack(side="left", padx=(0, 8))
+        rem_content = tk.Frame(card_remaining, bg=self.colors["card_inner"])
+        rem_content.pack(side="left", fill="x")
+        tk.Label(rem_content, text="EST. COMPLETION", font=("Segoe UI", 8, "bold"),
+                 fg=self.colors["text_dim"], bg=self.colors["card_inner"]).pack(anchor="w")
+        self.timer_remaining_lbl = tk.Label(rem_content, text="--:--", font=("Segoe UI", 10, "bold"),
+                                            fg=self.colors["warning"], bg=self.colors["card_inner"])
+        self.timer_remaining_lbl.pack(anchor="w")
+
+        # -------------------------------------------------------------
+        # 5. CONTROLS BAR (Matching Browser Bot)
+        # -------------------------------------------------------------
+        ctrl_card = tk.Frame(panel_container, bg=self.colors["bg"])
+        ctrl_card.pack(fill="x", pady=(0, 5))
+
+        # Start button (Emerald)
+        self.btn_start = tk.Button(ctrl_card, text="▶  Start (F8)", font=("Segoe UI", 10, "bold"),
+                                   bg=self.colors["success"], fg="#FFFFFF", activebackground=self.colors["success_hover"],
+                                   activeforeground="#FFFFFF", relief="flat", padx=16, pady=6,
+                                   cursor="hand2", command=self._on_click_start)
+        self.btn_start.pack(side="left", fill="x", expand=True, padx=(0, 4))
+
+        # Pause button (Amber)
+        self.btn_pause = tk.Button(ctrl_card, text="⏸  Pause", font=("Segoe UI", 10, "bold"),
+                                   bg=self.colors["warning"], fg="#FFFFFF", activebackground="#D97706",
+                                   activeforeground="#FFFFFF", relief="flat", padx=14, pady=6,
+                                   cursor="hand2", command=self._on_click_pause, state="disabled")
+        self.btn_pause.pack(side="left", fill="x", expand=True, padx=(0, 4))
+
+        # Stop button (Rose)
+        self.btn_stop = tk.Button(ctrl_card, text="■  Stop (F9 / Esc)", font=("Segoe UI", 10, "bold"),
+                                  bg=self.colors["danger"], fg="#FFFFFF", activebackground=self.colors["danger_hover"],
+                                  activeforeground="#FFFFFF", relief="flat", padx=14, pady=6,
+                                  cursor="hand2", command=self._on_click_stop, state="disabled")
+        self.btn_stop.pack(side="left", fill="x", expand=True, padx=(0, 4))
+
+        # Reset button (Slate)
+        self.btn_reset = tk.Button(ctrl_card, text="↺  Reset", font=("Segoe UI", 10, "bold"),
+                                   bg="#334155", fg="#CBD5E1", activebackground="#475569",
+                                   activeforeground="#FFFFFF", relief="flat", padx=14, pady=6,
+                                   cursor="hand2", command=self._on_click_reset)
+        self.btn_reset.pack(side="left", fill="x", expand=True, padx=(0, 4))
+
+        # Test single country (Sleek slate)
+        self.btn_test_one = tk.Button(ctrl_card, text="⚡ Test Single", font=("Segoe UI", 9, "bold"),
+                                      bg="#1E293B", fg=self.colors["accent"], activebackground="#334155",
+                                      activeforeground="#FFFFFF", relief="flat", padx=12, pady=6,
+                                      cursor="hand2", command=self._on_click_test_one)
+        self.btn_test_one.pack(side="left")
+
+        # -------------------------------------------------------------
+        # 6. SAFETY CADENCE & OPTIONS STRIP
+        # -------------------------------------------------------------
+        options_strip = tk.Frame(panel_container, bg=self.colors["card_bg"], padx=14, pady=6,
+                                 highlightbackground=self.colors["card_border"], highlightthickness=1)
+        options_strip.pack(fill="x", pady=(0, 4))
+
+        tk.Label(options_strip, text="Safety Cadence:", font=("Segoe UI", 9, "bold"),
+                 fg=self.colors["accent"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 8))
 
         curr_cadence = self.config_data.get("speed_delay", 2500)
         if curr_cadence not in CADENCE_CODE_TO_DISPLAY:
@@ -320,31 +528,26 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self.cadence_display_var = tk.StringVar(value=CADENCE_CODE_TO_DISPLAY[curr_cadence])
 
         self.cadence_dropdown = ttk.Combobox(
-            mode_row,
+            options_strip,
             textvariable=self.cadence_display_var,
             values=[v for _, v in CADENCE_PRESETS],
             state="readonly",
             font=("Segoe UI", 9, "bold"),
-            width=34
+            width=36
         )
         self.cadence_dropdown.pack(side="left")
         self.cadence_dropdown.bind("<<ComboboxSelected>>", self._on_change_cadence)
 
-        # Right: Matrix File & Load Button
-        file_box = tk.Frame(col_right, bg=self.colors["card_inner"], padx=12, pady=5,
-                            highlightbackground=self.colors["card_inner_border"], highlightthickness=1)
-        file_box.pack(anchor="e")
+        # Right side: Live state pill
+        opt_right = tk.Frame(options_strip, bg=self.colors["card_bg"])
+        opt_right.pack(side="right")
 
-        self.loaded_file_lbl = tk.Label(file_box, text=f"📄 {self.loaded_file_name}",
-                                        font=("Segoe UI", 9, "bold"), fg=self.colors["accent"],
-                                        bg=self.colors["card_inner"])
-        self.loaded_file_lbl.pack(side="left", padx=(0, 12))
+        tk.Label(opt_right, text="Live State:", font=("Segoe UI", 8, "bold"),
+                 fg=self.colors["text_dim"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 5))
 
-        btn_load = tk.Button(file_box, text="📁 Change File", font=("Segoe UI", 9, "bold"),
-                             bg="#1E293B", fg=self.colors["text"], activebackground="#334155",
-                             activeforeground="#FFFFFF", relief="flat", padx=10, pady=3,
-                             cursor="hand2", command=self._on_click_load_file)
-        btn_load.pack(side="right")
+        self.active_task_lbl = tk.Label(opt_right, text="Ready", font=("Segoe UI", 9, "bold"),
+                                        bg=self.colors["card_bg"], fg=self.colors["accent"])
+        self.active_task_lbl.pack(side="left")
 
     def _on_change_cadence(self, event=None):
         disp = self.cadence_display_var.get()
@@ -360,6 +563,8 @@ class PlaySaleAutomatorGUI(tk.Tk):
         self.pricing_mode_var.set(mode)
         self.config_data["pricing_target_mode"] = mode
         save_config(self.config_data)
+        if hasattr(self, "mode_desc_lbl"):
+            self.mode_desc_lbl.config(text=MODE_DESCRIPTIONS.get(mode, ""))
         self._populate_country_tree()
         self._on_engine_log(f"🔄 Switched task mode to: {disp}")
 
@@ -392,124 +597,22 @@ class PlaySaleAutomatorGUI(tk.Tk):
                 self.config_data["pricing_target_mode"] = "retail"
                 save_config(self.config_data)
 
+            if hasattr(self, "mode_desc_lbl"):
+                curr_m = self.config_data.get("pricing_target_mode", "sale")
+                self.mode_desc_lbl.config(text=MODE_DESCRIPTIONS.get(curr_m, ""))
+
             if hasattr(self, "loaded_file_lbl"):
                 self.loaded_file_lbl.config(text=f"📄 {self.loaded_file_name}")
+            if hasattr(self, "file_count_lbl"):
+                self.file_count_lbl.config(text=f"{len(self.countries)} Countries Queued")
+            if hasattr(self, "status_text_lbl") and self.engine.state == AutomatorState.IDLE:
+                self.status_text_lbl.config(text=f"Ready ({len(self.countries)} countries queued)")
+
             self._populate_country_tree()
             self._on_engine_log(f"✅ Successfully loaded {len(parsed)} prices from: {self.loaded_file_name}")
             messagebox.showinfo("File Loaded", f"Successfully loaded pricing matrix from {self.loaded_file_name} ({len(parsed)} countries)")
         except Exception as e:
             messagebox.showerror("Error Loading File", f"Could not parse file:\n{e}")
-
-    def _build_hero_card(self):
-        """
-        Hero Command Center Card:
-        Top: Status text & completion counter
-        Middle: Rounded sleek progress bar
-        Bottom: Big action buttons with live ticker
-        """
-        card = tk.Frame(self, bg=self.colors["card_bg"], padx=20, pady=14,
-                        highlightbackground=self.colors["card_border"], highlightthickness=1)
-        card.pack(fill="x", padx=20, pady=(0, 10))
-
-        # Status text row
-        top_row = tk.Frame(card, bg=self.colors["card_bg"])
-        top_row.pack(fill="x", pady=(0, 8))
-
-        self.status_icon_lbl = tk.Label(top_row, text="⚪", font=("Segoe UI", 12),
-                                        bg=self.colors["card_bg"], fg=self.colors["text_muted"])
-        self.status_icon_lbl.pack(side="left", padx=(0, 8))
-
-        self.status_text_lbl = tk.Label(top_row, text="IDLE — Press Start (F8) to begin automation",
-                                        font=("Segoe UI", 11, "bold"), bg=self.colors["card_bg"],
-                                        fg=self.colors["text"])
-        self.status_text_lbl.pack(side="left")
-
-        self.progress_count_lbl = tk.Label(top_row, text="0 / 176 Countries (0%)",
-                                          font=("Segoe UI", 11, "bold"), bg=self.colors["card_bg"],
-                                          fg=self.colors["accent"])
-        self.progress_count_lbl.pack(side="right")
-
-        # Progress bar
-        self.progress_bar = ttk.Progressbar(card, style="Horizontal.TProgressbar",
-                                           orient="horizontal", mode="determinate", maximum=len(self.countries))
-        self.progress_bar.pack(fill="x", pady=(0, 10))
-
-        # Real-Time Telemetry Row: Elapsed Stopwatch & Est. Completion
-        timers_row = tk.Frame(card, bg=self.colors["card_bg"])
-        timers_row.pack(fill="x", pady=(0, 12))
-
-        # 1. Elapsed Stopwatch Card (Left)
-        card_elapsed = tk.Frame(timers_row, bg=self.colors["card_inner"], padx=14, pady=8,
-                                highlightbackground=self.colors["card_inner_border"], highlightthickness=1)
-        card_elapsed.pack(side="left", fill="x", expand=True, padx=(0, 8))
-
-        tk.Label(card_elapsed, text="⏱️", font=("Segoe UI", 13),
-                 bg=self.colors["card_inner"]).pack(side="left", padx=(0, 10))
-
-        content_elapsed = tk.Frame(card_elapsed, bg=self.colors["card_inner"])
-        content_elapsed.pack(side="left", fill="x")
-
-        tk.Label(content_elapsed, text="Elapsed Stopwatch", font=("Segoe UI", 8, "bold"),
-                 fg=self.colors["text_dim"], bg=self.colors["card_inner"]).pack(anchor="w")
-
-        self.timer_elapsed_lbl = tk.Label(content_elapsed, text="00:00", font=("Consolas", 12, "bold"),
-                                          fg="#38BDF8", bg=self.colors["card_inner"])
-        self.timer_elapsed_lbl.pack(anchor="w")
-
-        # 2. Est. Completion Card (Right)
-        card_remaining = tk.Frame(timers_row, bg=self.colors["card_inner"], padx=14, pady=8,
-                                 highlightbackground=self.colors["card_inner_border"], highlightthickness=1)
-        card_remaining.pack(side="left", fill="x", expand=True, padx=(8, 0))
-
-        tk.Label(card_remaining, text="⏳", font=("Segoe UI", 13),
-                 bg=self.colors["card_inner"]).pack(side="left", padx=(0, 10))
-
-        content_remaining = tk.Frame(card_remaining, bg=self.colors["card_inner"])
-        content_remaining.pack(side="left", fill="x")
-
-        tk.Label(content_remaining, text="Est. Completion", font=("Segoe UI", 8, "bold"),
-                 fg=self.colors["text_dim"], bg=self.colors["card_inner"]).pack(anchor="w")
-
-        self.timer_remaining_lbl = tk.Label(content_remaining, text="--:--", font=("Segoe UI", 11, "bold"),
-                                            fg="#F59E0B", bg=self.colors["card_inner"])
-        self.timer_remaining_lbl.pack(anchor="w")
-
-        # Control buttons row
-        btn_row = tk.Frame(card, bg=self.colors["card_bg"])
-        btn_row.pack(fill="x")
-
-        # Primary START Action Button (Vibrant Emerald)
-        self.btn_start = tk.Button(btn_row, text="▶  START (F8)", font=("Segoe UI", 10, "bold"),
-                                   bg=self.colors["success"], fg="#FFFFFF", activebackground=self.colors["success_hover"],
-                                   activeforeground="#FFFFFF", relief="flat", padx=24, pady=7,
-                                   cursor="hand2", command=self._on_click_start)
-        self.btn_start.pack(side="left", padx=(0, 10))
-
-        # STOP Action Button (Vibrant Rose)
-        self.btn_stop = tk.Button(btn_row, text="■  STOP (F9 / Esc)", font=("Segoe UI", 10, "bold"),
-                                  bg=self.colors["danger"], fg="#FFFFFF", activebackground=self.colors["danger_hover"],
-                                  activeforeground="#FFFFFF", relief="flat", padx=20, pady=7,
-                                  cursor="hand2", command=self._on_click_stop, state="disabled")
-        self.btn_stop.pack(side="left", padx=(0, 10))
-
-        # Single Country Test Button
-        self.btn_test_one = tk.Button(btn_row, text="⚡ Test Single Country", font=("Segoe UI", 9, "bold"),
-                                      bg="#1E293B", fg=self.colors["accent"], activebackground="#334155",
-                                      activeforeground="#FFFFFF", relief="flat", padx=16, pady=7,
-                                      cursor="hand2", command=self._on_click_test_one)
-        self.btn_test_one.pack(side="left", padx=(0, 10))
-
-        # Current Live Step Badge (Right Aligned)
-        live_pill = tk.Frame(btn_row, bg=self.colors["card_inner"], padx=12, pady=5,
-                             highlightbackground=self.colors["card_inner_border"], highlightthickness=1)
-        live_pill.pack(side="right")
-
-        tk.Label(live_pill, text="Live State:", font=("Segoe UI", 8, "bold"),
-                 fg=self.colors["text_dim"], bg=self.colors["card_inner"]).pack(side="left", padx=(0, 6))
-
-        self.active_task_lbl = tk.Label(live_pill, text="Ready", font=("Segoe UI", 9, "bold"),
-                                        bg=self.colors["card_inner"], fg=self.colors["accent"])
-        self.active_task_lbl.pack(side="left")
 
     def _build_tabs(self):
         tab_frame = tk.Frame(self, bg=self.colors["bg"])
@@ -1130,21 +1233,89 @@ class PlaySaleAutomatorGUI(tk.Tk):
             return
         if self.engine.current_country_index == 0:
             self.engine.stop_timers(reset=True)
+            self.stat_done_count = 0
+            self.stat_matched_count = 0
+            self.stat_failed_count = 0
+            if hasattr(self, "badge_done_lbl"):
+                self.badge_done_lbl.config(text="✅ 0 Done")
+            if hasattr(self, "badge_matched_lbl"):
+                self.badge_matched_lbl.config(text="✨ 0 Matches")
+            if hasattr(self, "badge_failed_lbl"):
+                self.badge_failed_lbl.config(text="⚠️ 0 Issues")
+
         self.btn_start.config(state="disabled")
+        if hasattr(self, "btn_pause"):
+            self.btn_pause.config(state="normal", text="⏸  Pause", bg=self.colors["warning"])
         self.btn_stop.config(state="normal")
         self.btn_test_one.config(state="disabled")
         self.engine.start(start_index=self.engine.current_country_index)
 
+    def _on_click_pause(self):
+        if self.engine.state == AutomatorState.PAUSED:
+            self.engine.resume()
+        elif self.engine.state in [AutomatorState.RUNNING, AutomatorState.COUNTDOWN]:
+            self.engine.pause()
+
     def _on_click_stop(self):
         self.engine.stop()
         self.btn_start.config(state="normal")
+        if hasattr(self, "btn_pause"):
+            self.btn_pause.config(state="disabled", text="⏸  Pause", bg=self.colors["warning"])
         self.btn_stop.config(state="disabled")
         self.btn_test_one.config(state="normal")
+
+    def _on_click_reset(self):
+        """Resets queue cursor, stopwatch, countdown ETA, and Done/Matches/Issues counters."""
+        if self.engine.state in [AutomatorState.RUNNING, AutomatorState.COUNTDOWN, AutomatorState.PAUSED]:
+            self.engine.stop()
+
+        self.engine.current_country_index = 0
+        self.engine.stop_timers(reset=True)
+
+        self.stat_done_count = 0
+        self.stat_matched_count = 0
+        self.stat_failed_count = 0
+        if hasattr(self, "badge_done_lbl"):
+            self.badge_done_lbl.config(text="✅ 0 Done")
+        if hasattr(self, "badge_matched_lbl"):
+            self.badge_matched_lbl.config(text="✨ 0 Matches")
+        if hasattr(self, "badge_failed_lbl"):
+            self.badge_failed_lbl.config(text="⚠️ 0 Issues")
+
+        total = len(self.countries)
+        if hasattr(self, "progress_bar"):
+            self.progress_bar["value"] = 0
+        if hasattr(self, "progress_count_lbl"):
+            self.progress_count_lbl.config(text="0%")
+        if hasattr(self, "status_icon_lbl"):
+            self.status_icon_lbl.config(text="⚪")
+        if hasattr(self, "status_text_lbl"):
+            self.status_text_lbl.config(text=f"Ready ({total} countries queued)", fg="#CBD5E1")
+        if hasattr(self, "active_task_lbl"):
+            self.active_task_lbl.config(text="Ready")
+        if hasattr(self, "timer_elapsed_lbl"):
+            self.timer_elapsed_lbl.config(text="00:00")
+        if hasattr(self, "timer_remaining_lbl"):
+            self.timer_remaining_lbl.config(text="--:--", fg=self.colors["warning"])
+
+        if hasattr(self, "btn_start"):
+            self.btn_start.config(state="normal")
+        if hasattr(self, "btn_pause"):
+            self.btn_pause.config(state="disabled", text="⏸  Pause", bg=self.colors["warning"])
+        if hasattr(self, "btn_stop"):
+            self.btn_stop.config(state="disabled")
+        if hasattr(self, "btn_test_one"):
+            self.btn_test_one.config(state="normal")
+
+        self._populate_country_tree()
+        self._on_engine_log("↺ Queue and telemetry timers reset to beginning (0/176).")
 
     def _on_click_test_one(self):
         selected = self.tree.selection()
         idx = int(selected[0]) if selected else self.engine.current_country_index
         self.btn_start.config(state="disabled")
+        if hasattr(self, "btn_pause"):
+            self.btn_pause.config(state="disabled")
         self.btn_stop.config(state="normal")
         self.btn_test_one.config(state="disabled")
         self.engine.test_single_country(idx)
@@ -1157,26 +1328,40 @@ class PlaySaleAutomatorGUI(tk.Tk):
             self.status_icon_lbl.config(text="🔵")
             self.status_text_lbl.config(text=f"COUNTDOWN: {msg}", fg=self.colors["accent"])
             self.btn_start.config(state="disabled")
+            if hasattr(self, "btn_pause"):
+                self.btn_pause.config(state="disabled", text="⏸  Pause", bg=self.colors["warning"])
             self.btn_stop.config(state="normal")
+            self.btn_test_one.config(state="disabled")
         elif state == AutomatorState.RUNNING:
             self.status_icon_lbl.config(text="🟢")
             self.status_text_lbl.config(text=f"RUNNING: {msg}", fg=self.colors["success"])
             self.btn_start.config(state="disabled")
+            if hasattr(self, "btn_pause"):
+                self.btn_pause.config(state="normal", text="⏸  Pause", bg=self.colors["warning"])
             self.btn_stop.config(state="normal")
             self.btn_test_one.config(state="disabled")
         elif state == AutomatorState.PAUSED:
             self.status_icon_lbl.config(text="🟡")
             self.status_text_lbl.config(text=f"PAUSED: {msg}", fg=self.colors["warning"])
+            self.btn_start.config(state="disabled")
+            if hasattr(self, "btn_pause"):
+                self.btn_pause.config(state="normal", text="▶  Resume", bg=self.colors["success"])
+            self.btn_stop.config(state="normal")
+            self.btn_test_one.config(state="disabled")
         elif state == AutomatorState.STOPPED:
             self.status_icon_lbl.config(text="🔴")
             self.status_text_lbl.config(text=f"STOPPED: {msg}", fg=self.colors["danger"])
             self.btn_start.config(state="normal")
+            if hasattr(self, "btn_pause"):
+                self.btn_pause.config(state="disabled", text="⏸  Pause", bg=self.colors["warning"])
             self.btn_stop.config(state="disabled")
             self.btn_test_one.config(state="normal")
         elif state == AutomatorState.COMPLETED:
             self.status_icon_lbl.config(text="🏁")
             self.status_text_lbl.config(text=f"COMPLETED: {msg}", fg=self.colors["success"])
             self.btn_start.config(state="normal")
+            if hasattr(self, "btn_pause"):
+                self.btn_pause.config(state="disabled", text="⏸  Pause", bg=self.colors["warning"])
             self.btn_stop.config(state="disabled")
             self.btn_test_one.config(state="normal")
 
@@ -1188,28 +1373,66 @@ class PlaySaleAutomatorGUI(tk.Tk):
     def _update_progress_ui(self, current_idx, total, country, status, price=""):
         pct = (current_idx * 100) // total if total > 0 else 0
         self.progress_bar["value"] = current_idx
-        self.progress_count_lbl.config(text=f"{current_idx} / {total} Countries ({pct}%)")
+        self.progress_count_lbl.config(text=f"{pct}%")
+
+        c_name = country.get("name", "")
+        c_curr = country.get("currency", "")
+
+        if status == "processing":
+            self.status_text_lbl.config(
+                text=f"[{current_idx + 1}/{total}] {c_name} • Setting price...",
+                fg="#CBD5E1"
+            )
+            item_id = str(current_idx)
+            if self.tree.exists(item_id):
+                cur_vals = list(self.tree.item(item_id, "values"))
+                if len(cur_vals) >= 7:
+                    cur_vals[6] = "⚡ In Progress"
+                    self.tree.item(item_id, values=cur_vals, tags=("active",))
+                    self.tree.see(item_id)
+            return
+
+        # Status completed / matched / failed
+        if status == "matched":
+            self.stat_matched_count += 1
+            status_text = "✨ Matched"
+            tag = "matched"
+            self.status_text_lbl.config(
+                text=f"[{current_idx}/{total}] {c_name} • Value already matches target ({price})",
+                fg=self.colors["accent"]
+            )
+        elif status in ["completed", "done"]:
+            self.stat_done_count += 1
+            status_text = "✓ Done"
+            tag = "done"
+            self.status_text_lbl.config(
+                text=f"[{current_idx}/{total}] {c_name} • Saved {price} {c_curr}",
+                fg=self.colors["success"]
+            )
+        else:
+            self.stat_failed_count += 1
+            status_text = "✗ Failed"
+            tag = "failed"
+            self.status_text_lbl.config(
+                text=f"[{current_idx}/{total}] {c_name} • Failed or issue encountered",
+                fg=self.colors["danger"]
+            )
+
+        # Update stat badge labels
+        if hasattr(self, "badge_done_lbl"):
+            self.badge_done_lbl.config(text=f"✅ {self.stat_done_count} Done")
+        if hasattr(self, "badge_matched_lbl"):
+            self.badge_matched_lbl.config(text=f"✨ {self.stat_matched_count} Matches")
+        if hasattr(self, "badge_failed_lbl"):
+            self.badge_failed_lbl.config(text=f"⚠️ {self.stat_failed_count} Issues")
 
         # Update Treeview item tag
-        item_id = str(current_idx if status == "processing" else max(0, current_idx - 1))
+        item_id = str(max(0, current_idx - 1))
         if self.tree.exists(item_id):
-            if status == "processing":
-                tag = "active"
-                status_text = "⚡ In Progress"
-            elif status == "matched":
-                tag = "matched"
-                status_text = "✨ Matched"
-            elif status in ["completed", "done"]:
-                tag = "done"
-                status_text = "✓ Done"
-            else:
-                tag = "failed"
-                status_text = "✗ Failed"
-
             cur_vals = list(self.tree.item(item_id, "values"))
             if len(cur_vals) >= 7:
                 if price:
-                    cur_vals[5] = f"{price} {country.get('currency', '')}"
+                    cur_vals[5] = f"{price} {c_curr}"
                 cur_vals[6] = status_text
                 self.tree.item(item_id, values=cur_vals, tags=(tag,))
                 self.tree.see(item_id)

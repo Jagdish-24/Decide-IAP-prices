@@ -11,7 +11,7 @@ CONFIG_DIR = os.path.join(os.path.dirname(__file__), "cache")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 
 # Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-APP_VERSION = "1.9.0"
+APP_VERSION = "1.9.1"
 APP_LAST_UPDATED = "25 Oct 2026"
 
 # Cadence Speed Presets (matching Browser Bot)
