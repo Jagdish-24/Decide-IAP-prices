@@ -66,7 +66,7 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.9.0</span>
+          <span class="version-tag" id="appVersionText">v1.9.2</span>
           <span class="version-sep">•</span>
           <span class="version-date" id="lastUpdatedDateText">Updated 25 Oct 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -1067,7 +1067,7 @@
           <div>
             <div class="modal-title-row">
               <h3>PlayPrice Engine Version History</h3>
-              <span class="version-tag-pill">v1.7.9 (Latest)</span>
+              <span class="version-tag-pill">v1.9.2 (Latest)</span>
             </div>
             <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 25 Oct 2026</p>
           </div>
@@ -1086,8 +1086,25 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.9.0 -->
+          <!-- Release v1.9.2 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.9.2</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Browser Bot Dynamic Issue Resolution &amp; Fix Button:</strong> When the browser bot encounters any issue (issues count &gt; 0) while setting country prices in Google Play Console, a prominent glassmorphic warning card and "Fix Issue" button dynamically appear in real-time.</li>
+                <li><strong>Targeted Country Reapplication Engine:</strong> Clicking "Fix Issue" specifically retries price application for only the country name(s) that encountered an error (e.g., search timeout, row not rendered, modal glitch). Individual country chips allow single-click granular re-application.</li>
+                <li><strong>Non-Blocking Queue Continuation &amp; Pause-and-Fix Flow:</strong> All pending queue tasks continue smoothly without halting when an issue occurs. Clicking Fix Issue while paused immediately reapplies price for failed rows, and upon completing fixes, the bot automatically unpauses and resumes the remaining queue from where it left off.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.9.0 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">

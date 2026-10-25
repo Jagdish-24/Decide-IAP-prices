@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Play Console Sale Price Automator (PlayPrice Engine)
 // @namespace    https://github.com/Jagdish-24/Decide-IAP-prices
-// @version      1.9.1
+// @version      1.9.2
 // @description  Automates setting country sale prices and app prices in Google Play Console with 1-click DOM injection and zero mouse movement.
 // @author       PlayPrice Engine Team
 // @match        https://play.google.com/console/*
@@ -15,7 +15,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.9.1...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.9.2...');
 
   // State Management
   const state = {
@@ -35,7 +35,11 @@
     pauseStartTime: null,
     timerIntervalId: null,
     lastTaskDurationMs: null,
-    recentTaskDurations: []
+    recentTaskDurations: [],
+    // Dynamic Issue Resolution
+    isFixingIssues: false,
+    pendingFixRequested: false,
+    targetFixCountry: null
   };
 
   // -------------------------------------------------------------
@@ -233,10 +237,10 @@
            document.querySelector('input[placeholder*="Search" i]');
   }
 
-  async function waitForFilteredRow(countryName, timeoutMs = 4500) {
+  async function waitForFilteredRow(countryName, timeoutMs = 6000) {
     const start = Date.now();
     const query = countryName.toLowerCase();
-    const isGlobalNew = query.includes('new countries');
+    const isGlobalNew = query.includes('new countries') || query.includes('new regions');
     
     while (Date.now() - start < timeoutMs) {
       if (!state.isRunning) return null;
@@ -245,28 +249,59 @@
       
       // 1. Check if the specific target row is found and rendered
       for (const row of rows) {
+        if (row.closest('[role="dialog"]') || row.closest('dialog') || row.closest('#play-price-automator-root')) continue;
         const text = row.textContent.toLowerCase();
-        if (text.includes(query) && !row.closest('[role="dialog"]') && !row.closest('dialog')) {
+
+        // Specialized check for New countries/regions with currency separation in cells
+        if (isGlobalNew) {
+          const wantsUSD = query.includes('usd') || query.includes('$');
+          const wantsEUR = query.includes('eur') || query.includes('€');
+          const hasNewCountries = text.includes('new countries') || text.includes('new regions');
+          
+          if (wantsUSD) {
+            if ((text.includes('usd') || text.includes('$')) && !text.includes('eur')) {
+              if (hasNewCountries || text.includes('default') || row.querySelector('button[aria-label*="edit" i], button[aria-label*="price" i], .edit-button')) {
+                return row;
+              }
+            }
+          } else if (wantsEUR) {
+            if ((text.includes('eur') || text.includes('€')) && !text.includes('usd')) {
+              if (hasNewCountries || text.includes('default') || row.querySelector('button[aria-label*="edit" i], button[aria-label*="price" i], .edit-button')) {
+                return row;
+              }
+            }
+          } else if (hasNewCountries) {
+            return row;
+          }
+        }
+
+        if (text.includes(query)) {
+          return row;
+        }
+
+        if (typeof rowMatchesCountry === 'function' && rowMatchesCountry(row, countryName)) {
           return row;
         }
       }
 
-      // 2. If it's a global fallback pool (USD/EUR) and not yet visible, check if parent tree group is collapsed
+      // 2. If it's a global fallback pool (USD/EUR) and child row not yet visible, check if parent tree group is collapsed
       if (isGlobalNew) {
         for (const row of rows) {
+          if (row.closest('[role="dialog"]') || row.closest('dialog') || row.closest('#play-price-automator-root')) continue;
           const text = row.textContent.toLowerCase();
-          if (text.includes('new countries') && !text.includes('(usd)') && !text.includes('(eur)')) {
-            const expandBtn = row.querySelector('[aria-expanded="false"], button, [role="button"]') || row;
-            if (expandBtn.getAttribute('aria-expanded') === 'false' || row.getAttribute('aria-expanded') === 'false') {
+          if (text.includes('new countries') || text.includes('new regions')) {
+            const expandBtn = row.querySelector('[aria-expanded="false"], button, [role="button"], mat-icon, material-icon, svg, [aria-label*="expand" i]') || row;
+            const ariaExpanded = expandBtn.getAttribute('aria-expanded') || row.getAttribute('aria-expanded');
+            if (ariaExpanded === 'false' || expandBtn.getAttribute('aria-label')?.toLowerCase().includes('expand')) {
               activelyClickElement(expandBtn);
-              await sleep(250);
+              await sleep(350);
               break;
             }
           }
         }
       }
 
-      await sleep(120);
+      await sleep(150);
     }
     return null;
   }
@@ -1306,6 +1341,286 @@
   }
 
   // -------------------------------------------------------------
+  // Targeted Price Application for a Single Country
+  // -------------------------------------------------------------
+  async function applyPriceToCountry(c, searchBox) {
+    if (!c || !searchBox) return false;
+
+    // Ensure any open dialog from prior attempt is closed cleanly
+    const openDialog = document.querySelector('[role="dialog"], dialog, material-dialog, .modal-dialog');
+    if (openDialog && !openDialog.closest('#play-price-automator-root') && isElementReallyVisible(openDialog)) {
+      const cancelBtn = openDialog.querySelector('button[aria-label*="Cancel" i]') ||
+                        Array.from(openDialog.querySelectorAll('button')).find(b => b.textContent.toLowerCase().includes('cancel'));
+      if (cancelBtn) {
+        activelyClickElement(cancelBtn);
+      } else {
+        openDialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+      }
+      await humanMicroPause(120, 250);
+    }
+
+    const isPercentage = state.targetMode === 'discount_pct';
+    const unitText = isPercentage ? '%' : (c.currency ? ` ${c.currency}` : '');
+    let typeLabel = 'Retail Price';
+    if (state.targetMode === 'sale') typeLabel = 'Discounted Retail Price';
+    if (state.targetMode === 'discount_pct') typeLabel = 'Discount Percentage';
+
+    c.status = 'active';
+    updateUI();
+
+    try {
+      // Step 1: Focus and double-click to select all text in search bar & paste country name
+      searchBox.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      searchBox.focus();
+      await humanMicroPause(70, 160);
+      searchBox.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
+      if (typeof searchBox.select === 'function') searchBox.select();
+      await humanMicroPause(50, 130);
+      // Normalize search term: Google Play Console indexes fallback pools under "New countries/regions"
+      const isGlobalNew = c.name.toLowerCase().includes('new countries') || c.name.toLowerCase().includes('new regions');
+      const searchTerm = isGlobalNew ? 'New countries' : c.name;
+      setNativeValue(searchBox, '');
+      await humanMicroPause(40, 80);
+      setNativeValue(searchBox, searchTerm);
+
+      // Safe Cadence Delay
+      await sleep(getHumanizedDelay(state.speedDelay));
+
+      // Step 2: Wait for filtered row in table
+      const row = await waitForFilteredRow(c.name, 6000);
+      if (!row) {
+        log(`⚠️ Row not found for ${c.name}, skipping...`);
+        c.status = 'failed';
+        c.message = 'Row not found';
+        try { updateUI(); } catch (e) {}
+        return false;
+      }
+      await humanMicroPause(100, 240);
+
+      // Step 3: Open Edit Price modal by clicking pencil button in row targeted column
+      const opened = await openRowEditModal(row, state.targetMode);
+      if (!opened) {
+        log(`⚠️ Could not click edit button for ${c.name}, skipping...`);
+        c.status = 'failed';
+        c.message = 'Edit button not found';
+        try { updateUI(); } catch (e) {}
+        return false;
+      }
+
+      await sleep(getHumanizedDelay(Math.min(900, state.speedDelay)));
+
+      // Step 4: Handle Edit Modal Input
+      const modalObj = await waitForEditPricePopup(4500);
+      if (!modalObj) {
+        log(`⚠️ Edit popup did not open for ${c.name}, skipping...`);
+        c.status = 'failed';
+        c.message = 'Modal did not open';
+        try { updateUI(); } catch (e) {}
+        return false;
+      }
+
+      const { dialog, input } = modalObj;
+      await humanMicroPause(150, 320);
+
+      // Step 5: Check current existing value in input
+      const existingVal = input.value.trim();
+      const numMatch = existingVal.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
+      const existingNum = numMatch ? parseFloat(numMatch[0]) : null;
+
+      if (existingNum !== null && Math.abs(existingNum - c.targetValue) < 0.001) {
+        // Already matches target value!
+        log(`✨ [${c.name}] Value already matches target (${existingNum} == ${c.priceFormatted}${unitText}). Cleanly dismissing modal...`);
+        c.status = 'matched';
+        c.message = 'Already matches';
+
+        await humanMicroPause(140, 280);
+        const cancelBtn = dialog.querySelector('button[aria-label*="Cancel" i]') ||
+                          Array.from(dialog.querySelectorAll('button')).find(b => b.textContent.toLowerCase().includes('cancel'));
+        if (cancelBtn) {
+          activelyClickElement(cancelBtn);
+        } else {
+          dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+        }
+        await humanMicroPause(90, 190);
+        return true;
+      } else {
+        // Set new price value
+        log(`🔄 [${c.name}] Setting '${existingVal || 'empty'}' -> '${c.priceFormatted}${unitText}'...`);
+        await setModalPrice(input, c.priceFormatted);
+        await humanMicroPause(280, 520);
+
+        // Find Save button in dialog
+        const saveBtn = dialog.querySelector('button[aria-label*="Save" i]') ||
+                        dialog.querySelector('button[aria-label*="Apply" i]') ||
+                        dialog.querySelector('button[aria-label*="Update" i]') ||
+                        Array.from(dialog.querySelectorAll('button')).find(b => {
+                          const t = b.textContent.toLowerCase().trim();
+                          return (t === 'save' || t === 'apply' || t === 'update' || t.includes('save')) && !b.disabled;
+                        });
+
+        if (saveBtn) {
+          activelyClickElement(saveBtn, ['.mdc-button__touch', '.mdc-button__label']);
+          c.status = 'done';
+          c.message = `Saved: ${c.priceFormatted}${unitText}`;
+          log(`✅ [${c.name}] Saved: ${c.priceFormatted}${unitText}`);
+
+          // Wait for popup to disappear
+          const closeStart = Date.now();
+          while (Date.now() - closeStart < 3500) {
+            if (!document.body.contains(dialog) || !isElementReallyVisible(dialog)) break;
+            await sleep(100);
+          }
+          dismissConsoleToast();
+          return true;
+        } else {
+          log(`⚠️ [${c.name}] Save button disabled or not found.`);
+          c.status = 'failed';
+          c.message = 'Save disabled';
+          try { updateUI(); } catch (e) {}
+          return false;
+        }
+      }
+    } catch (err) {
+      log(`❌ Error processing ${c.name}: ${err.message}`);
+      c.status = 'failed';
+      c.message = err.message;
+      try { updateUI(); } catch (e) {}
+      return false;
+    }
+  }
+
+  // -------------------------------------------------------------
+  // Targeted Issue Resolution Engine (Reapply Price for Failed Countries)
+  // -------------------------------------------------------------
+  async function fixIssuesCore(targetCountryName = null) {
+    if (state.isFixingIssues) return;
+
+    let targets = [];
+    if (targetCountryName) {
+      targets = state.countries.filter(c => c.name.toLowerCase() === targetCountryName.toLowerCase() && c.status === 'failed');
+      if (targets.length === 0) {
+        targets = state.countries.filter(c => c.name.toLowerCase() === targetCountryName.toLowerCase());
+      }
+    } else {
+      targets = state.countries.filter(c => c.status === 'failed');
+    }
+
+    if (targets.length === 0) {
+      log('ℹ️ No issues found to fix.');
+      updateUI();
+      return;
+    }
+
+    state.isFixingIssues = true;
+    const wasRunning = state.isRunning;
+    const wasPaused = state.isPaused;
+    const returnIndex = state.currentIndex;
+
+    // During fix execution, fix operations run actively
+    state.isRunning = true;
+    state.isPaused = false;
+    startTimers();
+    updateUI();
+
+    const searchBox = findSearchBox();
+    if (!searchBox) {
+      log('❌ Could not locate Google Play Console search bar ("Search by country or region")! Are you on the pricing page?');
+      state.isFixingIssues = false;
+      if (!wasRunning) {
+        state.isRunning = false;
+        stopTimers();
+      } else if (wasPaused) {
+        state.isPaused = true;
+        pauseTimers();
+      }
+      updateUI();
+      return;
+    }
+
+    const countryNames = targets.map(c => c.name).join(', ');
+    log(`🔧 [Fix Issues] Specifically reapplying price for ${targets.length} country/countries with issues: ${countryNames}...`);
+
+    let resolvedCount = 0;
+    for (let i = 0; i < targets.length; i++) {
+      if (!state.isRunning) {
+        log('🛑 Fix process stopped by user.');
+        break;
+      }
+      while (state.isPaused && state.isRunning) {
+        await sleep(200);
+      }
+      if (!state.isRunning) break;
+
+      const c = targets[i];
+      log(`🔄 [Fixing Issue ${i + 1}/${targets.length}] Specifically reapplying price for "${c.name}"...`);
+
+      const success = await applyPriceToCountry(c, searchBox);
+      if (success) {
+        resolvedCount++;
+        log(`✨ Successfully reapplied price for "${c.name}" (${c.status === 'matched' ? 'Already Matched' : 'Saved'})!`);
+      } else {
+        log(`❌ Could not fix "${c.name}": ${c.message || 'Check console table'}`);
+      }
+
+      await sleep(getHumanizedDelay(state.speedDelay));
+      updateUI();
+      updateEstCompletionUI();
+    }
+
+    state.isFixingIssues = false;
+    const remainingIssues = state.countries.filter(c => c.status === 'failed').length;
+    log(`🏁 [Fix Issues Complete] Resolved ${resolvedCount}/${targets.length}. Total remaining issues: ${remainingIssues}.`);
+
+    if (remainingIssues === 0) {
+      log('🎉 All issues resolved! No errors remaining.');
+      const allDoneOrMatched = state.countries.every(c => c.status === 'done' || c.status === 'matched');
+      if (allDoneOrMatched && state.autoSaveConsole) {
+        await saveConsoleChanges();
+      }
+    }
+
+    // User requirement: "and after all the fixes are completed continue from where we left off"
+    if (wasRunning && returnIndex < state.countries.length) {
+      state.currentIndex = returnIndex;
+      state.isRunning = true;
+      state.isPaused = false;
+      startTimers();
+      log(`▶ [Continuing Queue] Fixes complete! Resuming queue from where we left off: [${returnIndex + 1}/${state.countries.length}] ${state.countries[returnIndex]?.name || ''}...`);
+    } else {
+      state.isRunning = false;
+      state.isPaused = false;
+      stopTimers(false);
+    }
+    updateUI();
+  }
+
+  function handleFixIssueClick(targetCountryName = null) {
+    const failedCountries = state.countries.filter(c => c.status === 'failed');
+    if (failedCountries.length === 0) {
+      log('ℹ️ No issues currently detected.');
+      return;
+    }
+
+    // If bot is actively running in the middle of a row (and NOT paused), queue it to intercept right after current row finishes
+    if (state.isRunning && !state.isPaused && !state.isFixingIssues) {
+      state.targetFixCountry = targetCountryName;
+      state.pendingFixRequested = true;
+      const targetText = targetCountryName || failedCountries.map(c => c.name).join(', ');
+      log(`⏳ [Fix Issue Queued] Bot is currently processing. It will immediately reapply price for "${targetText}" right after current row...`);
+
+      const btnFix = document.getElementById('ppa-btn-fix');
+      if (btnFix) {
+        btnFix.textContent = `⏳ Fixing after current row...`;
+      }
+      updateUI();
+      return;
+    }
+
+    // Otherwise (bot is paused OR already finished/stopped), run fix immediately!
+    fixIssuesCore(targetCountryName);
+  }
+
+  // -------------------------------------------------------------
   // Core Automation Loop
   // -------------------------------------------------------------
   async function runAutomation() {
@@ -1346,7 +1661,7 @@
         break;
       }
 
-      while (state.isPaused && state.isRunning) {
+      while ((state.isPaused || state.isFixingIssues) && state.isRunning) {
         await sleep(200);
       }
       if (!state.isRunning) break;
@@ -1360,8 +1675,11 @@
 
       state.currentIndex = idx;
       const c = state.countries[idx];
-      c.status = 'active';
-      updateUI();
+
+      // If already done or matched (e.g. from prior targeted fix), skip
+      if (c.status === 'done' || c.status === 'matched') {
+        continue;
+      }
 
       const taskStartTime = Date.now();
       const taskStartPausedMs = state.totalPausedMs;
@@ -1374,120 +1692,14 @@
       log(`📍 [${idx + 1}/${state.countries.length}] ${c.name} • Target ${typeLabel}: ${c.priceFormatted}${unitText}`);
 
       try {
-        // Step 1: Focus and double-click to select all text in search bar & paste country name
-        searchBox.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-        searchBox.focus();
-        await humanMicroPause(70, 160);
-        searchBox.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
-        if (typeof searchBox.select === 'function') searchBox.select();
-        await humanMicroPause(50, 130);
-        // Normalize search term: Google Play Console indexes fallback pools under "New countries/regions"
-        const isGlobalNew = c.name.toLowerCase().includes('new countries');
-        const searchTerm = isGlobalNew ? 'New countries/regions' : c.name;
-        setNativeValue(searchBox, searchTerm);
-
-        // Safe Cadence Delay
-        await sleep(getHumanizedDelay(state.speedDelay));
-
-        // Step 2: Wait for filtered row in table
-        const row = await waitForFilteredRow(c.name, 4500);
-        if (!row) {
-          log(`⚠️ Row not found for ${c.name}, skipping...`);
-          c.status = 'failed';
-          c.message = 'Row not found';
-          updateUI();
-          continue;
-        }
-        await humanMicroPause(100, 240);
-
-        // Step 3: Open Edit Price modal by clicking pencil button in row targeted column
-        const opened = await openRowEditModal(row, state.targetMode);
-        if (!opened) {
-          log(`⚠️ Could not click edit button for ${c.name}, skipping...`);
-          c.status = 'failed';
-          c.message = 'Edit button not found';
-          updateUI();
-          continue;
-        }
-
-        await sleep(getHumanizedDelay(Math.min(900, state.speedDelay)));
-
-        // Step 4: Handle Edit Modal Input
-        const modalObj = await waitForEditPricePopup(4500);
-        if (!modalObj) {
-          log(`⚠️ Edit popup did not open for ${c.name}, skipping...`);
-          c.status = 'failed';
-          c.message = 'Modal did not open';
-          updateUI();
-          continue;
-        }
-
-        const { dialog, input } = modalObj;
-        await humanMicroPause(150, 320);
-
-        // Step 5: Check current existing value in input
-        const existingVal = input.value.trim();
-        const numMatch = existingVal.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
-        const existingNum = numMatch ? parseFloat(numMatch[0]) : null;
-
-        if (existingNum !== null && Math.abs(existingNum - c.targetValue) < 0.001) {
-          // Already matches target value!
-          log(`✨ [${c.name}] Value already matches target (${existingNum} == ${c.priceFormatted}${unitText}). Cleanly dismissing modal...`);
-          c.status = 'matched';
-          c.message = 'Already matches';
-
-          await humanMicroPause(140, 280);
-          const cancelBtn = dialog.querySelector('button[aria-label*="Cancel" i]') ||
-                            Array.from(dialog.querySelectorAll('button')).find(b => b.textContent.toLowerCase().includes('cancel'));
-          if (cancelBtn) {
-            activelyClickElement(cancelBtn);
-          } else {
-            dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
-          }
-          await humanMicroPause(90, 190);
-        } else {
-          // Set new price value
-          log(`🔄 [${c.name}] Setting '${existingVal || 'empty'}' -> '${c.priceFormatted}${unitText}'...`);
-          await setModalPrice(input, c.priceFormatted);
-          await humanMicroPause(280, 520);
-
-          // Find Save button in dialog
-          const saveBtn = dialog.querySelector('button[aria-label*="Save" i]') ||
-                          dialog.querySelector('button[aria-label*="Apply" i]') ||
-                          dialog.querySelector('button[aria-label*="Update" i]') ||
-                          Array.from(dialog.querySelectorAll('button')).find(b => {
-                            const t = b.textContent.toLowerCase().trim();
-                            return (t === 'save' || t === 'apply' || t === 'update' || t.includes('save')) && !b.disabled;
-                          });
-
-          if (saveBtn) {
-            activelyClickElement(saveBtn, ['.mdc-button__touch', '.mdc-button__label']);
-            c.status = 'done';
-            c.message = `Saved: ${c.priceFormatted}${unitText}`;
-            log(`✅ [${c.name}] Saved: ${c.priceFormatted}${unitText}`);
-
-            // Wait for popup to disappear
-            const closeStart = Date.now();
-            while (Date.now() - closeStart < 3500) {
-              if (!document.body.contains(dialog) || !isElementReallyVisible(dialog)) break;
-              await sleep(100);
-            }
-          } else {
-            log(`⚠️ [${c.name}] Save button disabled or not found.`);
-            c.status = 'failed';
-            c.message = 'Save disabled';
-          }
-        }
-
-        dismissConsoleToast();
-        processedSinceLastCooldown++;
-        await sleep(getHumanizedDelay(state.speedDelay));
-
-      } catch (err) {
-        log(`❌ Error processing ${c.name}: ${err.message}`);
+        await applyPriceToCountry(c, searchBox);
+      } catch (itemErr) {
         c.status = 'failed';
-        c.message = err.message;
+        c.message = itemErr.message || 'Error';
+        log(`⚠️ [${c.name}] Issue: ${c.message}. Continuing queue...`);
       }
+      processedSinceLastCooldown++;
+      await sleep(getHumanizedDelay(state.speedDelay));
 
       // Record active duration of this task (excluding user pause intervals)
       const taskCurrentPaused = state.totalPausedMs + (state.pauseStartTime ? (Date.now() - state.pauseStartTime) : 0);
@@ -1503,12 +1715,30 @@
 
       updateUI();
       updateEstCompletionUI();
+
+      // Check if user requested Fix Issues during running
+      if (state.pendingFixRequested) {
+        state.pendingFixRequested = false;
+        const fixTarget = state.targetFixCountry;
+        state.targetFixCountry = null;
+        log(`🔧 [Fix Issue] Pausing queue to reapply price for "${fixTarget || 'failed countries'}"...`);
+        await fixIssuesCore(fixTarget);
+        if (state.isRunning && idx + 1 < state.countries.length) {
+          log(`▶ [Continuing Queue] Resuming queue from where we left off: [${idx + 2}/${state.countries.length}] ${state.countries[idx + 1]?.name || ''}...`);
+        }
+      }
     }
 
     if (state.isRunning && state.currentIndex >= state.countries.length - 1) {
-      log('🏆 All countries completed successfully!');
-      if (state.autoSaveConsole) {
-        await saveConsoleChanges();
+      log('🏆 All countries in queue finished!');
+      const remainingIssues = state.countries.filter(c => c.status === 'failed').length;
+      if (remainingIssues === 0) {
+        log('🎉 Zero issues remaining! All prices applied successfully.');
+        if (state.autoSaveConsole) {
+          await saveConsoleChanges();
+        }
+      } else {
+        log(`⚠️ Automation finished with ${remainingIssues} issue(s). Click "Fix Issues" to reapply.`);
       }
       updateEstCompletionUI();
     }
@@ -1554,49 +1784,107 @@
   }
 
   function updateUI() {
-    const total = state.countries.length;
-    const cur = state.currentIndex;
-    const pct = total > 0 ? Math.round((cur / total) * 100) : 0;
+    try {
+      const total = state.countries.length;
+      const cur = state.currentIndex;
+      const pct = total > 0 ? Math.round((cur / total) * 100) : 0;
 
-    const doneCount = state.countries.filter(c => c.status === 'done').length;
-    const matchedCount = state.countries.filter(c => c.status === 'matched').length;
-    const failedCount = state.countries.filter(c => c.status === 'failed').length;
+      const doneCount = state.countries.filter(c => c.status === 'done').length;
+      const matchedCount = state.countries.filter(c => c.status === 'matched').length;
+      const failedCount = state.countries.filter(c => c.status === 'failed').length;
+      const failedCountries = state.countries.filter(c => c.status === 'failed');
 
-    const bar = document.getElementById('ppa-progress-bar');
-    const pctLbl = document.getElementById('ppa-progress-pct');
-    const statusLbl = document.getElementById('ppa-progress-status');
+      const bar = document.getElementById('ppa-progress-bar');
+      const pctLbl = document.getElementById('ppa-progress-pct');
+      const statusLbl = document.getElementById('ppa-progress-status');
 
-    if (bar) bar.style.width = `${pct}%`;
-    if (pctLbl) pctLbl.textContent = `${pct}%`;
+      if (bar) bar.style.width = `${pct}%`;
+      if (pctLbl) pctLbl.textContent = `${pct}%`;
 
-    if (statusLbl) {
-      if (state.isRunning && !state.isPaused) {
-        statusLbl.textContent = `Running: ${cur + 1} / ${total}`;
-      } else if (state.isPaused) {
-        statusLbl.textContent = `Paused at ${cur + 1} / ${total}`;
-      } else if (cur >= total && total > 0) {
-        statusLbl.textContent = `Completed (${total}/${total})`;
-      } else {
-        statusLbl.textContent = total > 0 ? `Ready (${total} countries queued)` : 'Waiting for CSV...';
+      if (statusLbl) {
+        if (state.isFixingIssues) {
+          statusLbl.textContent = `Fixing issues: Reapplying prices...`;
+        } else if (state.isRunning && !state.isPaused) {
+          statusLbl.textContent = `Running: ${cur + 1} / ${total}`;
+        } else if (state.isPaused) {
+          statusLbl.textContent = `Paused at ${cur + 1} / ${total}`;
+        } else if (cur >= total && total > 0) {
+          if (failedCount > 0) {
+            statusLbl.textContent = `Finished (${total}/${total}) • ${failedCount} Issue${failedCount === 1 ? '' : 's'}`;
+          } else {
+            statusLbl.textContent = `Completed (${total}/${total}) 🎉`;
+          }
+        } else {
+          statusLbl.textContent = total > 0 ? `Ready (${total} countries queued)` : 'Waiting for CSV...';
+        }
       }
+
+      const bDone = document.getElementById('ppa-badge-done');
+      const bMatch = document.getElementById('ppa-badge-matched');
+      const bFail = document.getElementById('ppa-badge-failed');
+      if (bDone) bDone.textContent = `✅ ${doneCount} Done`;
+      if (bMatch) bMatch.textContent = `✨ ${matchedCount} Matches`;
+      if (bFail) {
+        bFail.textContent = `⚠️ ${failedCount} Issues`;
+        bFail.style.cursor = failedCount > 0 ? 'pointer' : 'default';
+        bFail.title = failedCount > 0 ? 'Click to inspect / fix issues' : 'No issues';
+      }
+
+      // Dynamic Issue Alert & Reapplication Card
+      const issuesCard = document.getElementById('ppa-issues-card');
+      const btnFix = document.getElementById('ppa-btn-fix');
+      const issuesHeading = document.getElementById('ppa-issues-heading');
+      const issuesBadge = document.getElementById('ppa-issues-badge');
+      const chipsBox = document.getElementById('ppa-failed-chips-box');
+
+      if (issuesCard && btnFix) {
+        if (failedCount > 0) {
+          issuesCard.style.display = 'flex';
+          if (issuesBadge) issuesBadge.textContent = `${failedCount} ${failedCount === 1 ? 'Issue' : 'Issues'}`;
+          
+          if (state.isFixingIssues) {
+            btnFix.innerHTML = `🔄 Reapplying Price...`;
+            btnFix.disabled = true;
+          } else if (state.pendingFixRequested) {
+            btnFix.innerHTML = `⏳ Fixing after current row...`;
+            btnFix.disabled = true;
+          } else {
+            btnFix.disabled = false;
+            if (failedCount === 1) {
+              const singleName = failedCountries[0].name;
+              if (issuesHeading) issuesHeading.textContent = `Issue with ${singleName}`;
+              btnFix.innerHTML = `🔧 Fix Issue (Reapply for ${singleName})`;
+            } else {
+              if (issuesHeading) issuesHeading.textContent = `${failedCount} Countries Encountered Issues`;
+              btnFix.innerHTML = `🔧 Fix All ${failedCount} Issues (Reapply Prices)`;
+            }
+          }
+
+          if (chipsBox) {
+            chipsBox.innerHTML = failedCountries.map(c => `
+              <span class="ppa-failed-chip" title="Reason: ${c.message || 'Unknown error'}">
+                <strong>${c.name}</strong>${c.message ? ` <em>(${c.message})</em>` : ''}
+                <button type="button" class="ppa-chip-retry-btn" data-country="${c.name.replace(/"/g, '&quot;')}" title="Specifically reapply price for ${c.name.replace(/"/g, '&quot;')}">↻ Reapply</button>
+              </span>
+            `).join('');
+          }
+        } else {
+          issuesCard.style.display = 'none';
+        }
+      }
+
+      const btnStart = document.getElementById('ppa-btn-start');
+      const btnPause = document.getElementById('ppa-btn-pause');
+      const btnStop = document.getElementById('ppa-btn-stop');
+
+      if (btnStart) btnStart.disabled = (state.isRunning && !state.isPaused) || total === 0;
+      if (btnPause) btnPause.disabled = !state.isRunning || state.isPaused;
+      if (btnStop) btnStop.disabled = !state.isRunning;
+
+      updateTimersTick();
+    } catch (uiErr) {
+      console.error('[PlayPrice Automator] updateUI error:', uiErr);
     }
-
-    const bDone = document.getElementById('ppa-badge-done');
-    const bMatch = document.getElementById('ppa-badge-matched');
-    const bFail = document.getElementById('ppa-badge-failed');
-    if (bDone) bDone.textContent = `✅ ${doneCount} Done`;
-    if (bMatch) bMatch.textContent = `✨ ${matchedCount} Matches`;
-    if (bFail) bFail.textContent = `⚠️ ${failedCount} Issues`;
-
-    const btnStart = document.getElementById('ppa-btn-start');
-    const btnPause = document.getElementById('ppa-btn-pause');
-    const btnStop = document.getElementById('ppa-btn-stop');
-
-    if (btnStart) btnStart.disabled = (state.isRunning && !state.isPaused) || total === 0;
-    if (btnPause) btnPause.disabled = !state.isRunning || state.isPaused;
-    if (btnStop) btnStop.disabled = !state.isRunning;
-
-    updateTimersTick();
   }
 
   // -------------------------------------------------------------
@@ -1641,7 +1929,7 @@
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.9.0</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.9.2</div>
             </div>
           </div>
           <div id="ppa-header-badge">
@@ -1690,8 +1978,23 @@
             <div id="ppa-stat-badges">
               <span class="ppa-badge ppa-badge-done" id="ppa-badge-done">✅ 0 Done</span>
               <span class="ppa-badge ppa-badge-matched" id="ppa-badge-matched">✨ 0 Matches</span>
-              <span class="ppa-badge ppa-badge-failed" id="ppa-badge-failed">⚠️ 0 Issues</span>
+              <span class="ppa-badge ppa-badge-failed" id="ppa-badge-failed" title="Click to fix failed countries">⚠️ 0 Issues</span>
             </div>
+          </div>
+
+          <!-- Real-Time Issues & Fix Action Card (Shown dynamically when failedCount > 0) -->
+          <div id="ppa-issues-card" style="display: none;">
+            <div id="ppa-issues-header">
+              <div id="ppa-issues-title">
+                <span id="ppa-issues-icon">⚠️</span>
+                <span id="ppa-issues-heading">1 Country Encountered an Issue</span>
+              </div>
+              <span id="ppa-issues-badge" class="ppa-badge ppa-badge-failed">1 Issue</span>
+            </div>
+            <div id="ppa-failed-chips-box"></div>
+            <button class="ppa-btn ppa-btn-fix" id="ppa-btn-fix" type="button">
+              🔧 Fix Issue (Reapply Price)
+            </button>
           </div>
 
           <!-- Real-Time Timers (Stopwatch & Countdown ETA) -->
@@ -2041,6 +2344,117 @@
       .ppa-badge-done { color: #10B981; }
       .ppa-badge-matched { color: #38BDF8; }
       .ppa-badge-failed { color: #F59E0B; }
+      .ppa-badge-failed[style*="cursor: pointer"]:hover {
+        opacity: 0.85;
+        text-decoration: underline;
+      }
+
+      /* Issue Resolution Alert & Action Card */
+      #ppa-issues-card {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(220, 38, 38, 0.1) 100%);
+        border: 1px solid rgba(245, 158, 11, 0.45);
+        border-radius: 7px;
+        padding: 7px 9px;
+        margin-top: 4px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);
+        animation: ppa-card-pulse 3s infinite ease-in-out;
+      }
+      @keyframes ppa-card-pulse {
+        0%, 100% { border-color: rgba(245, 158, 11, 0.4); box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12); }
+        50% { border-color: rgba(245, 158, 11, 0.7); box-shadow: 0 4px 18px rgba(245, 158, 11, 0.28); }
+      }
+      #ppa-issues-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      #ppa-issues-title {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 700;
+        font-size: 10.5px;
+        color: #FBBF24;
+      }
+      #ppa-issues-icon {
+        font-size: 12px;
+      }
+      #ppa-failed-chips-box {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        max-height: 60px;
+        overflow-y: auto;
+      }
+      .ppa-failed-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(15, 23, 42, 0.85);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        border-radius: 4px;
+        padding: 2px 5px;
+        font-size: 9px;
+        color: #F8FAFC;
+      }
+      .ppa-failed-chip strong {
+        color: #FBBF24;
+      }
+      .ppa-failed-chip em {
+        color: #94A3B8;
+        font-style: normal;
+        font-size: 8.5px;
+      }
+      .ppa-chip-retry-btn {
+        background: #F59E0B;
+        color: #0F172A;
+        border: none;
+        border-radius: 3px;
+        padding: 1px 4px;
+        font-size: 8.5px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .ppa-chip-retry-btn:hover {
+        background: #FBBF24;
+        transform: scale(1.05);
+      }
+      .ppa-btn-fix {
+        width: 100%;
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        color: #0F172A;
+        border: none;
+        border-radius: 5px;
+        padding: 7px 10px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .ppa-btn-fix:hover:not(:disabled) {
+        background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.55);
+        transform: translateY(-1px);
+        color: #000;
+      }
+      .ppa-btn-fix:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(245, 158, 11, 0.4);
+      }
+      .ppa-btn-fix:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
 
       /* Realtime Timers Row */
       #ppa-timers-row {
@@ -2325,6 +2739,9 @@
     document.getElementById('ppa-btn-reset').addEventListener('click', () => {
       state.isRunning = false;
       state.isPaused = false;
+      state.isFixingIssues = false;
+      state.pendingFixRequested = false;
+      state.targetFixCountry = null;
       state.currentIndex = 0;
       for (const c of state.countries) {
         c.status = 'pending';
@@ -2334,6 +2751,40 @@
       log('🔄 Queue reset to first country.');
       updateUI();
     });
+
+    // Fix Issues Button
+    const btnFix = document.getElementById('ppa-btn-fix');
+    if (btnFix) {
+      btnFix.addEventListener('click', () => {
+        handleFixIssueClick();
+      });
+    }
+
+    // Click on failed badge
+    const bFail = document.getElementById('ppa-badge-failed');
+    if (bFail) {
+      bFail.addEventListener('click', () => {
+        const failedCount = state.countries.filter(c => c.status === 'failed').length;
+        if (failedCount > 0) {
+          handleFixIssueClick();
+        }
+      });
+    }
+
+    // Individual chip retry buttons (Event delegation)
+    const chipsBox = document.getElementById('ppa-failed-chips-box');
+    if (chipsBox) {
+      chipsBox.addEventListener('click', (e) => {
+        const retryBtn = e.target.closest('.ppa-chip-retry-btn');
+        if (retryBtn) {
+          e.stopPropagation();
+          const countryName = retryBtn.getAttribute('data-country');
+          if (countryName) {
+            handleFixIssueClick(countryName);
+          }
+        }
+      });
+    }
 
     // Speed selector
     const speedSelect = document.getElementById('ppa-speed-select');

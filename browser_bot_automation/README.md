@@ -84,5 +84,6 @@ The **PlayPrice In-Browser Automator** is a lightweight, zero-dependency in-brow
 - **Native Event Dispatching:** Dispatches `input`, `change`, and `Enter` keyboard events directly to Google's Angular/Material input elements.
 - **Smart Duplicate Protection:** Checks existing values first; skips already-configured countries to save time and prevent unnecessary network calls.
 - **Pause & Resume:** Easily pause, resume, or stop execution at any time.
+- **Dynamic Issue Resolution & Fix Issues Button:** If any country encounters an issue (e.g. search timeout, table rendering delay, popup failure), an alert card and **`🔧 Fix Issue (Reapply Price)`** button dynamically appear. Clicking this button specifically retries price application for only the failed country name(s). It can be clicked during an active run (safely queued to intercept right after the current row without corrupting queue state), while paused, or after completion. Individual country chips also offer single-click `↻ Reapply` targeting.
 
 
