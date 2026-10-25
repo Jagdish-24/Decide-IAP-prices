@@ -7,7 +7,7 @@
   'use strict';
 
   // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-  const APP_VERSION = '1.8.5';
+  const APP_VERSION = '1.8.6';
   const APP_LAST_UPDATED = '25 Oct 2026';
 
   // 1. Initial State
