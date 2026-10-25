@@ -5,7 +5,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.7...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.8...');
 
   // State Management
   const state = {
@@ -25,7 +25,6 @@
     totalPausedMs: 0,
     pauseStartTime: null,
     timerIntervalId: null,
-    lastEtaUiUpdateTime: 0,
     lastTaskDurationMs: null
   };
 
@@ -1111,15 +1110,15 @@
       state.timerStartTime = Date.now();
       state.totalPausedMs = 0;
       state.pauseStartTime = null;
-      state.lastEtaUiUpdateTime = 0;
+      updateEstCompletionUI();
     } else if (state.pauseStartTime) {
       state.totalPausedMs += (Date.now() - state.pauseStartTime);
       state.pauseStartTime = null;
     }
 
     if (state.timerIntervalId) clearInterval(state.timerIntervalId);
-    state.timerIntervalId = setInterval(() => updateTimersTick(false), 200);
-    updateTimersTick(true);
+    state.timerIntervalId = setInterval(updateTimersTick, 200);
+    updateTimersTick();
   }
 
   function pauseTimers() {
@@ -1139,16 +1138,14 @@
       state.timerStartTime = null;
       state.totalPausedMs = 0;
       state.pauseStartTime = null;
-      state.lastEtaUiUpdateTime = 0;
       state.lastTaskDurationMs = null;
       const elElapsed = document.getElementById('ppa-timer-elapsed');
-      const elRemain = document.getElementById('ppa-timer-remaining');
       if (elElapsed) elElapsed.textContent = '00:00';
-      if (elRemain) elRemain.textContent = '--:--';
+      updateEstCompletionUI();
     }
   }
 
-  function updateTimersTick(forceEta = false) {
+  function updateTimersTick() {
     if (!state.timerStartTime) return;
 
     const now = Date.now();
@@ -1159,14 +1156,15 @@
     if (elElapsed) {
       elElapsed.textContent = formatDuration(elapsedMs);
     }
+  }
 
+  function updateEstCompletionUI() {
     const elRemain = document.getElementById('ppa-timer-remaining');
     if (!elRemain) return;
 
     const total = state.countries.length;
     if (total === 0) {
       elRemain.textContent = '--:--';
-      state.lastEtaUiUpdateTime = 0;
       return;
     }
 
@@ -1178,25 +1176,15 @@
       return;
     }
 
-    // Keep calculation mechanics real-time, but throttle the Est. Completion UI display updates
-    // to once every 3 seconds so the user can easily read the remaining time without rapid text jitter.
-    const ETA_UI_CADENCE_MS = 3000;
-    const shouldUpdateEta = forceEta || 
-                            !state.lastEtaUiUpdateTime || 
-                            (now - state.lastEtaUiUpdateTime >= ETA_UI_CADENCE_MS);
-
-    if (shouldUpdateEta) {
-      state.lastEtaUiUpdateTime = now;
-
-      // Calculate total remaining time based on:
-      // (time taken to complete the last task) * (total remaining number of tasks)
-      const perTaskMs = state.lastTaskDurationMs || (state.speedDelay + 1500);
-      const remainingMs = remaining * perTaskMs;
-      const etaDate = new Date(now + remainingMs);
-      const etaStr = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const prefix = state.lastTaskDurationMs ? '' : '~';
-      elRemain.textContent = `${prefix}${formatDuration(remainingMs)} (ETA: ${etaStr})`;
-    }
+    const now = Date.now();
+    // Calculate total remaining time based on:
+    // (time taken to complete the last task) * (total remaining number of tasks)
+    const perTaskMs = state.lastTaskDurationMs || (state.speedDelay + 1500);
+    const remainingMs = remaining * perTaskMs;
+    const etaDate = new Date(now + remainingMs);
+    const etaStr = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const prefix = state.lastTaskDurationMs ? '' : '~';
+    elRemain.textContent = `${prefix}${formatDuration(remainingMs)} (ETA: ${etaStr})`;
   }
 
   // -------------------------------------------------------------
@@ -1386,7 +1374,7 @@
       }
 
       updateUI();
-      updateTimersTick(true);
+      updateEstCompletionUI();
     }
 
     if (state.isRunning && state.currentIndex >= state.countries.length - 1) {
@@ -1394,6 +1382,7 @@
       if (state.autoSaveConsole) {
         await saveConsoleChanges();
       }
+      updateEstCompletionUI();
     }
 
     state.isRunning = false;
@@ -1524,7 +1513,7 @@
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.7</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.8</div>
             </div>
           </div>
           <div id="ppa-header-badge">
@@ -2329,7 +2318,7 @@
       speedSelect.addEventListener('change', (e) => {
         state.speedDelay = parseInt(e.target.value, 10);
         log(`⏱ Safe cadence set to ${state.speedDelay}ms per country.`);
-        updateTimersTick(true);
+        updateEstCompletionUI();
       });
     }
 

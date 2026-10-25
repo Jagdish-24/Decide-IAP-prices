@@ -66,7 +66,7 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.7.7</span>
+          <span class="version-tag" id="appVersionText">v1.7.8</span>
           <span class="version-sep">•</span>
           <span class="version-date" id="lastUpdatedDateText">Updated 25 Oct 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -1072,7 +1072,7 @@
           <div>
             <div class="modal-title-row">
               <h3>PlayPrice Engine Version History</h3>
-              <span class="version-tag-pill">v1.7.7 (Latest)</span>
+              <span class="version-tag-pill">v1.7.8 (Latest)</span>
             </div>
             <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 25 Oct 2026</p>
           </div>
@@ -1091,8 +1091,23 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.7.7 -->
+          <!-- Release v1.7.8 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.7.8</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Event-Driven Per-Task Est. Completion UI:</strong> Decoupled remaining time and ETA UI refreshes from periodic interval ticks. The Est. Completion display now updates cleanly after each country task completes, keeping the estimate stable and freeze-locked while tasks run.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.7.7 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">
