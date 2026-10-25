@@ -66,7 +66,7 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.7.9</span>
+          <span class="version-tag" id="appVersionText">v1.8.0</span>
           <span class="version-sep">•</span>
           <span class="version-date" id="lastUpdatedDateText">Updated 25 Oct 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -1091,8 +1091,24 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.7.9 -->
+          <!-- Release v1.8.0 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.8.0</span>
+                <span class="changelog-tag tag-minor">Minor Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Support for "New countries/regions" (USD &amp; EUR) Pricing:</strong> Added end-to-end pricing and automation support for Google Play Console's global fallback pools (<code>New countries/regions (USD)</code> and <code>New countries/regions (EUR)</code>). Included in Bot CSV exports (all 176 territories), automatically queried under <em>New countries/regions</em> with automatic parent tree group expansion in DOM automators, and calibrated with multi-row offset targeting in Play Sale Automator.</li>
+                <li><strong>Enforced Post-Save Safety Delay:</strong> Extended price save confirmation wait time to 3.2 seconds across both browser and desktop automators to ensure Google Play Console completely finishes applying price updates before proceeding.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.7.9 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">

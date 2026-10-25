@@ -366,14 +366,15 @@ class PlaySaleAutomatorEngine:
             return False, copied_price
 
         # Paste the current task country name directly over the selection (no backspace needed)
-        self._safe_write(c_name)
+        search_query = "New countries/regions" if "new countries" in c_name.lower() else c_name
+        self._safe_write(search_query)
         self._safe_press("enter")
 
         # Wait for left table to filter to row 1
         if not self._safe_sleep(timing.get("search_delay", 0.8)):
             return False, copied_price
 
-        self.log(f"[{c_name}] 📸 Step 2: Searched '{c_name}' in Google Play Console. Capturing screenshot...")
+        self.log(f"[{c_name}] 📸 Step 2: Searched '{search_query}' in Google Play Console. Capturing screenshot...")
         self.screenshot_mgr.capture_and_save("step2_country_searched", label=c_name)
 
         # -------------------------------------------------------------
@@ -388,6 +389,16 @@ class PlaySaleAutomatorEngine:
             if dyn_pencil:
                 pencil_x, pencil_y = dyn_pencil
                 self.log(f"[{c_name}] 👁️ Visually located row pencil at ({pencil_x}, {pencil_y})")
+
+        # Offset row pencil if targeting child rows under expandable 'New countries/regions'
+        c_lower = c_name.lower()
+        if "new countries" in c_lower:
+            if "usd" in c_lower:
+                pencil_y += 48
+                self.log(f"[{c_name}] 🌐 Targeting 'New countries/regions (USD)' on Row 2 (offset +48px)")
+            elif "eur" in c_lower:
+                pencil_y += 96
+                self.log(f"[{c_name}] 🌐 Targeting 'New countries/regions (EUR)' on Row 3 (offset +96px)")
 
         if not self._safe_click(pencil_x, pencil_y, clicks=1):
             return False, copied_price
@@ -482,8 +493,9 @@ class PlaySaleAutomatorEngine:
         if not self._safe_click(l_save["x"], l_save["y"]):
             return False, copied_price
 
-        # Wait for popup to close and row to update
-        if not self._safe_sleep(timing.get("post_save_delay", 0.8)):
+        # Wait for popup to close and row to update (wait at least 3.0s - 3.5s for Google Play Console to save)
+        post_delay = max(3.0, float(timing.get("post_save_delay", 3.0)))
+        if not self._safe_sleep(post_delay):
             return False, copied_price
 
         self.screenshot_mgr.capture_and_save("step4_saved_verified", label=c_name)

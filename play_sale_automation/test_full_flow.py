@@ -348,7 +348,58 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
         engine.stop()
         self.assertTrue(engine.stop_requested)
         self.assertEqual(engine.state, AutomatorState.STOPPED)
-        print("Test 8 Passed: Stop request halts execution immediately.")
+    # -------------------------------------------------------------
+    # TEST 9: New countries/regions (USD & EUR) Offsets and Search Query
+    # -------------------------------------------------------------
+    @patch("automator_engine.pyautogui")
+    @patch("automator_engine.pyperclip")
+    def test_09_new_countries_regions_offsets(self, mock_pyperclip, mock_pyautogui):
+        config = {
+            "automation_mode": "single_window",
+            "pricing_target_mode": "retail",
+            "coordinates": {
+                "left_search_box": {"x": 955, "y": 367},
+                "left_row_pencil": {"x": 545, "y": 470},
+                "left_popup_input": {"x": 550, "y": 560},
+                "left_popup_save": {"x": 575, "y": 625}
+            },
+            "timing": {
+                "pre_start_delay": 0.01,
+                "search_delay": 0.01,
+                "popup_delay": 0.01,
+                "post_save_delay": 0.01,
+                "step_delay": 0.01,
+                "mouse_move_duration": 0.01
+            }
+        }
+        mock_detector = MagicMock()
+        mock_detector.is_paused.return_value = False
+        mock_pyperclip.paste.return_value = "0.00"
+
+        countries = [
+            {"name": "New countries/regions (USD)", "code": "GLOBAL_USD", "currency": "USD", "retail_price": 0.99, "sale_price": 0.99},
+            {"name": "New countries/regions (EUR)", "code": "GLOBAL_EUR", "currency": "EUR", "retail_price": 0.99, "sale_price": 0.99}
+        ]
+
+        engine = PlaySaleAutomatorEngine(config, countries, mock_detector)
+        
+        # Test USD item
+        success_usd, price_usd = engine._process_country(countries[0], 0)
+        self.assertTrue(success_usd)
+        mock_pyperclip.copy.assert_any_call("New countries/regions")
+        mock_pyautogui.click.assert_any_call(x=545, y=518, clicks=1, button="left")
+
+        mock_pyperclip.reset_mock()
+        mock_pyautogui.reset_mock()
+
+        # Test EUR item
+        success_eur, price_eur = engine._process_country(countries[1], 1)
+        self.assertTrue(success_eur)
+        mock_pyperclip.copy.assert_any_call("New countries/regions")
+        mock_pyautogui.click.assert_any_call(x=545, y=566, clicks=1, button="left")
+
+        print("✅ Test 9 Passed: 'New countries/regions' search normalization and child row offsets (+48px / +96px) verified.")
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Play Console Sale Price Automator (PlayPrice Engine)
 // @namespace    https://github.com/Jagdish-24/Decide-IAP-prices
-// @version      1.7.9
+// @version      1.8.0
 // @description  Automates setting country sale prices and app prices in Google Play Console with 1-click DOM injection and zero mouse movement.
 // @author       PlayPrice Engine Team
 // @match        https://play.google.com/console/*
@@ -15,7 +15,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.9...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.8.0...');
 
   // State Management
   const state = {
@@ -227,17 +227,36 @@
   async function waitForFilteredRow(countryName, timeoutMs = 4500) {
     const start = Date.now();
     const query = countryName.toLowerCase();
+    const isGlobalNew = query.includes('new countries');
     
     while (Date.now() - start < timeoutMs) {
       if (!state.isRunning) return null;
       
       const rows = Array.from(document.querySelectorAll('tr, [role="row"], .table-row, material-row, div[data-row]'));
+      
+      // 1. Check if the specific target row is found and rendered
       for (const row of rows) {
         const text = row.textContent.toLowerCase();
         if (text.includes(query) && !row.closest('[role="dialog"]') && !row.closest('dialog')) {
           return row;
         }
       }
+
+      // 2. If it's a global fallback pool (USD/EUR) and not yet visible, check if parent tree group is collapsed
+      if (isGlobalNew) {
+        for (const row of rows) {
+          const text = row.textContent.toLowerCase();
+          if (text.includes('new countries') && !text.includes('(usd)') && !text.includes('(eur)')) {
+            const expandBtn = row.querySelector('[aria-expanded="false"], button, [role="button"]') || row;
+            if (expandBtn.getAttribute('aria-expanded') === 'false' || row.getAttribute('aria-expanded') === 'false') {
+              activelyClickElement(expandBtn);
+              await sleep(250);
+              break;
+            }
+          }
+        }
+      }
+
       await sleep(120);
     }
     return null;
@@ -1281,7 +1300,10 @@
         searchBox.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
         if (typeof searchBox.select === 'function') searchBox.select();
         await humanMicroPause(50, 130);
-        setNativeValue(searchBox, c.name);
+        // Normalize search term: Google Play Console indexes fallback pools under "New countries/regions"
+        const isGlobalNew = c.name.toLowerCase().includes('new countries');
+        const searchTerm = isGlobalNew ? 'New countries/regions' : c.name;
+        setNativeValue(searchBox, searchTerm);
 
         // Safe Cadence Delay
         await sleep(getHumanizedDelay(state.speedDelay));
@@ -1538,7 +1560,7 @@
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.9</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.8.0</div>
             </div>
           </div>
           <div id="ppa-header-badge">

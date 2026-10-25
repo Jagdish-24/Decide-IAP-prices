@@ -11,7 +11,7 @@ CONFIG_DIR = os.path.join(os.path.dirname(__file__), "cache")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 
 # Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-APP_VERSION = "1.7.9"
+APP_VERSION = "1.8.0"
 APP_LAST_UPDATED = "25 Oct 2026"
 
 def get_default_coordinates():
@@ -67,7 +67,7 @@ DEFAULT_CONFIG = {
         "step_delay": 0.7,             # Default pause after clicks/keystrokes
         "search_delay": 0.8,           # Wait for table to filter after search
         "popup_delay": 0.8,            # Wait for Edit price popup to open/close
-        "post_save_delay": 0.8         # Wait for change to reflect in table
+        "post_save_delay": 3.2         # Wait 3-4s for Google Play Console to save price
     },
     "automation_mode": "single_window",   # "single_window" (Play Console only) or "dual_window"
     "pricing_target_mode": "sale",       # "sale" (Mode 2: Sale Prices) or "retail" (Mode 1: Base Prices)

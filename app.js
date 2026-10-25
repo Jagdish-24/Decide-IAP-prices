@@ -7,7 +7,7 @@
   'use strict';
 
   // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-  const APP_VERSION = '1.7.9';
+  const APP_VERSION = '1.8.0';
   const APP_LAST_UPDATED = '25 Oct 2026';
 
   // 1. Initial State
@@ -2305,9 +2305,8 @@
 
     const rows = [headers];
 
-    // Export all 174 real countries (skipping virtual GLOBAL_USD / GLOBAL_EUR fallback entries)
+    // Export all 176 Google Play countries/regions (including New countries/regions USD/EUR fallback pools)
     state.countries.forEach(country => {
-      if (country.code === 'GLOBAL_USD' || country.code === 'GLOBAL_EUR') return;
 
       const calc = calculateCountryPricing(country, activeProd.price, state.baseCurrency, isPaidApp);
       const cleanRetail = formatCleanNumber(calc.retailPrice, country.currency);
