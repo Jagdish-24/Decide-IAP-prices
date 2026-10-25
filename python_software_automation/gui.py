@@ -27,9 +27,18 @@ _pkg_dir = os.path.dirname(os.path.abspath(__file__))
 if _pkg_dir not in sys.path:
     sys.path.insert(0, _pkg_dir)
 
-from config import load_config, save_config, get_default_coordinates, APP_VERSION, APP_LAST_UPDATED
+from config import (
+    load_config,
+    save_config,
+    get_default_coordinates,
+    APP_VERSION,
+    APP_LAST_UPDATED,
+    CADENCE_PRESETS,
+    CADENCE_CODE_TO_DISPLAY,
+    CADENCE_DISPLAY_TO_CODE
+)
 from mouse_detector import MouseInterventionDetector
-from automator_engine import PlaySaleAutomatorEngine, AutomatorState
+from automator_engine import PlaySaleAutomatorEngine, AutomatorState, format_duration
 from window_locator import WindowLocator
 from file_parser import parse_pricing_file
 from visual_calibrator import (
@@ -98,8 +107,9 @@ class PlaySaleAutomatorGUI(tk.Tk):
         # Setup Global Hotkeys
         self._init_hotkeys()
 
-        # Start periodic GUI clock for window check
+        # Start periodic GUI clock for window check & telemetry timers
         self.after(1000, self._periodic_window_check)
+        self.after(200, self._timer_tick)
 
     def _load_initial_pricing_matrix(self):
         default_csv = os.path.join(os.path.dirname(__file__), "default_pricing_matrix.csv")
@@ -276,12 +286,12 @@ class PlaySaleAutomatorGUI(tk.Tk):
         col_right = tk.Frame(card, bg=self.colors["card_bg"])
         col_right.pack(side="right")
 
-        # Left: Task Mode Selection Dropdown
+        # Left: Task Mode Selection Dropdown + Safety Cadence Selector
         mode_row = tk.Frame(col_left, bg=self.colors["card_bg"])
         mode_row.pack(anchor="w")
 
-        tk.Label(mode_row, text="🎯 Task Automation Mode:", font=("Segoe UI", 9, "bold"),
-                 fg=self.colors["accent"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 10))
+        tk.Label(mode_row, text="🎯 Task Mode:", font=("Segoe UI", 9, "bold"),
+                 fg=self.colors["accent"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 6))
 
         curr_mode = self.config_data.get("pricing_target_mode", "sale")
         if curr_mode not in CODE_TO_DISPLAY:
@@ -295,10 +305,30 @@ class PlaySaleAutomatorGUI(tk.Tk):
             values=[v for _, v in TASK_MODES],
             state="readonly",
             font=("Segoe UI", 9, "bold"),
-            width=30
+            width=26
         )
-        self.mode_dropdown.pack(side="left")
+        self.mode_dropdown.pack(side="left", padx=(0, 16))
         self.mode_dropdown.bind("<<ComboboxSelected>>", self._on_change_pricing_mode)
+
+        # Cadence Speed Preset
+        tk.Label(mode_row, text="⏱️ Cadence:", font=("Segoe UI", 9, "bold"),
+                 fg=self.colors["accent"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 6))
+
+        curr_cadence = self.config_data.get("speed_delay", 2500)
+        if curr_cadence not in CADENCE_CODE_TO_DISPLAY:
+            curr_cadence = 2500
+        self.cadence_display_var = tk.StringVar(value=CADENCE_CODE_TO_DISPLAY[curr_cadence])
+
+        self.cadence_dropdown = ttk.Combobox(
+            mode_row,
+            textvariable=self.cadence_display_var,
+            values=[v for _, v in CADENCE_PRESETS],
+            state="readonly",
+            font=("Segoe UI", 9, "bold"),
+            width=34
+        )
+        self.cadence_dropdown.pack(side="left")
+        self.cadence_dropdown.bind("<<ComboboxSelected>>", self._on_change_cadence)
 
         # Right: Matrix File & Load Button
         file_box = tk.Frame(col_right, bg=self.colors["card_inner"], padx=12, pady=5,
@@ -315,6 +345,14 @@ class PlaySaleAutomatorGUI(tk.Tk):
                              activeforeground="#FFFFFF", relief="flat", padx=10, pady=3,
                              cursor="hand2", command=self._on_click_load_file)
         btn_load.pack(side="right")
+
+    def _on_change_cadence(self, event=None):
+        disp = self.cadence_display_var.get()
+        code = CADENCE_DISPLAY_TO_CODE.get(disp, 2500)
+        self.config_data["speed_delay"] = code
+        self.engine.set_speed_delay(code)
+        save_config(self.config_data)
+        self._on_engine_log(f"⏱️ Safety Cadence updated to: {disp}")
 
     def _on_change_pricing_mode(self, event=None):
         disp = self.mode_display_var.get()
@@ -394,7 +432,47 @@ class PlaySaleAutomatorGUI(tk.Tk):
         # Progress bar
         self.progress_bar = ttk.Progressbar(card, style="Horizontal.TProgressbar",
                                            orient="horizontal", mode="determinate", maximum=len(self.countries))
-        self.progress_bar.pack(fill="x", pady=(0, 12))
+        self.progress_bar.pack(fill="x", pady=(0, 10))
+
+        # Real-Time Telemetry Row: Elapsed Stopwatch & Est. Completion
+        timers_row = tk.Frame(card, bg=self.colors["card_bg"])
+        timers_row.pack(fill="x", pady=(0, 12))
+
+        # 1. Elapsed Stopwatch Card (Left)
+        card_elapsed = tk.Frame(timers_row, bg=self.colors["card_inner"], padx=14, pady=8,
+                                highlightbackground=self.colors["card_inner_border"], highlightthickness=1)
+        card_elapsed.pack(side="left", fill="x", expand=True, padx=(0, 8))
+
+        tk.Label(card_elapsed, text="⏱️", font=("Segoe UI", 13),
+                 bg=self.colors["card_inner"]).pack(side="left", padx=(0, 10))
+
+        content_elapsed = tk.Frame(card_elapsed, bg=self.colors["card_inner"])
+        content_elapsed.pack(side="left", fill="x")
+
+        tk.Label(content_elapsed, text="Elapsed Stopwatch", font=("Segoe UI", 8, "bold"),
+                 fg=self.colors["text_dim"], bg=self.colors["card_inner"]).pack(anchor="w")
+
+        self.timer_elapsed_lbl = tk.Label(content_elapsed, text="00:00", font=("Consolas", 12, "bold"),
+                                          fg="#38BDF8", bg=self.colors["card_inner"])
+        self.timer_elapsed_lbl.pack(anchor="w")
+
+        # 2. Est. Completion Card (Right)
+        card_remaining = tk.Frame(timers_row, bg=self.colors["card_inner"], padx=14, pady=8,
+                                 highlightbackground=self.colors["card_inner_border"], highlightthickness=1)
+        card_remaining.pack(side="left", fill="x", expand=True, padx=(8, 0))
+
+        tk.Label(card_remaining, text="⏳", font=("Segoe UI", 13),
+                 bg=self.colors["card_inner"]).pack(side="left", padx=(0, 10))
+
+        content_remaining = tk.Frame(card_remaining, bg=self.colors["card_inner"])
+        content_remaining.pack(side="left", fill="x")
+
+        tk.Label(content_remaining, text="Est. Completion", font=("Segoe UI", 8, "bold"),
+                 fg=self.colors["text_dim"], bg=self.colors["card_inner"]).pack(anchor="w")
+
+        self.timer_remaining_lbl = tk.Label(content_remaining, text="--:--", font=("Segoe UI", 11, "bold"),
+                                            fg="#F59E0B", bg=self.colors["card_inner"])
+        self.timer_remaining_lbl.pack(anchor="w")
 
         # Control buttons row
         btn_row = tk.Frame(card, bg=self.colors["card_bg"])
@@ -1029,11 +1107,29 @@ class PlaySaleAutomatorGUI(tk.Tk):
 
         self.after(4000, self._periodic_window_check)
 
+    def _timer_tick(self):
+        """Periodic real-time UI update for elapsed stopwatch and estimated completion."""
+        try:
+            telemetry = self.engine.get_timer_telemetry()
+            if hasattr(self, "timer_elapsed_lbl"):
+                self.timer_elapsed_lbl.config(text=telemetry.get("elapsed_str", "00:00"))
+            if hasattr(self, "timer_remaining_lbl"):
+                is_comp = telemetry.get("is_completed", False)
+                rem_str = telemetry.get("remaining_str", "--:--")
+                col = "#10B981" if is_comp else "#F59E0B"
+                self.timer_remaining_lbl.config(text=rem_str, fg=col)
+        except Exception:
+            pass
+        finally:
+            self.after(200, self._timer_tick)
+
     # ---------------- Engine Event Handlers ----------------
 
     def _on_click_start(self):
         if self.engine.state in [AutomatorState.RUNNING, AutomatorState.COUNTDOWN]:
             return
+        if self.engine.current_country_index == 0:
+            self.engine.stop_timers(reset=True)
         self.btn_start.config(state="disabled")
         self.btn_stop.config(state="normal")
         self.btn_test_one.config(state="disabled")

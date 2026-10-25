@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Play Console Sale Price Automator (PlayPrice Engine)
 // @namespace    https://github.com/Jagdish-24/Decide-IAP-prices
-// @version      1.8.10
+// @version      1.9.0
 // @description  Automates setting country sale prices and app prices in Google Play Console with 1-click DOM injection and zero mouse movement.
 // @author       PlayPrice Engine Team
 // @match        https://play.google.com/console/*
@@ -15,7 +15,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.8.10...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.9.0...');
 
   // State Management
   const state = {
@@ -1641,7 +1641,7 @@
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.8.10</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.9.0</div>
             </div>
           </div>
           <div id="ppa-header-badge">

@@ -11,8 +11,18 @@ CONFIG_DIR = os.path.join(os.path.dirname(__file__), "cache")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 
 # Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-APP_VERSION = "1.8.10"
+APP_VERSION = "1.9.0"
 APP_LAST_UPDATED = "25 Oct 2026"
+
+# Cadence Speed Presets (matching Browser Bot)
+CADENCE_PRESETS = [
+    (2500, "🛡️ Ultra-Safe (2500ms • Human Cadence)"),
+    (1600, "⚡ Safe & Steady (1600ms • Recommended)"),
+    (1000, "🚀 Moderate (1000ms • Fast Network)"),
+    (3500, "🐢 Maximum Caution (3500ms • High Latency)")
+]
+CADENCE_CODE_TO_DISPLAY = {k: v for k, v in CADENCE_PRESETS}
+CADENCE_DISPLAY_TO_CODE = {v: k for k, v in CADENCE_PRESETS}
 
 def get_default_coordinates():
     """
@@ -60,17 +70,18 @@ def get_default_coordinates():
 DEFAULT_CONFIG = {
     "screen_resolution": list(pyautogui.size()),
     "coordinates": get_default_coordinates(),
+    "speed_delay": 2500,                  # Ultra-Safe 2500ms cadence default
     "timing": {
-        "pre_start_delay": 5.0,        # 5-second countdown before moving mouse
-        "user_pause_duration": 10.0,    # 10-second pause if user moves mouse
-        "mouse_move_duration": 0.25,   # Smooth human-like cursor glide
-        "step_delay": 0.7,             # Default pause after clicks/keystrokes
-        "search_delay": 0.8,           # Wait for table to filter after search
-        "popup_delay": 0.8,            # Wait for Edit price popup to open/close
-        "post_save_delay": 3.2         # Wait 3-4s for Google Play Console to save price
+        "pre_start_delay": 5.0,           # 5-second countdown before moving mouse
+        "user_pause_duration": 10.0,       # 10-second pause if user moves mouse
+        "mouse_move_duration": 0.25,      # Smooth human-like cursor glide
+        "step_delay": 2.5,                # Default pause after clicks/keystrokes (2.5s)
+        "search_delay": 1.2,              # Wait for table to filter after search
+        "popup_delay": 0.9,               # Wait for Edit price popup to open/close
+        "post_save_delay": 3.2            # Wait 3-4s for Google Play Console to save price
     },
     "automation_mode": "single_window",   # "single_window" (Play Console only) or "dual_window"
-    "pricing_target_mode": "sale",       # "sale" (Mode 2: Sale Prices) or "retail" (Mode 1: Base Prices)
+    "pricing_target_mode": "sale",        # "sale" (Mode 2: Sale Prices) or "retail" (Mode 1: Base Prices)
     "verify_clipboard": True,
     "last_processed_index": 0
 }
@@ -84,6 +95,10 @@ def load_config():
                 saved = json.load(f)
                 merged = dict(DEFAULT_CONFIG)
                 merged.update(saved)
+
+                # Ensure speed_delay is set
+                if "speed_delay" not in merged or not merged["speed_delay"]:
+                    merged["speed_delay"] = 2500
 
                 # Sanitize legacy stale coordinates if search box Y is pointing to bottom of page (> 500)
                 coords = merged.get("coordinates", {})

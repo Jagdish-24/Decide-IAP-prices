@@ -6,7 +6,9 @@ with user-intervention detection, fail-safe delays, and step-by-step progress tr
 
 import time
 import re
+import random
 import threading
+from datetime import datetime
 import pyautogui
 import pyperclip
 
@@ -31,6 +33,44 @@ def extract_numeric_value(text):
             return None
     return None
 
+def get_humanized_delay(base_delay):
+    """
+    Proportional natural human jitter (±15% to 25%) ensuring EVERY cadence profile
+    (Moderate 1000ms, Safe & Steady 1600ms, Ultra-Safe 2500ms, Maximum Caution 3500ms)
+    has realistic non-periodic variance between actions.
+    base_delay can be given in seconds (e.g. 2.5) or ms (2500).
+    If base_delay <= 0.05, returns as-is to preserve fast automated testing.
+    """
+    if base_delay <= 0.05:
+        return base_delay
+
+    is_seconds = base_delay < 50.0
+    base_ms = base_delay * 1000.0 if is_seconds else float(base_delay)
+
+    variance = max(160, int(round(base_ms * 0.18)))
+    min_jitter = -int(round(variance * 0.75))
+    max_jitter = variance
+    jitter = random.randint(min_jitter, max_jitter)
+    final_ms = max(500, base_ms + jitter)
+
+    return (final_ms / 1000.0) if is_seconds else final_ms
+
+def format_duration(seconds_or_ms):
+    """Formats elapsed seconds or milliseconds into MM:SS or HH:MM:SS."""
+    if seconds_or_ms is None or seconds_or_ms < 0:
+        sec = 0
+    elif seconds_or_ms > 10000 and isinstance(seconds_or_ms, (int, float)):
+        sec = int(seconds_or_ms // 1000)
+    else:
+        sec = int(seconds_or_ms)
+
+    hours = sec // 3600
+    minutes = (sec % 3600) // 60
+    seconds = sec % 60
+    if hours > 0:
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+    return f"{minutes:02d}:{seconds:02d}"
+
 class AutomatorState:
     IDLE = "IDLE"
     COUNTDOWN = "COUNTDOWN"
@@ -53,6 +93,13 @@ class PlaySaleAutomatorEngine:
         self.is_simulating = False
         self.last_country_matched = False
 
+        # Stopwatch and Real-time Telemetry
+        self.timer_start_time = None
+        self.total_paused_seconds = 0.0
+        self.pause_start_time = None
+        self.recent_task_durations = []
+        self.speed_delay_ms = int(self.config.get("speed_delay", 2500))
+
         # Callbacks for GUI integration
         self.on_state_change = None
         self.on_progress_update = None
@@ -62,6 +109,112 @@ class PlaySaleAutomatorEngine:
         # Wire mouse detector events
         self.mouse_detector.add_on_pause(self._handle_user_pause)
         self.mouse_detector.add_on_resume(self._handle_user_resume)
+
+    @property
+    def speed_delay_seconds(self):
+        """Returns the base cadence speed delay in seconds."""
+        return self.speed_delay_ms / 1000.0
+
+    def set_speed_delay(self, ms):
+        """Sets safety cadence in milliseconds (e.g. 2500 for Ultra-Safe)."""
+        self.speed_delay_ms = int(ms)
+        self.config["speed_delay"] = int(ms)
+        timing = self.config.setdefault("timing", {})
+        timing["step_delay"] = int(ms) / 1000.0
+
+    def start_timers(self):
+        """Starts or unpauses elapsed stopwatch."""
+        if not self.timer_start_time:
+            self.timer_start_time = time.time()
+            self.total_paused_seconds = 0.0
+            self.pause_start_time = None
+        elif self.pause_start_time:
+            self.total_paused_seconds += (time.time() - self.pause_start_time)
+            self.pause_start_time = None
+
+    def pause_timers(self):
+        """Pauses stopwatch during user mouse intervention or pauses."""
+        if self.timer_start_time and not self.pause_start_time:
+            self.pause_start_time = time.time()
+
+    def resume_timers(self):
+        """Resumes stopwatch after user pause finishes."""
+        if self.pause_start_time:
+            self.total_paused_seconds += (time.time() - self.pause_start_time)
+            self.pause_start_time = None
+
+    def stop_timers(self, reset=False):
+        """Stops or resets stopwatch telemetry."""
+        if self.pause_start_time:
+            self.total_paused_seconds += (time.time() - self.pause_start_time)
+            self.pause_start_time = None
+        if reset:
+            self.timer_start_time = None
+            self.total_paused_seconds = 0.0
+            self.pause_start_time = None
+            self.recent_task_durations = []
+
+    def get_elapsed_seconds(self):
+        """Returns active elapsed time in seconds, excluding pauses."""
+        if not self.timer_start_time:
+            return 0.0
+        now = time.time()
+        paused = self.total_paused_seconds + (now - self.pause_start_time if self.pause_start_time else 0.0)
+        return max(0.0, now - self.timer_start_time - paused)
+
+    def get_timer_telemetry(self):
+        """
+        Calculates elapsed stopwatch string and rolling ETA completion string.
+        Matches the browser bot telemetry exactly:
+        - Uses rolling 5-task moving average
+        - Fallback baseline: speed_delay + modal overhead (~3s)
+        - Format: ~05:40 (ETA: 05:12 PM)
+        - Shows Completed 🎉 when finished
+        """
+        elapsed_sec = self.get_elapsed_seconds()
+        elapsed_str = format_duration(elapsed_sec)
+
+        total = len(self.countries)
+        if total == 0:
+            return {
+                "elapsed_str": elapsed_str,
+                "remaining_str": "--:--",
+                "is_completed": False
+            }
+
+        completed = self.current_country_index
+        if self.state == AutomatorState.COMPLETED:
+            completed = total
+
+        remaining = max(0, total - completed)
+        if completed >= total and total > 0:
+            return {
+                "elapsed_str": elapsed_str,
+                "remaining_str": "Completed 🎉",
+                "is_completed": True
+            }
+
+        now = time.time()
+        if self.recent_task_durations:
+            avg_task_sec = sum(self.recent_task_durations) / len(self.recent_task_durations)
+            prefix = ""
+        else:
+            avg_task_sec = self.speed_delay_seconds + 3.0
+            prefix = "~"
+
+        remaining_sec = remaining * avg_task_sec
+        eta_ts = now + remaining_sec
+        try:
+            eta_str = datetime.fromtimestamp(eta_ts).strftime("%I:%M %p").lstrip("0")
+        except Exception:
+            eta_str = "--:--"
+
+        rem_duration_str = format_duration(remaining_sec)
+        return {
+            "elapsed_str": elapsed_str,
+            "remaining_str": f"{prefix}{rem_duration_str} (ETA: {eta_str})",
+            "is_completed": False
+        }
 
     @contextmanager
     def bot_action(self):
@@ -92,11 +245,13 @@ class PlaySaleAutomatorEngine:
             self.on_state_change(new_state, msg)
 
     def _handle_user_pause(self, duration):
+        self.pause_timers()
         if self.state in [AutomatorState.RUNNING, AutomatorState.COUNTDOWN]:
             self.set_state(AutomatorState.PAUSED, f"User mouse movement detected! Paused for {duration:.0f}s...")
             self.log(f"⚠️ User mouse movement detected! Pausing for {duration:.0f}s before resuming...")
 
     def _handle_user_resume(self):
+        self.resume_timers()
         if self.state == AutomatorState.PAUSED and not self.stop_requested:
             self.set_state(AutomatorState.RUNNING, "Resuming automation...")
             self.log("✅ Mouse is steady. Resuming automation...")
@@ -109,6 +264,7 @@ class PlaySaleAutomatorEngine:
         self.stop_requested = False
         self.current_country_index = start_index
         self.mouse_detector.start()
+        self.start_timers()
         
         self.worker_thread = threading.Thread(target=self._run_loop, daemon=True)
         self.worker_thread.start()
@@ -116,6 +272,7 @@ class PlaySaleAutomatorEngine:
     def stop(self):
         """Requests immediate stop of automation."""
         self.stop_requested = True
+        self.pause_timers()
         self.set_state(AutomatorState.STOPPED, "Automation stopped by user.")
         self.log("🛑 Automation stopped.")
         self.mouse_detector.stop()
@@ -128,6 +285,7 @@ class PlaySaleAutomatorEngine:
         self.stop_requested = False
         self.current_country_index = country_index
         self.mouse_detector.start()
+        self.start_timers()
         
         self.worker_thread = threading.Thread(target=self._run_single_test, args=(country_index,), daemon=True)
         self.worker_thread.start()
@@ -198,9 +356,20 @@ class PlaySaleAutomatorEngine:
         self.log(f"🧪 Testing 1 country: {country['name']} ({country['currency']})")
         self.set_state(AutomatorState.RUNNING, f"Testing: {country['name']}")
         
+        task_start_time = time.time()
+        task_start_paused = self.total_paused_seconds + (time.time() - self.pause_start_time if self.pause_start_time else 0.0)
+
         success, final_price = self._process_country(country, index)
         is_matched = getattr(self, "last_country_matched", False)
         status_label = "matched" if is_matched else ("completed" if success else "failed")
+
+        # Record active duration of this test
+        task_current_paused = self.total_paused_seconds + (time.time() - self.pause_start_time if self.pause_start_time else 0.0)
+        task_active_sec = max(0.0, time.time() - task_start_time - (task_current_paused - task_start_paused))
+        if task_active_sec > 0.2:
+            self.recent_task_durations.append(task_active_sec)
+            if len(self.recent_task_durations) > 5:
+                self.recent_task_durations.pop(0)
 
         if success:
             if is_matched:
@@ -236,11 +405,19 @@ class PlaySaleAutomatorEngine:
 
         self.set_state(AutomatorState.RUNNING, "Automation active.")
         total_countries = len(self.countries)
+        processed_since_last_cooldown = 0
 
         # 2. Main processing loop
         for idx in range(self.current_country_index, total_countries):
             if self.stop_requested:
                 break
+
+            # Rate-limiting safeguard: breathing rest cooldown every 25 processed items with natural jitter
+            if processed_since_last_cooldown > 0 and processed_since_last_cooldown % 25 == 0 and idx < total_countries - 1:
+                break_dur = random.randint(2800, 3600) / 1000.0
+                self.log(f"🛡️ Rate-Limit Safeguard: Taking a natural {break_dur:.1f}s rest break... ({processed_since_last_cooldown} countries processed)")
+                if not self._safe_sleep(break_dur):
+                    break
 
             country = self.countries[idx]
             self.current_country_index = idx
@@ -248,9 +425,22 @@ class PlaySaleAutomatorEngine:
             if self.on_progress_update:
                 self.on_progress_update(idx, total_countries, country, "processing", "")
 
+            task_start_time = time.time()
+            task_start_paused = self.total_paused_seconds + (time.time() - self.pause_start_time if self.pause_start_time else 0.0)
+
             success, final_price = self._process_country(country, idx)
             is_matched = getattr(self, "last_country_matched", False)
             status_label = "matched" if is_matched else ("completed" if success else "failed")
+
+            # Record active duration of this country task (excluding user pause intervals)
+            task_current_paused = self.total_paused_seconds + (time.time() - self.pause_start_time if self.pause_start_time else 0.0)
+            task_active_sec = max(0.0, time.time() - task_start_time - (task_current_paused - task_start_paused))
+            if task_active_sec > 0.2:
+                self.recent_task_durations.append(task_active_sec)
+                if len(self.recent_task_durations) > 5:
+                    self.recent_task_durations.pop(0)
+
+            processed_since_last_cooldown += 1
 
             if not success:
                 if self.stop_requested:
@@ -260,8 +450,9 @@ class PlaySaleAutomatorEngine:
             if self.on_progress_update:
                 self.on_progress_update(idx + 1, total_countries, country, status_label, final_price)
 
-            # Pause between countries
-            if not self._safe_sleep(timing.get("step_delay", 0.7)):
+            # Pause between countries with natural human jitter cadence
+            inter_delay = get_humanized_delay(self.speed_delay_seconds)
+            if not self._safe_sleep(inter_delay):
                 break
 
         if not self.stop_requested and self.current_country_index >= total_countries - 1:
@@ -391,7 +582,8 @@ class PlaySaleAutomatorEngine:
         self._safe_press("enter")
 
         # Wait for left table to filter to row 1
-        if not self._safe_sleep(timing.get("search_delay", 0.8)):
+        s_delay = float(timing.get("search_delay", 0.8))
+        if not self._safe_sleep(get_humanized_delay(s_delay)):
             return False, copied_price
 
         self.log(f"[{c_name}] 📸 Step 2: Searched '{search_query}' in Google Play Console. Capturing screenshot...")
@@ -424,7 +616,8 @@ class PlaySaleAutomatorEngine:
             return False, copied_price
 
         # Wait for popup to open
-        if not self._safe_sleep(timing.get("popup_delay", 0.8)):
+        p_delay = float(timing.get("popup_delay", 0.8))
+        if not self._safe_sleep(get_humanized_delay(p_delay)):
             return False, copied_price
 
         # -------------------------------------------------------------

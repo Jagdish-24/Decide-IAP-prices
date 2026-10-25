@@ -30,7 +30,14 @@ if hasattr(sys.stdout, 'reconfigure'):
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from file_parser import parse_pricing_file
-from automator_engine import PlaySaleAutomatorEngine, AutomatorState, extract_numeric_value
+from automator_engine import (
+    PlaySaleAutomatorEngine,
+    AutomatorState,
+    extract_numeric_value,
+    get_humanized_delay,
+    format_duration
+)
+from config import CADENCE_PRESETS, CADENCE_CODE_TO_DISPLAY, CADENCE_DISPLAY_TO_CODE
 from mouse_detector import MouseInterventionDetector
 
 class TestPlaySaleAutomatorFlow(unittest.TestCase):
@@ -534,6 +541,108 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
         self.assertEqual(v_ca, "59.732")
 
         print("✅ Test 11 Passed: 'xx.xxx' precision percentage verified for both Charm and standard sale pricing.")
+
+    # -------------------------------------------------------------
+    # TEST 12: Real-Time Elapsed Stopwatch and Est. Completion Timer Telemetry
+    # -------------------------------------------------------------
+    def test_12_stopwatch_and_eta_timers(self):
+        # 1. Format Duration Utility
+        self.assertEqual(format_duration(0), "00:00")
+        self.assertEqual(format_duration(45), "00:45")
+        self.assertEqual(format_duration(65), "01:05")
+        self.assertEqual(format_duration(3665), "01:01:05")
+        self.assertEqual(format_duration(65000), "01:05")  # Milliseconds support
+        self.assertEqual(format_duration(None), "00:00")
+        self.assertEqual(format_duration(-10), "00:00")
+
+        # 2. Initial state
+        mock_detector = MagicMock(spec=MouseInterventionDetector)
+        countries = [{"name": f"Country {i}", "code": f"C{i}"} for i in range(10)]
+        engine = PlaySaleAutomatorEngine({"speed_delay": 2500}, countries, mock_detector)
+
+        init_tel = engine.get_timer_telemetry()
+        self.assertEqual(init_tel["elapsed_str"], "00:00")
+        self.assertTrue("~" in init_tel["remaining_str"])
+        self.assertFalse(init_tel["is_completed"])
+
+        # 3. Active elapsed stopwatch tracking
+        engine.start_timers()
+        self.assertIsNotNone(engine.timer_start_time)
+        # Simulate 125 seconds passed
+        engine.timer_start_time = engine.timer_start_time - 125.0
+        elapsed_tel = engine.get_timer_telemetry()
+        self.assertEqual(elapsed_tel["elapsed_str"], "02:05")
+
+        # 4. User pause exclusion
+        # Simulate pause started 20 seconds ago and resumed
+        engine.pause_timers()
+        engine.pause_start_time = engine.pause_start_time - 20.0
+        engine.resume_timers()
+        self.assertAlmostEqual(engine.total_paused_seconds, 20.0, places=1)
+        # Elapsed time excludes the 20 seconds paused (125s - 20s = 105s -> 01:45)
+        self.assertEqual(engine.get_timer_telemetry()["elapsed_str"], "01:45")
+
+        # 5. Rolling 5-task moving average ETA calculation
+        # 5 remaining tasks, average task duration of 4.0s -> 20s remaining
+        engine.recent_task_durations = [4.0, 4.0, 4.0]
+        engine.current_country_index = 5
+        rolling_tel = engine.get_timer_telemetry()
+        self.assertTrue("00:20" in rolling_tel["remaining_str"])
+        self.assertFalse(rolling_tel["remaining_str"].startswith("~"))  # No ~ prefix when recents exist
+
+        # 6. Completion state
+        engine.current_country_index = 10
+        engine.set_state(AutomatorState.COMPLETED)
+        comp_tel = engine.get_timer_telemetry()
+        self.assertEqual(comp_tel["remaining_str"], "Completed 🎉")
+        self.assertTrue(comp_tel["is_completed"])
+
+        print("✅ Test 12 Passed: Real-Time Stopwatch & Rolling ETA Telemetry fully verified.")
+
+    # -------------------------------------------------------------
+    # TEST 13: Ultra-Safe 2500ms Cadence & Human Cadence Natural Jitter
+    # -------------------------------------------------------------
+    def test_13_ultra_safe_cadence_human_jitter(self):
+        # 1. Preset definitions & display mappings
+        self.assertTrue(any(code == 2500 for code, _ in CADENCE_PRESETS))
+        self.assertTrue(any(code == 1600 for code, _ in CADENCE_PRESETS))
+        self.assertIn(2500, CADENCE_CODE_TO_DISPLAY)
+        self.assertIn("🛡️ Ultra-Safe (2500ms • Human Cadence)", CADENCE_DISPLAY_TO_CODE)
+
+        # 2. Fast test bypass: delays <= 0.05s remain unchanged
+        self.assertEqual(get_humanized_delay(0.01), 0.01)
+        self.assertEqual(get_humanized_delay(0.05), 0.05)
+
+        # 3. Human cadence jitter on Ultra-Safe 2500ms (2.5s)
+        # Generates proportional natural variance ±15% to 25% with 0.5s floor
+        delays = [get_humanized_delay(2.5) for _ in range(30)]
+        for d in delays:
+            self.assertGreaterEqual(d, 0.5)
+            self.assertGreater(d, 1.8)
+            self.assertLess(d, 3.4)
+        # Verify non-periodic variance (jitter is not static constant)
+        self.assertGreater(len(set(round(d, 2) for d in delays)), 3)
+
+        # 4. Engine cadence updates
+        mock_detector = MagicMock(spec=MouseInterventionDetector)
+        cfg = {"speed_delay": 2500, "timing": {"step_delay": 2.5}}
+        engine = PlaySaleAutomatorEngine(cfg, [], mock_detector)
+        self.assertEqual(engine.speed_delay_ms, 2500)
+        self.assertEqual(engine.speed_delay_seconds, 2.5)
+
+        # Switch to Safe & Steady (1600ms)
+        engine.set_speed_delay(1600)
+        self.assertEqual(engine.speed_delay_ms, 1600)
+        self.assertEqual(engine.speed_delay_seconds, 1.6)
+        self.assertEqual(engine.config["timing"]["step_delay"], 1.6)
+
+        # Switch to Ultra-Safe (2500ms)
+        engine.set_speed_delay(2500)
+        self.assertEqual(engine.speed_delay_ms, 2500)
+        self.assertEqual(engine.speed_delay_seconds, 2.5)
+        self.assertEqual(engine.config["timing"]["step_delay"], 2.5)
+
+        print("✅ Test 13 Passed: Ultra-Safe 2500ms preset & human cadence jitter engine verified.")
 
 if __name__ == "__main__":
     unittest.main()
