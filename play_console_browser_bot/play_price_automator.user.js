@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Play Console Sale Price Automator (PlayPrice Engine)
 // @namespace    https://github.com/Jagdish-24/Decide-IAP-prices
-// @version      1.7.8
+// @version      1.7.9
 // @description  Automates setting country sale prices and app prices in Google Play Console with 1-click DOM injection and zero mouse movement.
 // @author       PlayPrice Engine Team
 // @match        https://play.google.com/console/*
@@ -15,7 +15,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.8...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.9...');
 
   // State Management
   const state = {
@@ -35,7 +35,8 @@
     totalPausedMs: 0,
     pauseStartTime: null,
     timerIntervalId: null,
-    lastTaskDurationMs: null
+    lastTaskDurationMs: null,
+    recentTaskDurations: []
   };
 
   // -------------------------------------------------------------
@@ -1149,6 +1150,7 @@
       state.totalPausedMs = 0;
       state.pauseStartTime = null;
       state.lastTaskDurationMs = null;
+      state.recentTaskDurations = [];
       const elElapsed = document.getElementById('ppa-timer-elapsed');
       if (elElapsed) elElapsed.textContent = '00:00';
       updateEstCompletionUI();
@@ -1187,13 +1189,21 @@
     }
 
     const now = Date.now();
-    // Calculate total remaining time based on:
-    // (time taken to complete the last task) * (total remaining number of tasks)
-    const perTaskMs = state.lastTaskDurationMs || (state.speedDelay + 1500);
-    const remainingMs = remaining * perTaskMs;
+    // Calculate total remaining time based on the rolling average of the last 5 completed tasks:
+    let avgTaskMs;
+    const recents = state.recentTaskDurations;
+    if (recents && recents.length > 0) {
+      const sum = recents.reduce((acc, val) => acc + val, 0);
+      avgTaskMs = sum / recents.length;
+    } else {
+      // Baseline before any tasks complete: speedDelay + modal overhead
+      avgTaskMs = state.speedDelay + 1500;
+    }
+
+    const remainingMs = remaining * avgTaskMs;
     const etaDate = new Date(now + remainingMs);
     const etaStr = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const prefix = state.lastTaskDurationMs ? '' : '~';
+    const prefix = (recents && recents.length > 0) ? '' : '~';
     elRemain.textContent = `${prefix}${formatDuration(remainingMs)} (ETA: ${etaStr})`;
   }
 
@@ -1381,6 +1391,11 @@
       const taskActiveMs = Math.max(0, Date.now() - taskStartTime - (taskCurrentPaused - taskStartPausedMs));
       if (taskActiveMs > 200) {
         state.lastTaskDurationMs = taskActiveMs;
+        if (!state.recentTaskDurations) state.recentTaskDurations = [];
+        state.recentTaskDurations.push(taskActiveMs);
+        if (state.recentTaskDurations.length > 5) {
+          state.recentTaskDurations.shift();
+        }
       }
 
       updateUI();
@@ -1523,7 +1538,7 @@
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.8</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.9</div>
             </div>
           </div>
           <div id="ppa-header-badge">

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PlayPrice Automator • Google Play Console Robot",
-  "version": "1.7.8",
+  "version": "1.7.9",
   "description": "Automates country sale prices and app prices in Google Play Console via direct DOM injection with 0 mouse movement.",
   "icons": {
     "48": "icon.png",
