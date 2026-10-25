@@ -66,7 +66,7 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.8.0</span>
+          <span class="version-tag" id="appVersionText">v1.8.5</span>
           <span class="version-sep">•</span>
           <span class="version-date" id="lastUpdatedDateText">Updated 25 Oct 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -612,15 +612,10 @@
             Master CSV (All SKUs)
           </button>
 
-          <button class="btn btn-secondary btn-sm btn-bot-export" id="btnExportBotCsv" title="Export clean Country &amp; Price CSV for Bot Automation (Single-window Play Console Bot)">
+          <button class="btn btn-secondary btn-sm btn-bot-export" id="btnExportBotCsv" title="Export clean Country &amp; Price CSV for Automation (Single-window Play Console Bot)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line></svg>
-            <span id="btnExportBotCsvLabel">Bot CSV (App Prices)</span>
+            <span id="btnExportBotCsvLabel">Export CSV for Automation</span>
           </button>
-
-          <a class="btn btn-secondary btn-sm" id="btnOpenBrowserBot" href="play_console_browser_bot/install_guide.html" target="_blank" title="Open 1-Click In-Browser Price Automator (Bookmarklet &amp; Extension Guide)" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; color:#38BDF8; border-color:rgba(56, 189, 248, 0.4);">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-            Browser Bot ↗
-          </a>
         </div>
       </div>
     </div>
@@ -1091,8 +1086,86 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.8.0 -->
+          <!-- Release v1.8.5 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.8.5</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Context-Correct Automation CSV File Naming:</strong> Implemented clean, structured file naming for automation exports following the syntax <code>{App Name} - {Preview Pricing For}.csv</code> (e.g. <code>Sine Rush - App Price.csv</code>, <code>Sine Rush - Discounted - App Price.csv</code>, <code>Sine Rush - IAP - No Ads.csv</code>, <code>Sine Rush - Discounted - IAP - No Ads.csv</code>).</li>
+                <li><strong>Smart Mode Auto-Switching Across Automators:</strong> Both the Python desktop automator and the in-browser bot now dynamically recognize the contextual filename on upload to immediately select the corresponding task mode (<code>1. Set Retail Price</code>, <code>2. Set Discounted Retail Price</code>, or <code>3. Set Discount Percentage</code>).</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.8.4 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.8.4</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Unified 3-Option Task Mode Dropdown:</strong> Modernized the UI for both the in-browser DOM bot and the Python desktop automator with an intuitive, unified 3-option dropdown: <code>1. Set Retail Price</code>, <code>2. Set Discounted Retail Price</code>, and <code>3. Set Discount Percentage</code>.</li>
+                <li><strong>Dynamic Column &amp; Field Targeting:</strong> Refactored the DOM bot to dynamically inspect Google Play Console table headers and column structures. When setting retail prices, the bot accurately targets the <em>"Price"</em> column; when setting discounted prices or percentages, it targets the <em>"Sale price"</em> column, opens the corresponding pencil edit modal, and sets the exact target value.</li>
+                <li><strong>Synchronized Automator Engines:</strong> Aligned the Python desktop automation engine and test suite with the new 3-option dropdown logic, supporting auto-detection from uploaded filenames (<code>retail</code>, <code>sale</code>, or <code>discount_pct</code>) and verified with full end-to-end integration tests.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.8.3 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.8.3</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Optimized Automation CSV Export Schema:</strong> Streamlined the exported CSV down to the essential 4 columns (<code>Country Name</code>, <code>Retail Price</code>, <code>Discounted Price</code>, <code>Discount Percentage</code>) when discount is active, and only 2 columns (<code>Country Name</code>, <code>Retail Price</code>) when discount is disabled. Removed unnecessary columns (Country Code, ISO Currency, and Base Currency) since Google Play Console and both automators strictly index by Country Name.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.8.2 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.8.2</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Streamlined Export Toolbar:</strong> Removed the redundant browser bot guide button from the table toolbar and renamed the export button to <code>Export CSV for Automation</code> with responsive sale state indicators.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.8.1 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.8.1</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Clean Automation Directory Structure:</strong> Reorganized and modernized repository folder structure. Renamed <code>play_console_browser_bot</code> to <code>browser_bot_automation</code> and <code>play_sale_automation</code> to <code>python_software_automation</code> for cleaner codebase architecture, updated all launch scripts, extensions, web references, and automated test runners.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.8.0 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">
@@ -1292,7 +1365,7 @@
               </div>
               <ul class="changelog-list">
                 <li><strong>Screenshot-Guided Visual Verification Workflow:</strong> Automated every single step with live screenshot evaluation and verification: country clipboard copy (Step 1), search bar paste (Step 2), price input paste (Step 3), and post-save verification (Step 4).</li>
-                <li><strong>Dedicated Screenshot Manager:</strong> Auto-manages the dedicated <code>play_sale_automation/screenshots/</code> directory, strictly enforcing a maximum FIFO retention quota of 5 screenshots at all times, with Git ignore protection.</li>
+                <li><strong>Dedicated Screenshot Manager:</strong> Auto-manages the dedicated <code>python_software_automation/screenshots/</code> directory, strictly enforcing a maximum FIFO retention quota of 5 screenshots at all times, with Git ignore protection.</li>
                 <li><strong>Eliminated App Table Scrolling:</strong> Completely removed unnecessary table scroll gestures, ensuring single-row focus and preventing erroneous bottom-row jumps.</li>
                 <li><strong>Dynamic Visual Locators &amp; Auto-Detect:</strong> Real-time OpenCV Material 3 search pill and table row contour detection with one-click "⚡ Auto-Detect from View" calibration.</li>
               </ul>

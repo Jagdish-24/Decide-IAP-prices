@@ -280,7 +280,7 @@ class PlaySaleAutomatorEngine:
         4. Double-clicks price input, reads existing value.
            - If matched: cleanly closes dialog and continues immediately to next country.
            - If mismatched: pastes target price from CSV, clicks Save, & captures Screenshot 4.
-        Maintains at most 5 screenshots in play_sale_automation/screenshots/.
+        Maintains at most 5 screenshots in python_software_automation/screenshots/.
         """
         c_name = country["name"]
         coords = self.config.get("coordinates", {})
@@ -297,11 +297,21 @@ class PlaySaleAutomatorEngine:
         if is_single_window:
             if pricing_mode == "retail":
                 raw_val = country.get("retail_price", 0.0)
+                unit_str = country.get('currency', '')
+                mode_label = "Retail Price"
+            elif pricing_mode == "discount_pct":
+                raw_val = country.get("discount_pct", 0.0)
+                unit_str = "%"
+                mode_label = "Discount Percentage"
             else:
                 raw_val = country.get("sale_price", country.get("retail_price", 0.0))
+                unit_str = country.get('currency', '')
+                mode_label = "Discounted Retail Price"
 
             try:
                 f_val = float(raw_val)
+                if pricing_mode == "discount_pct":
+                    f_val = abs(f_val)
                 if f_val.is_integer():
                     copied_price = str(int(f_val))
                 else:
@@ -309,8 +319,8 @@ class PlaySaleAutomatorEngine:
             except Exception:
                 copied_price = str(raw_val)
 
-            mode_label = "Sale Price" if pricing_mode == "sale" else "Regular Price"
-            self.log(f"[{c_name}] 🎯 Target {mode_label} from file: '{copied_price}' {country.get('currency', '')}")
+            suffix = f" {unit_str}".rstrip()
+            self.log(f"[{c_name}] 🎯 Target {mode_label} from file: '{copied_price}'{suffix}")
 
         else:
             # Dual-Window Mode: Retrieve from right window if configured

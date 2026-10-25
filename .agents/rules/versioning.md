@@ -8,6 +8,6 @@ Whenever any new improvement, feature, UI polish, bug fix, or adjustment is made
 2. Always update the "Last Updated" date across:
    - `app.js` (`APP_VERSION`, `APP_LAST_UPDATED`)
    - `index.html` (header badge `#appVersionText`, `#lastUpdatedDateText`, and `#versionModal`)
-   - `play_sale_automation/config.py` (`APP_VERSION`, `APP_LAST_UPDATED`)
-   - `play_sale_automation/gui.py` (header badge and footer version string)
+   - `python_software_automation/config.py` (`APP_VERSION`, `APP_LAST_UPDATED`)
+   - `python_software_automation/gui.py` (header badge and footer version string)
 3. Ensure the version and last updated date displayed in the website header and desktop program remain identical.

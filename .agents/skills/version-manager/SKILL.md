@@ -47,12 +47,12 @@ Whenever bumping the version and updating the date, update all of the following 
    - Changelog modal `#versionModal`: Add the new version bullet points to the release history list.
 
 ### B. Desktop Program (`Play Sale Automator`)
-1. **[`play_sale_automation/config.py`](file:///j:/git/git_projects/Decide%20IAP%20price/play_sale_automation/config.py)**:
+1. **[`python_software_automation/config.py`](file:///j:/git/git_projects/Decide%20IAP%20price/python_software_automation/config.py)**:
    ```python
    APP_VERSION = "1.2.0"
    APP_LAST_UPDATED = "24 Oct 2026"
    ```
-2. **[`play_sale_automation/gui.py`](file:///j:/git/git_projects/Decide%20IAP%20price/play_sale_automation/gui.py)**:
+2. **[`python_software_automation/gui.py`](file:///j:/git/git_projects/Decide%20IAP%20price/python_software_automation/gui.py)**:
    - Header version badge: `v1.2.0 • Updated 24 Oct 2026`
    - Footer status bar: `v1.2.0 (Updated 24 Oct 2026) • Fail-safe Mouse Pause Active`
 
@@ -65,5 +65,5 @@ When completing any change:
 - [ ] Get current local date in standard format (e.g. `24 Oct 2026`).
 - [ ] Update `APP_VERSION` and `APP_LAST_UPDATED` in `app.js`.
 - [ ] Update `index.html` header pill elements and append changelog entry in `#versionModal`.
-- [ ] Update `APP_VERSION` and `APP_LAST_UPDATED` in `play_sale_automation/config.py`.
+- [ ] Update `APP_VERSION` and `APP_LAST_UPDATED` in `python_software_automation/config.py`.
 - [ ] Verify both the website and desktop GUI display the identical version and last updated date.

@@ -87,6 +87,7 @@ def _parse_csv(file_path):
 
             # Identify Discount % / Difference
             discount_pct_str = (
+                row_dict.get("discount percentage") or 
                 row_dict.get("discount %") or 
                 row_dict.get("discount diff %") or 
                 row_dict.get("discount difference %") or 

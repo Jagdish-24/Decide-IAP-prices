@@ -9,7 +9,7 @@ The **PlayPrice In-Browser Automator** is a lightweight, zero-dependency in-brow
 ## 🚀 Choose Your Preferred Installation Method
 
 ### Method 1: 1-Click Bookmarklet (Easiest — No Extension Needed)
-1. Double click and open [`play_console_browser_bot/install_guide.html`](install_guide.html) in Google Chrome.
+1. Double click and open [`browser_bot_automation/install_guide.html`](install_guide.html) in Google Chrome.
 2. Drag the glowing **⚡ PlayPrice Automator** button directly onto your Chrome **Bookmarks Bar** (press `Ctrl + Shift + B` if your bookmarks bar is hidden).
 3. Open any Google Play Console **Edit sale** page.
 4. Click the bookmark! The floating robot panel will instantly appear in the top-right corner.
@@ -20,7 +20,7 @@ The **PlayPrice In-Browser Automator** is a lightweight, zero-dependency in-brow
 1. Open `chrome://extensions` in Google Chrome.
 2. Toggle on **Developer mode** in the top-right corner.
 3. Click **Load unpacked** (top-left).
-4. Select the [`play_console_browser_bot/chrome_extension`](chrome_extension) folder.
+4. Select the [`browser_bot_automation/chrome_extension`](chrome_extension) folder.
 5. Done! The robot will automatically activate whenever you visit Google Play Console.
 
 ---
@@ -47,30 +47,21 @@ The **PlayPrice In-Browser Automator** is a lightweight, zero-dependency in-brow
    - When hidden, the window is completely removed from view (zero clutter). When shown, the full command center appears instantly.
 
 4. **Select Mode & Load CSV:**
-   - Choose your target pricing category:
-     - **`🏷️ App Price`**: Automates base retail app pricing (Google Play Console **Pricing** tab) using the `Retail Price` column from CSV.
-     - **`🔥 App Sale Price`**: Automates promotional sales (Google Play Console **Edit sale** page). Selecting this reveals the two discount sub-modes:
-       - **`💰 Fixed Price Mode`**: Uses the `Discounted price` column.
-       - **`🏷️ Discount % Mode`**: Uses the `Discount %` column.
-   - Drag and drop your downloaded `bot_sale_prices_*.csv` or `bot_app_prices_*.csv` file into the panel.
+   - Choose your target mode from the 3-option dropdown:
+     - **`1. Set Retail Price`**: Targets the Play Console **"Price"** column using the `Retail Price` column from CSV.
+     - **`2. Set Discounted Retail Price`**: Targets the Play Console **"Sale price"** column using the `Discounted Price` column from CSV.
+     - **`3. Set Discount Percentage`**: Targets the Play Console **"Sale price"** column using the `Discount Percentage` column from CSV.
+   - Drag and drop your downloaded automation CSV file into the panel.
    - You will see: `176 Countries Loaded`.
    - Click **`▶ Start`**!
 
-5. **Dual Multi-Step Robot Workflows:**
-   - **When in `🏷️ App Price` Mode (Pricing Tab):**
-     1. Automatically clicks **"Set pricing"** for each country to enter the selection state.
-     2. Looks for the country by name directly from the table list (bypassing the search bar which is disabled in selection state).
-     3. Check marks the country's row checkbox.
-     4. Clicks the bottom action bar's blue **"Continue"** button.
-     5. In the **"Set price for selected countries and regions"** modal, enters the target retail price and selects the matching 3-letter ISO currency (e.g. `USD`, `EUR`, `ARS`, `DZD`) from the dropdown.
-     6. Clicks the blue **"Update"** button and waits for the modal to close and the table to settle.
-     7. Clicks **"Set pricing"** again to begin the next country with randomized human jitter delays.
-   - **When in `🔥 App Sale Price` Mode (Edit Sale Page):**
-     1. Filters the country in the search bar.
-     2. Opens the country row's edit modal (pencil button / cell).
-     3. Compares and sets the discounted price or discount percentage.
-     4. Clicks **"Save"** in the modal.
-   - **Mouse Free:** In both workflows, your mouse remains completely free to browse or use other applications.
+5. **Universal Precision Workflow:**
+   1. Filters the country in Google Play Console's search bar by country name.
+   2. Identifies the filtered country row.
+   3. Based on the selected dropdown mode, locates the edit pencil icon specifically inside the target column (**"Price"** for Retail Price, **"Sale price"** for Discounted Price / Discount Percentage).
+   4. Opens the edit dialog, compares the existing value with the target value.
+   5. If already matching, cleanly closes the dialog and skips saving to prevent unnecessary API calls. If mismatched, enters the target value and clicks **"Save"**.
+   6. **Mouse Free:** Your mouse remains completely free to browse or use other applications.
 
 6. **Save Changes:**
    - When finished, review the summary.

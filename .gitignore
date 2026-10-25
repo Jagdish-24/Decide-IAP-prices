@@ -3,6 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.log
-play_sale_automation/cache/
-play_sale_automation/*.log
-play_sale_automation/screenshots/
+python_software_automation/cache/
+python_software_automation/*.log
+python_software_automation/screenshots/

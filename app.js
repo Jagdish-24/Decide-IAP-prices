@@ -7,7 +7,7 @@
   'use strict';
 
   // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-  const APP_VERSION = '1.8.0';
+  const APP_VERSION = '1.8.5';
   const APP_LAST_UPDATED = '25 Oct 2026';
 
   // 1. Initial State
@@ -2281,13 +2281,12 @@
   // 9c. Dynamic Bot Export Button state handler
   function updateBotExportButton() {
     if (!elements.btnExportBotCsv || !elements.btnExportBotCsvLabel) return;
+    elements.btnExportBotCsvLabel.textContent = 'Export CSV for Automation';
     if (state.discountEnabled) {
-      elements.btnExportBotCsvLabel.textContent = 'Bot CSV (Sale Prices)';
-      elements.btnExportBotCsv.title = `Export clean CSV of Country and Sale Prices (-${state.discountRate}%) for Bot Automation (Mode 2: Set app sale prices)`;
+      elements.btnExportBotCsv.title = `Export clean CSV of Country and Sale Prices (-${state.discountRate}%) for Automation (Mode 2: Set app sale prices)`;
       elements.btnExportBotCsv.classList.add('is-sale');
     } else {
-      elements.btnExportBotCsvLabel.textContent = 'Bot CSV (App Prices)';
-      elements.btnExportBotCsv.title = 'Export clean CSV of Country and Base Retail Prices for Bot Automation (Mode 1: Set app prices)';
+      elements.btnExportBotCsv.title = 'Export clean CSV of Country and Base Retail Prices for Automation (Mode 1: Set app prices)';
       elements.btnExportBotCsv.classList.remove('is-sale');
     }
   }
@@ -2298,10 +2297,10 @@
     const isPaidApp = activeProd.id === 'app_price';
     const isSaleMode = Boolean(state.discountEnabled);
 
-    // Headers mapped directly to file_parser.py in play_sale_automation
+    // Headers mapped directly to file_parser.py in python_software_automation
     const headers = isSaleMode
-      ? ['Country Name', 'Country Code', 'Currency', 'Discounted Price', 'Discount %', 'End-User Retail Price']
-      : ['Country Name', 'Country Code', 'Currency', 'End-User Retail Price', 'Discount %'];
+      ? ['Country Name', 'Retail Price', 'Discounted Price', 'Discount Percentage']
+      : ['Country Name', 'Retail Price'];
 
     const rows = [headers];
 
@@ -2317,19 +2316,14 @@
       if (isSaleMode) {
         rows.push([
           safeName,
-          country.code,
-          country.currency,
+          cleanRetail,
           cleanSale,
-          `"${cleanPct}"`,
-          cleanRetail
+          `"${cleanPct}"`
         ]);
       } else {
         rows.push([
           safeName,
-          country.code,
-          country.currency,
-          cleanRetail,
-          `"0.00%"`
+          cleanRetail
         ]);
       }
     });
@@ -2340,11 +2334,29 @@
     const a = document.createElement('a');
     a.href = url;
 
-    const baseName = sanitizeSlug(state.appName || 'mygame') || 'mygame';
-    const prodSlug = sanitizeSlug(activeProd.name || 'app_price') || 'price';
-    const fileName = isSaleMode
-      ? `bot_sale_prices_${baseName}_${prodSlug}_${state.discountRate}pct_off.csv`
-      : `bot_app_prices_${baseName}_${prodSlug}.csv`;
+    // Construct context-correct filename: {App Name} - {Preview Pricing For}.csv
+    // Examples:
+    // Sine Rush - App Price.csv or Sine Rush - Discounted - App Price.csv
+    // Sine Rush - IAP - No Ads.csv or Sine Rush - Discounted - IAP - No Ads.csv
+    const rawAppName = (state.appName && state.appName.trim()) ? state.appName.trim() : 'App';
+    const cleanAppName = rawAppName.replace(/[\\/:*?"<>|]/g, '').trim() || 'App';
+
+    let pricingPart = '';
+    if (isPaidApp) {
+      pricingPart = 'App Price';
+    } else {
+      const rawProdName = (activeProd.name && activeProd.name.trim()) ? activeProd.name.trim() : 'Item';
+      const cleanProdName = rawProdName.replace(/[\\/:*?"<>|]/g, '').trim() || 'Item';
+      pricingPart = `IAP - ${cleanProdName}`;
+    }
+
+    const parts = [cleanAppName];
+    if (isSaleMode) {
+      parts.push('Discounted');
+    }
+    parts.push(pricingPart);
+
+    const fileName = `${parts.join(' - ')}.csv`;
 
     a.download = fileName;
     document.body.appendChild(a);
@@ -2353,9 +2365,9 @@
     URL.revokeObjectURL(url);
 
     const modeDesc = isSaleMode
-      ? `Bot CSV (Sale Prices -${state.discountRate}%)`
-      : 'Bot CSV (Base App Prices)';
-    showToast(`Exported ${modeDesc} (${rows.length - 1} countries) for Bot Automation!`, 'success');
+      ? `Automation CSV (Discounted -${state.discountRate}%)`
+      : 'Automation CSV (Base Prices)';
+    showToast(`Exported "${fileName}" (${rows.length - 1} countries) for Automation!`, 'success');
   }
 
   // 9e. Direct Google Play API JSON Payload Export (androidpublisher:v3 inappproducts format)

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Play Console Sale Price Automator (PlayPrice Engine)
 // @namespace    https://github.com/Jagdish-24/Decide-IAP-prices
-// @version      1.8.0
+// @version      1.8.5
 // @description  Automates setting country sale prices and app prices in Google Play Console with 1-click DOM injection and zero mouse movement.
 // @author       PlayPrice Engine Team
 // @match        https://play.google.com/console/*
@@ -15,7 +15,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.8.0...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.8.5...');
 
   // State Management
   const state = {
@@ -24,8 +24,7 @@
     isRunning: false,
     isPaused: false,
     speedDelay: 1600,     // Default: Safe & Steady (1600ms) to avoid rate limits
-    mainCategory: 'app_sale_price', // 'app_price' or 'app_sale_price'
-    saleDiscountMode: 'fixed_price', // 'fixed_price' or 'percentage'
+    targetMode: 'retail', // 'retail', 'sale', or 'discount_pct'
     autoSaveConsole: false,
     panelVisible: true,
     panelCollapsed: false,
@@ -67,9 +66,9 @@
       h.includes('discounted price') || h.includes('sale price') || h.includes('promo price') || h.includes('discounted') || (h.includes('sale') && !h.includes('wholesale'))
     );
 
-    // 3. Discount Percentage (matches "Discount %", "Discount Difference", "Discount Diff", "Discount Rate")
+    // 3. Discount Percentage (matches "Discount Percentage", "Discount %", "Discount Difference", "Discount Diff", "Discount Rate")
     let discountPctIdx = header.findIndex(h => 
-      h.includes('discount %') || h.includes('discount diff') || h.includes('discount difference') || h.includes('discount rate') || h.includes('pct') || h.includes('%')
+      h.includes('discount percentage') || h.includes('percentage') || h.includes('discount %') || h.includes('discount diff') || h.includes('discount difference') || h.includes('discount rate') || h.includes('pct') || h.includes('%')
     );
 
     if (nameIdx === -1) nameIdx = 0;
@@ -135,22 +134,24 @@
   }
 
 
-  // Update target values according to active mode hierarchy (App Price vs App Sale Price [Fixed vs %])
+  // Update target values according to active dropdown target mode:
+  // 1. 'retail': Set Retail Price
+  // 2. 'sale': Set Discounted Retail Price
+  // 3. 'discount_pct': Set Discount Percentage
   function applyModeTargets() {
     for (const c of state.countries) {
-      if (state.mainCategory === 'app_price') {
-        // App Price Mode: Target the End-User Retail Price from CSV
+      if (state.targetMode === 'retail') {
         const val = c.retailPrice !== null ? c.retailPrice : (c.salePrice !== null ? c.salePrice : 0);
         c.targetValue = val;
         c.priceFormatted = Number.isInteger(val) ? `${val}` : val.toFixed(2);
         c.displayUnit = c.currency;
-      } else if (state.saleDiscountMode === 'percentage') {
-        const val = c.discountPct !== null ? c.discountPct : 0;
+      } else if (state.targetMode === 'discount_pct') {
+        const val = c.discountPct !== null ? Math.abs(c.discountPct) : 0;
         c.targetValue = val;
         c.priceFormatted = Number.isInteger(val) ? `${val}` : val.toFixed(2);
         c.displayUnit = '%';
       } else {
-        // App Sale Price -> Fixed Price Mode
+        // 'sale': Set Discounted Retail Price
         const val = c.salePrice !== null ? c.salePrice : (c.retailPrice !== null ? c.retailPrice : 0);
         c.targetValue = val;
         c.priceFormatted = Number.isInteger(val) ? `${val}` : val.toFixed(2);
@@ -262,7 +263,43 @@
     return null;
   }
 
-  async function openRowEditModal(row) {
+  function findTargetColumnIndex(targetMode) {
+    const headerCells = Array.from(document.querySelectorAll(
+      'ess-header-cell, th, [role="columnheader"], .ess-table-header-cell, material-header-cell'
+    )).filter(h => !h.closest('#play-price-automator-root') && isElementReallyVisible(h));
+
+    if (headerCells.length === 0) return -1;
+
+    const wantRetail = (targetMode === 'retail');
+
+    if (wantRetail) {
+      // Looking for "Price" column (matches "price" or "retail", but NOT "sale" or "discount")
+      const idx = headerCells.findIndex(h => {
+        const txt = (h.textContent || '').trim().toLowerCase();
+        const field = (h.getAttribute('essfield') || h.getAttribute('data-field') || '').toLowerCase();
+        const isPrice = (txt.includes('price') || field.includes('price')) || txt.includes('retail');
+        const isSale = txt.includes('sale') || field.includes('sale') || txt.includes('discount');
+        return isPrice && !isSale;
+      });
+      if (idx !== -1) return idx;
+    } else {
+      // Looking for "Sale price" column (matches "sale", "discount", "promo")
+      const idx = headerCells.findIndex(h => {
+        const txt = (h.textContent || '').trim().toLowerCase();
+        const field = (h.getAttribute('essfield') || h.getAttribute('data-field') || '').toLowerCase();
+        return txt.includes('sale') || field.includes('sale') || txt.includes('discount') || txt.includes('promo');
+      });
+      if (idx !== -1) return idx;
+    }
+
+    // Fallback: If only generic "price" column header is present
+    return headerCells.findIndex(h => {
+      const txt = (h.textContent || '').trim().toLowerCase();
+      return txt.includes('price');
+    });
+  }
+
+  async function openRowEditModal(row, targetMode = 'sale') {
     try {
       row.scrollIntoView({ block: 'center', inline: 'nearest' });
     } catch (e) {}
@@ -270,32 +307,66 @@
     row.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, composed: true }));
     await humanMicroPause(90, 200);
 
-    // 1. Look for edit button specifically inside the price column
-    const priceCell = row.querySelector('ess-cell[essfield="price-column"], [data-col*="price"], td:nth-child(2), [role="gridcell"]:nth-child(2)');
+    const wantRetail = (targetMode === 'retail');
     let pencil = null;
-    if (priceCell) {
-      priceCell.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, composed: true }));
-      priceCell.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, composed: true }));
-      pencil = priceCell.querySelector('button[aria-label*="Edit" i], button[title*="Edit" i], button, [role="button"]');
+
+    // 1. Column header-based cell targeting
+    const colIndex = findTargetColumnIndex(targetMode);
+    const cells = Array.from(row.querySelectorAll('td, ess-cell, [role="gridcell"], [role="cell"], material-cell'));
+
+    if (colIndex !== -1 && colIndex < cells.length) {
+      const targetCell = cells[colIndex];
+      targetCell.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, composed: true }));
+      targetCell.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, composed: true }));
+      pencil = targetCell.querySelector('button[aria-label*="edit" i], button[title*="edit" i], button, [role="button"], material-icon[icon*="edit"], svg');
+      if (!pencil && targetCell.matches('button, [role="button"]')) {
+        pencil = targetCell;
+      }
     }
 
-    // 2. Generic row search for edit button
+    // 2. Direct attribute / essfield match on cell in this row
     if (!pencil) {
-      pencil = row.querySelector('button[aria-label*="Edit" i], button[title*="Edit" i], button[aria-label*="price" i], button[aria-label*="discount" i], material-icon[icon*="edit"], [data-icon="edit"], svg');
+      let targetCell = null;
+      if (wantRetail) {
+        targetCell = row.querySelector(
+          'ess-cell[essfield="price-column"], ess-cell[essfield*="price"]:not([essfield*="sale"]), [data-col*="price"]:not([data-col*="sale"])'
+        );
+      } else {
+        targetCell = row.querySelector(
+          'ess-cell[essfield*="sale"], ess-cell[essfield*="discount"], [data-col*="sale"], [data-col*="discount"]'
+        );
+      }
+      if (targetCell) {
+        targetCell.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, composed: true }));
+        targetCell.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, composed: true }));
+        pencil = targetCell.querySelector('button[aria-label*="edit" i], button[title*="edit" i], button, [role="button"], svg') || targetCell;
+      }
     }
 
-    // 3. Search for any button inside the row
+    // 3. Inspect button aria-label / title attributes directly in the row
     if (!pencil) {
-      const btns = Array.from(row.querySelectorAll('button, [role="button"]'));
-      pencil = btns.find(b => {
-        const al = (b.getAttribute('aria-label') || '').toLowerCase();
-        const tt = (b.getAttribute('title') || '').toLowerCase();
-        return al.includes('edit') || tt.includes('edit') || al.includes('price') || b.querySelector('svg, i, material-icon');
-      }) || btns[0];
+      const allButtons = Array.from(row.querySelectorAll('button, [role="button"]'));
+      pencil = allButtons.find(b => {
+        const aria = (b.getAttribute('aria-label') || '').toLowerCase();
+        const title = (b.getAttribute('title') || '').toLowerCase();
+        const combined = `${aria} ${title}`;
+        if (wantRetail) {
+          return (combined.includes('price') || combined.includes('retail')) && !combined.includes('sale') && !combined.includes('discount');
+        } else {
+          return combined.includes('sale') || combined.includes('discount');
+        }
+      });
     }
 
-    if (!pencil && priceCell) {
-      pencil = priceCell;
+    // 4. Fallback: Generic edit button in row
+    if (!pencil) {
+      pencil = row.querySelector('button[aria-label*="edit" i], button[title*="edit" i], material-icon[icon*="edit"], [data-icon="edit"]');
+    }
+
+    // 5. Ultimate fallback: First button in row
+    if (!pencil) {
+      const btns = Array.from(row.querySelectorAll('button, [role="button"]')).filter(b => isElementReallyVisible(b));
+      pencil = btns[0];
     }
 
     if (pencil) {
@@ -1241,12 +1312,12 @@
     updateUI();
 
     let modeLabel = '';
-    if (state.mainCategory === 'app_price') {
-      modeLabel = '🏷️ App Price Mode (Retail Price column)';
-    } else if (state.saleDiscountMode === 'percentage') {
-      modeLabel = '🏷️ App Sale Price (Discount % Mode)';
+    if (state.targetMode === 'retail') {
+      modeLabel = '🏷️ Set Retail Price ("Price" column)';
+    } else if (state.targetMode === 'discount_pct') {
+      modeLabel = '🏷️ Set Discount Percentage ("Sale price" column)';
     } else {
-      modeLabel = '💰 App Sale Price (Fixed Price Mode)';
+      modeLabel = '💰 Set Discounted Retail Price ("Sale price" column)';
     }
     log(`🚀 Starting automation in ${modeLabel} for ${state.countries.length} countries (Speed: ${state.speedDelay}ms)...`);
 
@@ -1287,9 +1358,11 @@
       const taskStartTime = Date.now();
       const taskStartPausedMs = state.totalPausedMs;
 
-      const isPercentage = state.mainCategory === 'app_sale_price' && state.saleDiscountMode === 'percentage';
-      const unitText = isPercentage ? '%' : ` ${c.currency}`;
-      const typeLabel = state.mainCategory === 'app_price' ? 'App Retail Price' : (isPercentage ? 'Sale Discount' : 'Sale Price');
+      const isPercentage = state.targetMode === 'discount_pct';
+      const unitText = isPercentage ? '%' : (c.currency ? ` ${c.currency}` : '');
+      let typeLabel = 'Retail Price';
+      if (state.targetMode === 'sale') typeLabel = 'Discounted Retail Price';
+      if (state.targetMode === 'discount_pct') typeLabel = 'Discount Percentage';
       log(`📍 [${idx + 1}/${state.countries.length}] ${c.name} • Target ${typeLabel}: ${c.priceFormatted}${unitText}`);
 
       try {
@@ -1319,8 +1392,8 @@
         }
         await humanMicroPause(100, 240);
 
-        // Step 3: Open Edit Price modal by clicking pencil button in row
-        const opened = await openRowEditModal(row);
+        // Step 3: Open Edit Price modal by clicking pencil button in row targeted column
+        const opened = await openRowEditModal(row, state.targetMode);
         if (!opened) {
           log(`⚠️ Could not click edit button for ${c.name}, skipping...`);
           c.status = 'failed';
@@ -1560,7 +1633,7 @@
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.8.0</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.8.5</div>
             </div>
           </div>
           <div id="ppa-header-badge">
@@ -1569,38 +1642,18 @@
         </div>
 
         <div id="ppa-body">
-          <!-- Main Target Category: App Sale Price vs App Price -->
-          <div id="ppa-category-card">
-            <div id="ppa-category-tabs">
-              <button class="ppa-cat-tab active" id="ppa-cat-btn-sale" data-cat="app_sale_price">
-                🔥 App Sale Price
-              </button>
-              <button class="ppa-cat-tab" id="ppa-cat-btn-app" data-cat="app_price">
-                🏷️ App Price
-              </button>
+          <!-- Target Mode Dropdown Card (3 Unified Options) -->
+          <div id="ppa-dropdown-card">
+            <label for="ppa-mode-dropdown" id="ppa-dropdown-label">Target Automation Mode:</label>
+            <select id="ppa-mode-dropdown" class="ppa-mode-select">
+              <option value="retail" selected>1. Set Retail Price</option>
+              <option value="sale">2. Set Discounted Retail Price</option>
+              <option value="discount_pct">3. Set Discount Percentage</option>
+            </select>
+            <div id="ppa-dropdown-desc">
+              <span id="ppa-dropdown-dot"></span>
+              <span id="ppa-dropdown-text"><strong>Set Retail Price:</strong> Automates standard prices in Play Console <em>"Price"</em> column.</span>
             </div>
-          </div>
-
-          <!-- Sale Discount Sub-modes (Only shown when App Sale Price is selected) -->
-          <div id="ppa-mode-card">
-            <div id="ppa-mode-tabs">
-              <button class="ppa-mode-tab active" id="ppa-mode-btn-fixed" data-mode="fixed_price">
-                💰 Fixed Price Mode
-              </button>
-              <button class="ppa-mode-tab" id="ppa-mode-btn-pct" data-mode="percentage">
-                🏷️ Discount % Mode
-              </button>
-            </div>
-            <div id="ppa-mode-desc">
-              <span id="ppa-mode-dot"></span>
-              <span id="ppa-mode-text"><strong>Fixed Price Mode:</strong> Automates local currency sale prices from <em>Discounted Price</em> column.</span>
-            </div>
-          </div>
-
-          <!-- App Price Mode Description (Only shown when App Price is selected) -->
-          <div id="ppa-app-price-desc" style="display: none;">
-            <span id="ppa-app-dot"></span>
-            <span id="ppa-app-text"><strong>App Price Mode:</strong> Automates standard retail prices from <em>Retail Price</em> column (for Play Console <strong>Pricing</strong> tab).</span>
           </div>
 
           <!-- File Upload Zone -->
@@ -1825,106 +1878,57 @@
         background: rgba(56, 189, 248, 0.5);
       }
 
-      /* Main Category Switcher (App Price vs App Sale Price) */
-      #ppa-category-card {
-        background: rgba(8, 13, 26, 0.7);
+      /* Target Mode Dropdown Card */
+      #ppa-dropdown-card {
+        background: rgba(8, 13, 26, 0.75);
         border: 1px solid #1E293B;
         border-radius: 8px;
-        padding: 4px;
-      }
-      #ppa-category-tabs {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
         gap: 5px;
       }
-      .ppa-cat-tab {
-        background: transparent;
-        border: 1px solid transparent;
+      #ppa-dropdown-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: #38BDF8;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+      }
+      #ppa-mode-dropdown {
+        background: #0F172A;
+        color: #F8FAFC;
+        border: 1px solid rgba(56, 189, 248, 0.4);
         border-radius: 6px;
-        color: #94A3B8;
-        padding: 6px 8px;
+        padding: 6px 10px;
         font-size: 11px;
         font-weight: 700;
         cursor: pointer;
+        outline: none;
+        width: 100%;
+        box-sizing: border-box;
         transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 5px;
       }
-      .ppa-cat-tab:hover {
+      #ppa-mode-dropdown:hover,
+      #ppa-mode-dropdown:focus {
+        border-color: #38BDF8;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+      }
+      #ppa-mode-dropdown option {
+        background: #0F172A;
         color: #F8FAFC;
-        background: rgba(255, 255, 255, 0.05);
+        padding: 6px 10px;
       }
-      .ppa-cat-tab.active {
-        background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(2, 132, 199, 0.3));
-        border-color: rgba(56, 189, 248, 0.55);
-        color: #38BDF8;
-        box-shadow: 0 2px 8px rgba(56, 189, 248, 0.15);
-      }
-      #ppa-app-price-desc {
+      #ppa-dropdown-desc {
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 6px 8px;
+        padding-top: 2px;
         font-size: 9.5px;
         color: #94A3B8;
-        background: rgba(8, 13, 26, 0.5);
-        border: 1px solid #1E293B;
-        border-radius: 6px;
+        line-height: 1.3;
       }
-      #ppa-app-dot {
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        background: #10B981;
-        flex-shrink: 0;
-      }
-
-      /* Sale Discount Sub-mode Tabs */
-      #ppa-mode-card {
-        background: rgba(8, 13, 26, 0.6);
-        border: 1px solid #1E293B;
-        border-radius: 8px;
-        padding: 4px;
-      }
-
-      #ppa-mode-tabs {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 5px;
-      }
-      .ppa-mode-tab {
-        border: 1px solid transparent;
-        background: transparent;
-        color: #94A3B8;
-        padding: 6px 8px;
-        border-radius: 6px;
-        font-weight: 700;
-        font-size: 10.5px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-align: center;
-      }
-      .ppa-mode-tab:hover {
-        color: #F8FAFC;
-        background: rgba(255, 255, 255, 0.05);
-      }
-      .ppa-mode-tab.active {
-        background: linear-gradient(135deg, #0284C7, #0EA5E9);
-        color: #FFFFFF;
-        box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35);
-        border-color: rgba(56, 189, 248, 0.4);
-      }
-      #ppa-mode-desc {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 8px 3px 8px;
-        font-size: 9.5px;
-        color: #94A3B8;
-      }
-      #ppa-mode-dot {
+      #ppa-dropdown-dot {
         width: 5px;
         height: 5px;
         border-radius: 50%;
@@ -2220,70 +2224,34 @@
     document.head.appendChild(styleEl);
   }
   function attachEvents() {
-    // Main Target Category (App Price vs App Sale Price)
-    const catBtnSale = document.getElementById('ppa-cat-btn-sale');
-    const catBtnApp = document.getElementById('ppa-cat-btn-app');
-    const modeCard = document.getElementById('ppa-mode-card');
-    const appDesc = document.getElementById('ppa-app-price-desc');
+    // Target Mode Dropdown
+    const modeDropdown = document.getElementById('ppa-mode-dropdown');
+    const descText = document.getElementById('ppa-dropdown-text');
 
-    if (catBtnSale && catBtnApp) {
-      catBtnSale.addEventListener('click', () => {
-        if (state.mainCategory === 'app_sale_price') return;
-        state.mainCategory = 'app_sale_price';
-        catBtnSale.classList.add('active');
-        catBtnApp.classList.remove('active');
-        if (modeCard) modeCard.style.display = 'block';
-        if (appDesc) appDesc.style.display = 'none';
-
-        applyModeTargets();
-        updateUI();
-        log(`🔥 Switched to App Sale Price (${state.saleDiscountMode === 'percentage' ? 'Discount % Mode' : 'Fixed Price Mode'}).`);
-      });
-
-      catBtnApp.addEventListener('click', () => {
-        if (state.mainCategory === 'app_price') return;
-        state.mainCategory = 'app_price';
-        catBtnApp.classList.add('active');
-        catBtnSale.classList.remove('active');
-        if (modeCard) modeCard.style.display = 'none';
-        if (appDesc) appDesc.style.display = 'flex';
-
-        applyModeTargets();
-        updateUI();
-        log('🏷️ Switched to App Price Mode (Uses Retail Price column for Google Play Console Pricing tab).');
-      });
+    function updateDropdownDesc() {
+      if (!descText) return;
+      if (state.targetMode === 'retail') {
+        descText.innerHTML = '<strong>Set Retail Price:</strong> Automates standard prices in Play Console <em>"Price"</em> column.';
+      } else if (state.targetMode === 'discount_pct') {
+        descText.innerHTML = '<strong>Set Discount Percentage:</strong> Automates discount percentages in Play Console <em>"Sale price"</em> column.';
+      } else {
+        descText.innerHTML = '<strong>Set Discounted Retail Price:</strong> Automates discounted sale prices in Play Console <em>"Sale price"</em> column.';
+      }
     }
 
-    // Sale Discount Sub-mode Tabs (Fixed Price vs Discount %)
-    const btnFixed = document.getElementById('ppa-mode-btn-fixed');
-    const btnPct = document.getElementById('ppa-mode-btn-pct');
-    const modeDescText = document.getElementById('ppa-mode-text');
+    if (modeDropdown) {
+      modeDropdown.value = state.targetMode;
+      updateDropdownDesc();
 
-    if (btnFixed && btnPct) {
-      btnFixed.addEventListener('click', () => {
-        if (state.saleDiscountMode === 'fixed_price') return;
-        state.saleDiscountMode = 'fixed_price';
-        btnFixed.classList.add('active');
-        btnPct.classList.remove('active');
-        if (modeDescText) {
-          modeDescText.innerHTML = '<strong>Fixed Price Mode:</strong> Automates local currency sale prices from <em>Discounted Price</em> column.';
-        }
+      modeDropdown.addEventListener('change', (e) => {
+        state.targetMode = e.target.value;
+        updateDropdownDesc();
         applyModeTargets();
-        log('💰 Switched to Fixed Price Mode (uses "Discounted Price" column).');
         updateUI();
-      });
-
-      btnPct.addEventListener('click', () => {
-        if (state.saleDiscountMode === 'percentage') return;
-        state.saleDiscountMode = 'percentage';
-        btnPct.classList.add('active');
-        btnFixed.classList.remove('active');
-        if (modeDescText) {
-          modeDescText.innerHTML = '<strong>Discount % Mode:</strong> Automates percentage discounts from <em>Discount %</em> column.';
-        }
-        applyModeTargets();
-        log('🏷️ Switched to Discount % Mode (uses "Discount %" column).');
-        updateUI();
+        let label = '1. Set Retail Price';
+        if (state.targetMode === 'sale') label = '2. Set Discounted Retail Price';
+        if (state.targetMode === 'discount_pct') label = '3. Set Discount Percentage';
+        log(`🎯 Switched target mode to: ${label}`);
       });
     }
 
@@ -2410,6 +2378,30 @@
       if (parsed.length > 0) {
         state.countries = parsed;
         state.currentIndex = 0;
+
+        // Smart Mode auto-switch based on exported file naming
+        const fnLower = (file.name || '').toLowerCase();
+        if (fnLower.includes('percentage') || fnLower.includes('pct')) {
+          state.targetMode = 'discount_pct';
+        } else if (fnLower.includes('discounted') || fnLower.includes('sale')) {
+          state.targetMode = 'sale';
+        } else if (fnLower.includes('app price') || fnLower.includes('app_price') || fnLower.includes('retail') || fnLower.includes('iap')) {
+          state.targetMode = 'retail';
+        }
+
+        const modeDropdown = document.getElementById('ppa-mode-dropdown');
+        if (modeDropdown) modeDropdown.value = state.targetMode;
+        const descText = document.getElementById('ppa-dropdown-text');
+        if (descText) {
+          if (state.targetMode === 'retail') {
+            descText.innerHTML = '<strong>Set Retail Price:</strong> Automates standard prices in Play Console <em>"Price"</em> column.';
+          } else if (state.targetMode === 'discount_pct') {
+            descText.innerHTML = '<strong>Set Discount Percentage:</strong> Automates discount percentages in Play Console <em>"Sale price"</em> column.';
+          } else {
+            descText.innerHTML = '<strong>Set Discounted Retail Price:</strong> Automates discounted sale prices in Play Console <em>"Sale price"</em> column.';
+          }
+        }
+
         applyModeTargets();
 
         const fileInfo = document.getElementById('ppa-file-info');
@@ -2579,23 +2571,25 @@
   // -------------------------------------------------------------
   // Extension Message Listener (From popup.js)
   // -------------------------------------------------------------
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'togglePanel') {
-      togglePanel();
-      sendResponse({ visible: state.panelVisible });
-      return true;
-    }
-    if (message.action === 'showPanel') {
-      setPanelVisibility(true);
-      sendResponse({ visible: true });
-      return true;
-    }
-    if (message.action === 'hidePanel') {
-      setPanelVisibility(false);
-      sendResponse({ visible: false });
-      return true;
-    }
-  });
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === 'togglePanel') {
+        togglePanel();
+        sendResponse({ visible: state.panelVisible });
+        return true;
+      }
+      if (message.action === 'showPanel') {
+        setPanelVisibility(true);
+        sendResponse({ visible: true });
+        return true;
+      }
+      if (message.action === 'hidePanel') {
+        setPanelVisibility(false);
+        sendResponse({ visible: false });
+        return true;
+      }
+    });
+  }
 
   // -------------------------------------------------------------
   // Initialization

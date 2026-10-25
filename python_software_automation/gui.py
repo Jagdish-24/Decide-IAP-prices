@@ -41,6 +41,14 @@ try:
 except ImportError:
     HAS_PYNPUT = False
 
+TASK_MODES = [
+    ("retail", "1. Set Retail Price"),
+    ("sale", "2. Set Discounted Retail Price"),
+    ("discount_pct", "3. Set Discount Percentage")
+]
+CODE_TO_DISPLAY = {k: v for k, v in TASK_MODES}
+DISPLAY_TO_CODE = {v: k for k, v in TASK_MODES}
+
 
 class PlaySaleAutomatorGUI(tk.Tk):
     def __init__(self):
@@ -159,6 +167,13 @@ class PlaySaleAutomatorGUI(tk.Tk):
         style.configure("Horizontal.TProgressbar", background=self.colors["accent"],
                         troughcolor=self.colors["input_bg"], borderwidth=0)
 
+        # Dropdown Combobox styling
+        style.configure("TCombobox", fieldbackground="#090D16", background="#1E293B",
+                        foreground=self.colors["text"], selectbackground=self.colors["accent"],
+                        selectforeground="#000000", borderwidth=1)
+        style.map("TCombobox", fieldbackground=[("readonly", "#090D16")],
+                  foreground=[("readonly", self.colors["text"])])
+
     def _build_header(self):
         hdr = tk.Frame(self, bg=self.colors["bg"], padx=18, pady=10)
         hdr.pack(fill="x")
@@ -237,30 +252,29 @@ class PlaySaleAutomatorGUI(tk.Tk):
         col_right = tk.Frame(card, bg=self.colors["card_bg"])
         col_right.pack(side="right")
 
-        # Row 1 Left: Task Mode Selection
+        # Row 1 Left: Task Mode Selection Dropdown
         mode_row = tk.Frame(col_left, bg=self.colors["card_bg"])
         mode_row.pack(anchor="w", pady=(0, 4))
 
         tk.Label(mode_row, text="Task Mode:", font=("Segoe UI", 8, "bold"),
                  fg=self.colors["accent"], bg=self.colors["card_bg"]).pack(side="left", padx=(0, 8))
 
-        self.pricing_mode_var = tk.StringVar(value=self.config_data.get("pricing_target_mode", "sale"))
+        curr_mode = self.config_data.get("pricing_target_mode", "sale")
+        if curr_mode not in CODE_TO_DISPLAY:
+            curr_mode = "sale"
+        self.pricing_mode_var = tk.StringVar(value=curr_mode)
+        self.mode_display_var = tk.StringVar(value=CODE_TO_DISPLAY[curr_mode])
 
-        rb_sale = tk.Radiobutton(mode_row, text="Mode 2: Sale Prices (Promotional)",
-                                 variable=self.pricing_mode_var, value="sale",
-                                 font=("Segoe UI", 8, "bold"), fg=self.colors["text"],
-                                 bg=self.colors["card_bg"], selectcolor="#090D16",
-                                 activebackground=self.colors["card_bg"], activeforeground=self.colors["accent"],
-                                 command=self._on_change_pricing_mode)
-        rb_sale.pack(side="left", padx=(0, 10))
-
-        rb_retail = tk.Radiobutton(mode_row, text="Mode 1: Base Prices (Regular)",
-                                   variable=self.pricing_mode_var, value="retail",
-                                   font=("Segoe UI", 8), fg=self.colors["text_muted"],
-                                   bg=self.colors["card_bg"], selectcolor="#090D16",
-                                   activebackground=self.colors["card_bg"], activeforeground=self.colors["accent"],
-                                   command=self._on_change_pricing_mode)
-        rb_retail.pack(side="left")
+        self.mode_dropdown = ttk.Combobox(
+            mode_row,
+            textvariable=self.mode_display_var,
+            values=[v for _, v in TASK_MODES],
+            state="readonly",
+            font=("Segoe UI", 8, "bold"),
+            width=28
+        )
+        self.mode_dropdown.pack(side="left", padx=(0, 10))
+        self.mode_dropdown.bind("<<ComboboxSelected>>", self._on_change_pricing_mode)
 
         # Row 2 Left: Scope Info Badge (1-Window Play Console Direct)
         scope_row = tk.Frame(col_left, bg=self.colors["card_bg"])
@@ -290,13 +304,14 @@ class PlaySaleAutomatorGUI(tk.Tk):
                              cursor="hand2", command=self._on_click_load_file)
         btn_load.pack(side="right")
 
-    def _on_change_pricing_mode(self):
-        mode = self.pricing_mode_var.get()
+    def _on_change_pricing_mode(self, event=None):
+        disp = self.mode_display_var.get()
+        mode = DISPLAY_TO_CODE.get(disp, "sale")
+        self.pricing_mode_var.set(mode)
         self.config_data["pricing_target_mode"] = mode
         save_config(self.config_data)
         self._populate_country_tree()
-        label = "Mode 2: Set App Sale Prices" if mode == "sale" else "Mode 1: Set App Regular Prices"
-        self._on_engine_log(f"🔄 Switched to {label}")
+        self._on_engine_log(f"🔄 Switched task mode to: {disp}")
 
     def _on_click_load_file(self):
         path = filedialog.askopenfilename(
@@ -311,10 +326,21 @@ class PlaySaleAutomatorGUI(tk.Tk):
             self.loaded_file_name = os.path.basename(path)
             # Smart Mode auto-switch based on exported file naming
             fn_lower = self.loaded_file_name.lower()
-            if "sale" in fn_lower and hasattr(self, "pricing_mode_var"):
+            if ("discounted" in fn_lower or "sale" in fn_lower) and hasattr(self, "mode_display_var"):
+                self.mode_display_var.set(CODE_TO_DISPLAY["sale"])
                 self.pricing_mode_var.set("sale")
-            elif ("app_price" in fn_lower or "retail" in fn_lower) and hasattr(self, "pricing_mode_var"):
+                self.config_data["pricing_target_mode"] = "sale"
+                save_config(self.config_data)
+            elif ("percentage" in fn_lower or "pct" in fn_lower) and hasattr(self, "mode_display_var"):
+                self.mode_display_var.set(CODE_TO_DISPLAY["discount_pct"])
+                self.pricing_mode_var.set("discount_pct")
+                self.config_data["pricing_target_mode"] = "discount_pct"
+                save_config(self.config_data)
+            elif ("app price" in fn_lower or "app_price" in fn_lower or "retail" in fn_lower or "iap" in fn_lower) and hasattr(self, "mode_display_var"):
+                self.mode_display_var.set(CODE_TO_DISPLAY["retail"])
                 self.pricing_mode_var.set("retail")
+                self.config_data["pricing_target_mode"] = "retail"
+                save_config(self.config_data)
 
             if hasattr(self, "loaded_file_lbl"):
                 self.loaded_file_lbl.config(text=f"📄 {self.loaded_file_name}")
@@ -547,16 +573,21 @@ class PlaySaleAutomatorGUI(tk.Tk):
             # Determine price for the selected mode
             if pricing_mode == "retail":
                 target_p = c.get("retail_price", 0.0)
+                unit_str = f" {curr}" if curr else ""
+            elif pricing_mode == "discount_pct":
+                target_p = abs(c.get("discount_pct", 0.0))
+                unit_str = "%"
             else:
                 target_p = c.get("sale_price", c.get("retail_price", 0.0))
+                unit_str = f" {curr}" if curr else ""
 
             if isinstance(target_p, (int, float)) and target_p > 0:
                 if float(target_p).is_integer():
-                    price_val = f"{int(target_p)} {curr}"
+                    price_val = f"{int(target_p)}{unit_str}"
                 else:
-                    price_val = f"{target_p:.2f} {curr}"
+                    price_val = f"{target_p:.2f}{unit_str}"
             elif target_p:
-                price_val = f"{target_p} {curr}"
+                price_val = f"{target_p}{unit_str}"
             else:
                 price_val = "—"
 

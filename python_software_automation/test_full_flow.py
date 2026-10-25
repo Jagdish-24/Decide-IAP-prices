@@ -26,7 +26,7 @@ if hasattr(sys.stdout, 'reconfigure'):
     except Exception:
         pass
 
-# Ensure play_sale_automation module is on sys.path
+# Ensure python_software_automation module is on sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from file_parser import parse_pricing_file
@@ -37,19 +37,19 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
 
     def setUp(self):
         self.sample_csv_path = os.path.join(os.path.dirname(__file__), "test_bot_sale_prices.csv")
-        # Generate sample CSV matching the website's exact export output
-        csv_content = """Country Name,Country Code,Currency,Discounted Price,Retail Price,Discount Rate
-"Albania",AL,USD,0.19,0.99,"-50%"
-"Algeria",DZ,DZD,30,150,"-50%"
-"Angola",AO,USD,0.19,0.99,"-50%"
-"Antigua & Barbuda",AG,USD,0.29,0.99,"-50%"
-"Argentina",AR,ARS,199,419,"-50%"
-"Armenia",AM,USD,0.19,0.99,"-50%"
-"Aruba",AW,USD,0.29,0.99,"-50%"
-"Australia",AU,AUD,0.69,1.49,"-50%"
-"Austria",AT,EUR,0.49,0.99,"-50%"
-"Azerbaijan",AZ,AZN,0.49,1.00,"-50%"
-"India",IN,INR,9,49,"-50%"
+        # Generate sample CSV matching the website's exact export output (Sale mode: 4 columns)
+        csv_content = """Country Name,Retail Price,Discounted Price,Discount Percentage
+"Albania",0.99,0.19,"-50%"
+"Algeria",150,30,"-50%"
+"Angola",0.99,0.19,"-50%"
+"Antigua & Barbuda",0.99,0.29,"-50%"
+"Argentina",419,199,"-50%"
+"Armenia",0.99,0.19,"-50%"
+"Aruba",0.99,0.29,"-50%"
+"Australia",1.49,0.69,"-50%"
+"Austria",0.99,0.49,"-50%"
+"Azerbaijan",1.00,0.49,"-50%"
+"India",49,9,"-50%"
 """
         with open(self.sample_csv_path, "w", encoding="utf-8-sig") as f:
             f.write(csv_content)
@@ -59,40 +59,48 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
             os.remove(self.sample_csv_path)
 
     # -------------------------------------------------------------
-    # TEST 1: CSV Export & Parsing
+    # TEST 1: CSV Export & Parsing (Both 4-Column and 2-Column Formats)
     # -------------------------------------------------------------
     def test_01_csv_parsing(self):
+        # 1. Test 4-column sale mode CSV
         parsed = parse_pricing_file(self.sample_csv_path)
         self.assertEqual(len(parsed), 11)
 
-        # Verify Albania
         al = parsed.get("Albania")
         self.assertIsNotNone(al)
-        self.assertEqual(al["code"], "AL")
-        self.assertEqual(al["currency"], "USD")
         self.assertEqual(al["sale_price"], 0.19)
         self.assertEqual(al["retail_price"], 0.99)
         self.assertEqual(al["discount_pct"], -50.0)
 
-        # Verify Algeria (Zero-decimal DZD floor reached)
         dz = parsed.get("Algeria")
         self.assertIsNotNone(dz)
-        self.assertEqual(dz["currency"], "DZD")
         self.assertEqual(dz["sale_price"], 30.0)
+        self.assertEqual(dz["retail_price"], 150.0)
 
-        # Verify Argentina
         ar = parsed.get("Argentina")
         self.assertIsNotNone(ar)
-        self.assertEqual(ar["currency"], "ARS")
         self.assertEqual(ar["sale_price"], 199.0)
 
-        # Verify Australia
         au = parsed.get("Australia")
         self.assertIsNotNone(au)
-        self.assertEqual(au["currency"], "AUD")
         self.assertEqual(au["sale_price"], 0.69)
+        self.assertEqual(au["retail_price"], 1.49)
 
-        print("✅ Test 1 Passed: CSV Parsing & data extraction verified.")
+        # 2. Test 2-column base app pricing CSV (discount disabled)
+        two_col_csv = os.path.join(os.path.dirname(__file__), "test_2col.csv")
+        try:
+            with open(two_col_csv, "w", encoding="utf-8-sig") as f:
+                f.write('Country Name,Retail Price\n"Albania",0.99\n"India",49\n')
+            parsed_2col = parse_pricing_file(two_col_csv)
+            self.assertEqual(len(parsed_2col), 2)
+            self.assertEqual(parsed_2col["Albania"]["retail_price"], 0.99)
+            self.assertEqual(parsed_2col["Albania"]["sale_price"], 0.99)
+            self.assertEqual(parsed_2col["India"]["retail_price"], 49.0)
+        finally:
+            if os.path.exists(two_col_csv):
+                os.remove(two_col_csv)
+
+        print("✅ Test 1 Passed: CSV Parsing verified for both 4-column and 2-column export formats.")
 
     # -------------------------------------------------------------
     # TEST 2: Numeric Extraction Helper
@@ -110,21 +118,28 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
     # TEST 3: Mode Auto-detection on File Import
     # -------------------------------------------------------------
     def test_03_mode_auto_detection(self):
-        sale_filename = "bot_sale_prices_mygame_app_price_50pct_off.csv"
-        app_filename = "bot_app_prices_mygame_app_price.csv"
-
-        # Check mode logic
+        # Check mode auto-detection logic against context-correct exported filenames
         def detect_mode(filename):
             fn = filename.lower()
-            if "sale" in fn:
+            if "discounted" in fn or "sale" in fn:
                 return "sale"
-            elif "app_price" in fn or "retail" in fn:
+            elif "percentage" in fn or "pct" in fn:
+                return "discount_pct"
+            elif "app price" in fn or "app_price" in fn or "retail" in fn or "iap" in fn:
                 return "retail"
             return "sale"
 
-        self.assertEqual(detect_mode(sale_filename), "sale")
-        self.assertEqual(detect_mode(app_filename), "retail")
-        print("✅ Test 3 Passed: Mode auto-detection verified for both filenames.")
+        # User's exact context-correct filename examples
+        self.assertEqual(detect_mode("Sine Rush - Discounted - App Price.csv"), "sale")
+        self.assertEqual(detect_mode("Sine Rush - Discounted - IAP - No Ads.csv"), "sale")
+        self.assertEqual(detect_mode("Sine Rush - App Price.csv"), "retail")
+        self.assertEqual(detect_mode("Sine Rush - IAP - No Ads.csv"), "retail")
+        self.assertEqual(detect_mode("Sine Rush - Discount Percentage.csv"), "discount_pct")
+
+        # Backwards compatibility legacy names
+        self.assertEqual(detect_mode("bot_sale_prices_mygame_app_price_50pct_off.csv"), "sale")
+        self.assertEqual(detect_mode("bot_app_prices_mygame_app_price.csv"), "retail")
+        print("✅ Test 3 Passed: Mode auto-detection verified for context-correct filenames and legacy filenames.")
 
     # -------------------------------------------------------------
     # TEST 4: Engine Search & Price Mismatch -> Overwrite & Save Flow
@@ -399,6 +414,44 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
         mock_pyautogui.click.assert_any_call(x=545, y=566, clicks=1, button="left")
 
         print("✅ Test 9 Passed: 'New countries/regions' search normalization and child row offsets (+48px / +96px) verified.")
+
+    # -------------------------------------------------------------
+    # TEST 10: Discount Percentage Mode Target Extraction
+    # -------------------------------------------------------------
+    @patch("automator_engine.pyautogui")
+    @patch("automator_engine.pyperclip")
+    def test_10_discount_percentage_mode(self, mock_pyperclip, mock_pyautogui):
+        config = {
+            "automation_mode": "single_window",
+            "pricing_target_mode": "discount_pct",
+            "coordinates": {
+                "left_search_box": {"x": 955, "y": 367},
+                "left_row_pencil": {"x": 545, "y": 470},
+                "left_popup_input": {"x": 550, "y": 560},
+                "left_popup_save": {"x": 575, "y": 625}
+            },
+            "timing": {
+                "pre_start_delay": 0.01,
+                "search_delay": 0.01,
+                "popup_delay": 0.01,
+                "post_save_delay": 0.01,
+                "step_delay": 0.01,
+                "mouse_move_duration": 0.01
+            }
+        }
+        mock_detector = MagicMock()
+        mock_detector.is_paused.return_value = False
+        mock_pyperclip.paste.return_value = "0"  # Mismatch
+
+        countries = [
+            {"name": "India", "code": "IN", "currency": "INR", "retail_price": 49.0, "sale_price": 9.0, "discount_pct": -50.0}
+        ]
+
+        engine = PlaySaleAutomatorEngine(config, countries, mock_detector)
+        success, final_val = engine._process_country(countries[0], 0)
+        self.assertTrue(success)
+        self.assertEqual(final_val, "50")
+        print("✅ Test 10 Passed: 'discount_pct' mode formats abs value and executes flow successfully.")
 
 if __name__ == "__main__":
     unittest.main()
