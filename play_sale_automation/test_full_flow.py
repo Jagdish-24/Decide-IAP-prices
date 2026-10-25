@@ -170,8 +170,8 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
         self.assertEqual(final_price, "0.19")
 
         # Verify steps taken
-        # 1. Search box double-clicked to select all text
-        mock_pyautogui.click.assert_any_call(x=896, y=965, clicks=2, button="left")
+        # 1. Search box triple-clicked to select all text
+        mock_pyautogui.click.assert_any_call(x=896, y=965, clicks=3, button="left")
         # 2. Pencil icon clicked
         mock_pyautogui.click.assert_any_call(x=525, y=1065, clicks=1, button="left")
         # 3. Popup input double clicked

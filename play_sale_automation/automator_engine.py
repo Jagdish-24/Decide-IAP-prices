@@ -275,7 +275,7 @@ class PlaySaleAutomatorEngine:
         Processes a single country using visual screenshot guidance & verification.
         Executes without any page scrolling:
         1. Copies country name to clipboard & captures Screenshot 1.
-        2. Locates search bar, double-clicks to select all text, pastes country name & captures Screenshot 2.
+        2. Locates search bar, triple-clicks to select all text, pastes country name & captures Screenshot 2.
         3. Locates edit pencil icon in filtered row 1 & opens popup.
         4. Double-clicks price input, reads existing value.
            - If matched: cleanly closes dialog and continues immediately to next country.
@@ -345,7 +345,7 @@ class PlaySaleAutomatorEngine:
         self.screenshot_mgr.capture_and_save("step1_country_copied", label=c_name)
 
         # -------------------------------------------------------------
-        # STEP 2: Double-Click Search Bar, Paste Country Directly (Screenshot 2)
+        # STEP 2: Triple-Click Search Bar, Paste Country Directly (Screenshot 2)
         # -------------------------------------------------------------
         self.set_state(AutomatorState.RUNNING, f"[{c_name}] Locating search bar & filtering...")
 
@@ -357,8 +357,8 @@ class PlaySaleAutomatorEngine:
                 search_x, search_y = dyn_search
                 self.log(f"[{c_name}] 👁️ Visually located search bar at ({search_x}, {search_y})")
 
-        # Double-click to select all text in the search bar
-        if not self._safe_click(search_x, search_y, clicks=2):
+        # Triple-click to select all text in the search bar
+        if not self._safe_click(search_x, search_y, clicks=3):
             return False, copied_price
 
         # Brief pause to allow selection highlight to register
