@@ -7,7 +7,7 @@
   'use strict';
 
   // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-  const APP_VERSION = '1.8.6';
+  const APP_VERSION = '1.8.10';
   const APP_LAST_UPDATED = '25 Oct 2026';
 
   // 1. Initial State
@@ -241,6 +241,9 @@
     elements.pppStrengthRange = document.getElementById('pppStrengthRange');
     elements.pppStrengthDisplay = document.getElementById('pppStrengthDisplay');
     elements.charmRoundingToggle = document.getElementById('charmRoundingToggle');
+    if (elements.charmRoundingToggle) {
+      elements.charmRoundingToggle.checked = Boolean(state.charmRounding);
+    }
 
     // App Identifier & ID Generator elements
     elements.appNameInput = document.getElementById('appNameInput');
@@ -255,6 +258,9 @@
     elements.discountRateRange = document.getElementById('discountRateRange');
     elements.discountRateDisplay = document.getElementById('discountRateDisplay');
     elements.discountCharmToggle = document.getElementById('discountCharmToggle');
+    if (elements.discountCharmToggle) {
+      elements.discountCharmToggle.checked = Boolean(state.discountCharm);
+    }
 
     elements.catalogueItemsList = document.getElementById('catalogueItemsList');
     elements.skuCountPill = document.getElementById('skuCountPill');
@@ -562,6 +568,9 @@
   // Apply psychological charm pricing
   function applyCharmPricing(rawPrice, currencyCode, maxPrice = Infinity) {
     if (currencyCode === 'INR') {
+      if (rawPrice > 5000) {
+        return charmIntegerPrice(rawPrice, maxPrice);
+      }
       const candidates = INR_LADDER.filter(step => step < maxPrice);
       if (candidates.length === 0) return Math.max(1, Math.min(Math.round(rawPrice), maxPrice - 1));
       let closest = candidates[0];
@@ -656,6 +665,7 @@
     else cand = floor + 0.99;
 
     if (cand < maxPrice) return cand;
+    if (cand - 0.50 < maxPrice && cand - 0.50 > 0) return cand - 0.50;
     return Math.max(0.01, Math.round((maxPrice - 0.01) * 100) / 100);
   }
 
@@ -695,11 +705,13 @@
             : Math.max(0.01, Math.round((retailPrice - 0.01) * 100) / 100);
         }
       } else {
-        discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency) || rawDiscounted >= 100
+        const isWesternTwoDec = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD', 'BRL'].includes(country.currency);
+        const isZeroDec = ZERO_DECIMAL_CURRENCIES.has(country.currency) || (!isWesternTwoDec && rawDiscounted >= 100);
+        discountedPrice = isZeroDec
           ? Math.round(rawDiscounted)
           : Math.round(rawDiscounted * 100) / 100;
         if (discountedPrice >= retailPrice) {
-          discountedPrice = ZERO_DECIMAL_CURRENCIES.has(country.currency) || retailPrice >= 10
+          discountedPrice = isZeroDec || retailPrice >= 10
             ? Math.max(1, Math.round(retailPrice - 1))
             : Math.max(0.01, Math.round((retailPrice - 0.01) * 100) / 100);
         }
@@ -1590,7 +1602,7 @@
     let discountCellHtml = '';
     let discountDiffCellHtml = '';
     if (state.discountEnabled) {
-      const cleanDiffPct = calc.discountDiffPct.toFixed(2);
+      const cleanDiffPct = calc.discountDiffPct.toFixed(3);
       const isPromoActive = calc.discountDiffPct > 0;
 
       if (calc.isDiscountAtFloor) {
@@ -1628,7 +1640,7 @@
         <td class="mono-cell col-discount-diff-cell" data-col="discountdiff">
           <div class="price-box">
             <span class="discount-diff-val" title="Exact discount difference: ${calc.discountDiffPct.toFixed(4)}%">${cleanDiffPct}%</span>
-            <button class="btn-copy btn-copy-discount-pct" data-copy-val="${cleanDiffPct}%" data-country="${escapeHTML(c.name)}" data-currency="${escapeHTML(c.currency)}" data-type="discount_pct" title="Copy discount percentage (${cleanDiffPct}%) to clipboard">
+            <button class="btn-copy btn-copy-discount-pct" data-copy-val="${cleanDiffPct}" data-country="${escapeHTML(c.name)}" data-currency="${escapeHTML(c.currency)}" data-type="discount_pct" title="Copy discount percentage (${cleanDiffPct}%) to clipboard">
               ${COPY_ICON_SVG}
             </button>
           </div>
@@ -1916,7 +1928,7 @@
           escapeCsvCell(country.currency),
           escapeCsvCell(formatCleanNumber(calc.retailPrice, country.currency)),
           calc.retailInBase.toFixed(2),
-          state.discountEnabled ? `${calc.discountDiffPct.toFixed(2)}%` : 'None',
+          state.discountEnabled ? calc.discountDiffPct.toFixed(3) : '0.000',
           state.discountEnabled ? escapeCsvCell(formatCleanNumber(calc.discountedPrice, country.currency)) : escapeCsvCell(formatCleanNumber(calc.retailPrice, country.currency)),
           calc.taxPct.toFixed(1),
           calc.taxAmount.toFixed(2),
@@ -2311,14 +2323,14 @@
       const cleanRetail = formatCleanNumber(calc.retailPrice, country.currency);
       const cleanSale = formatCleanNumber(calc.discountedPrice, country.currency);
       const safeName = `"${country.name.replace(/"/g, '""')}"`;
-      const cleanPct = `${calc.discountDiffPct.toFixed(2)}%`;
+      const rawPct = calc.discountDiffPct.toFixed(3);
 
       if (isSaleMode) {
         rows.push([
           safeName,
           cleanRetail,
           cleanSale,
-          `"${cleanPct}"`
+          rawPct
         ]);
       } else {
         rows.push([

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Play Console Sale Price Automator (PlayPrice Engine)
 // @namespace    https://github.com/Jagdish-24/Decide-IAP-prices
-// @version      1.8.6
+// @version      1.8.10
 // @description  Automates setting country sale prices and app prices in Google Play Console with 1-click DOM injection and zero mouse movement.
 // @author       PlayPrice Engine Team
 // @match        https://play.google.com/console/*
@@ -15,7 +15,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.8.6...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.8.10...');
 
   // State Management
   const state = {
@@ -110,10 +110,11 @@
 
       const pctMatch = rawDiscountPct.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
       const discountPct = pctMatch ? Math.abs(parseFloat(pctMatch[0])) : null;
+      const rawPctClean = pctMatch ? pctMatch[0].replace(/%/g, '').trim() : '';
 
       const baseRetail = retailPrice !== null ? retailPrice : (salePrice !== null ? salePrice : 0);
       const baseSale = salePrice !== null ? salePrice : baseRetail;
-      const basePct = discountPct !== null ? discountPct : (baseRetail > 0 && baseSale < baseRetail ? parseFloat((((baseRetail - baseSale) / baseRetail) * 100).toFixed(2)) : 0);
+      const basePct = discountPct !== null ? discountPct : (baseRetail > 0 && baseSale < baseRetail ? parseFloat((((baseRetail - baseSale) / baseRetail) * 100).toFixed(3)) : 0);
 
       items.push({
         name: name,
@@ -121,6 +122,7 @@
         salePrice: baseSale,
         retailPrice: baseRetail,
         discountPct: basePct,
+        discountPctRaw: rawPctClean,
         targetValue: baseSale,
         priceFormatted: Number.isInteger(baseSale) ? `${baseSale}` : baseSale.toFixed(2),
         currency: curr,
@@ -148,7 +150,13 @@
       } else if (state.targetMode === 'discount_pct') {
         const val = c.discountPct !== null ? Math.abs(c.discountPct) : 0;
         c.targetValue = val;
-        c.priceFormatted = Number.isInteger(val) ? `${val}` : val.toFixed(2);
+        if (c.discountPctRaw && c.discountPctRaw.includes('.') && c.discountPctRaw.split('.')[1].length === 3) {
+          c.priceFormatted = c.discountPctRaw;
+        } else if (Number.isInteger(val)) {
+          c.priceFormatted = `${val}`;
+        } else {
+          c.priceFormatted = val.toFixed(3);
+        }
         c.displayUnit = '%';
       } else {
         // 'sale': Set Discounted Retail Price
@@ -1633,7 +1641,7 @@
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.8.6</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.8.10</div>
             </div>
           </div>
           <div id="ppa-header-badge">

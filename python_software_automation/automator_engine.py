@@ -309,13 +309,21 @@ class PlaySaleAutomatorEngine:
                 mode_label = "Discounted Retail Price"
 
             try:
-                f_val = float(raw_val)
                 if pricing_mode == "discount_pct":
-                    f_val = abs(f_val)
-                if f_val.is_integer():
-                    copied_price = str(int(f_val))
+                    raw_str = str(country.get("discount_pct_raw") or country.get("discount_pct", "0")).replace("%", "").strip()
+                    f_val = abs(float(raw_str)) if raw_str else 0.0
+                    if "." in raw_str and len(raw_str.split(".")[-1]) == 3:
+                        copied_price = raw_str
+                    elif f_val.is_integer():
+                        copied_price = str(int(f_val))
+                    else:
+                        copied_price = f"{f_val:.3f}"
                 else:
-                    copied_price = f"{f_val:.2f}"
+                    f_val = float(raw_val)
+                    if f_val.is_integer():
+                        copied_price = str(int(f_val))
+                    else:
+                        copied_price = f"{f_val:.2f}"
             except Exception:
                 copied_price = str(raw_val)
 
@@ -342,6 +350,8 @@ class PlaySaleAutomatorEngine:
                 return False, ""
             try:
                 copied_price = pyperclip.paste().strip()
+                if pricing_mode == "discount_pct":
+                    copied_price = copied_price.rstrip('%').strip()
             except Exception:
                 copied_price = ""
             self.log(f"[{c_name}] 📋 Copied price from screen: '{copied_price}'")
@@ -453,7 +463,8 @@ class PlaySaleAutomatorEngine:
 
         # CASE A: Value is ALREADY matching (e.g. 0.19 == 0.19 or 0.29 == 0.29)
         # DO NOT STOP AUTOMATION -> cleanly close popup and continue immediately to next country!
-        if existing_num is not None and target_num is not None and abs(existing_num - target_num) < 0.0001:
+        match_tolerance = 0.001 if pricing_mode == "discount_pct" else 0.0001
+        if existing_num is not None and target_num is not None and abs(existing_num - target_num) < match_tolerance:
             self.last_country_matched = True
             self.log(f"[{c_name}] ✨ Value already matches target ({existing_num} == {target_num}). No change needed! Continuing to next country...")
             self.set_state(AutomatorState.RUNNING, f"[{c_name}] Value matches ({copied_price}). Continuing...")

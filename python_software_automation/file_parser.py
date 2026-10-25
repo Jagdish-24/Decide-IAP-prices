@@ -92,7 +92,7 @@ def _parse_csv(file_path):
                 row_dict.get("discount diff %") or 
                 row_dict.get("discount difference %") or 
                 row_dict.get("discount rate") or 
-                "0%"
+                "0"
             )
 
             # Identify Base Currency Price (EUR, USD, INR, GBP, etc.)
@@ -113,6 +113,10 @@ def _parse_csv(file_path):
                 "0"
             )
 
+            clean_pct_str = str(discount_pct_str).replace("%", "").strip()
+            raw_pct_m = re.findall(r"[-+]?\d*\.?\d+", clean_pct_str)
+            raw_pct_val = raw_pct_m[0] if raw_pct_m else "0"
+
             results[country_name] = {
                 "name": country_name,
                 "code": code,
@@ -125,7 +129,7 @@ def _parse_csv(file_path):
                 "retail_raw": str(retail_str).strip(),
                 "retail_base_raw": str(base_price_str).strip(),
                 "sale_raw": str(sale_str).strip(),
-                "discount_pct_raw": str(discount_pct_str).strip()
+                "discount_pct_raw": raw_pct_val
             }
 
     return results

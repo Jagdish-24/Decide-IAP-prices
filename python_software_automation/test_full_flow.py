@@ -100,7 +100,22 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
             if os.path.exists(two_col_csv):
                 os.remove(two_col_csv)
 
-        print("✅ Test 1 Passed: CSV Parsing verified for both 4-column and 2-column export formats.")
+        # 3. Test raw 3-decimal text discount % CSV export (v1.8.8 format without %)
+        raw_pct_csv = os.path.join(os.path.dirname(__file__), "test_raw_pct.csv")
+        try:
+            with open(raw_pct_csv, "w", encoding="utf-8-sig") as f:
+                f.write('Country Name,Retail Price,Discounted Price,Discount Percentage\n"Canada",1.49,0.60,59.732\n"Chile",569,228,59.930\n')
+            parsed_raw = parse_pricing_file(raw_pct_csv)
+            self.assertEqual(len(parsed_raw), 2)
+            self.assertEqual(parsed_raw["Canada"]["discount_pct"], 59.732)
+            self.assertEqual(parsed_raw["Canada"]["discount_pct_raw"], "59.732")
+            self.assertEqual(parsed_raw["Chile"]["discount_pct"], 59.930)
+            self.assertEqual(parsed_raw["Chile"]["discount_pct_raw"], "59.930")
+        finally:
+            if os.path.exists(raw_pct_csv):
+                os.remove(raw_pct_csv)
+
+        print("✅ Test 1 Passed: CSV Parsing verified for 4-column, 2-column, and raw 3-decimal percent export formats.")
 
     # -------------------------------------------------------------
     # TEST 2: Numeric Extraction Helper
@@ -452,6 +467,73 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
         self.assertTrue(success)
         self.assertEqual(final_val, "50")
         print("✅ Test 10 Passed: 'discount_pct' mode formats abs value and executes flow successfully.")
+
+    # -------------------------------------------------------------
+    # Test 11: High-Precision Discount % (xx.xxx) & Exact Sales Math
+    # -------------------------------------------------------------
+    @patch("automator_engine.pyautogui")
+    @patch("automator_engine.pyperclip")
+    def test_11_discount_percentage_precision_and_exact_sale_pricing(self, mock_pyperclip, mock_pyautogui):
+        config_pct = {
+            "automation_mode": "single_window",
+            "pricing_target_mode": "discount_pct",
+            "coordinates": {
+                "left_search_box": {"x": 955, "y": 367},
+                "left_row_pencil": {"x": 545, "y": 470},
+                "left_popup_input": {"x": 550, "y": 560},
+                "left_popup_save": {"x": 575, "y": 625}
+            },
+            "timing": {
+                "pre_start_delay": 0.01,
+                "search_delay": 0.01,
+                "popup_delay": 0.01,
+                "post_save_delay": 0.01,
+                "step_delay": 0.01,
+                "mouse_move_duration": 0.01
+            }
+        }
+        mock_detector = MagicMock()
+        mock_detector.is_paused.return_value = False
+        mock_pyperclip.paste.return_value = "0"
+
+        # Verify 3-decimal xx.xxx precision formatting in discount_pct mode with Charm pricing
+        countries_charm = [
+            {"name": "Canada", "code": "CA", "currency": "CAD", "retail_price": 1.49, "sale_price": 0.59, "discount_pct": 60.403},
+            {"name": "Chile", "code": "CL", "currency": "CLP", "retail_price": 569.0, "sale_price": 229.0, "discount_pct": 59.754}
+        ]
+        engine_charm = PlaySaleAutomatorEngine(config_pct, countries_charm, mock_detector)
+        success_ca, val_ca = engine_charm._process_country(countries_charm[0], 0)
+        self.assertTrue(success_ca)
+        self.assertEqual(val_ca, "60.403")
+
+        success_cl, val_cl = engine_charm._process_country(countries_charm[1], 1)
+        self.assertTrue(success_cl)
+        self.assertEqual(val_cl, "59.754")
+
+        # Verify Charm Sale Mode pricing
+        config_sale = dict(config_pct)
+        config_sale["pricing_target_mode"] = "sale"
+        engine_sale = PlaySaleAutomatorEngine(config_sale, countries_charm, mock_detector)
+
+        success_sale_ca, val_sale_ca = engine_sale._process_country(countries_charm[0], 0)
+        self.assertTrue(success_sale_ca)
+        self.assertEqual(val_sale_ca, "0.59")
+
+        success_sale_cl, val_sale_cl = engine_sale._process_country(countries_charm[1], 1)
+        self.assertTrue(success_sale_cl)
+        self.assertEqual(val_sale_cl, "229")
+
+        # Also verify uncharmed standard rounding support
+        countries_standard = [
+            {"name": "Canada", "code": "CA", "currency": "CAD", "retail_price": 1.49, "sale_price": 0.60, "discount_pct": 59.732},
+            {"name": "Chile", "code": "CL", "currency": "CLP", "retail_price": 569.0, "sale_price": 228.0, "discount_pct": 59.930}
+        ]
+        engine_std = PlaySaleAutomatorEngine(config_pct, countries_standard, mock_detector)
+        s_ca, v_ca = engine_std._process_country(countries_standard[0], 0)
+        self.assertTrue(s_ca)
+        self.assertEqual(v_ca, "59.732")
+
+        print("✅ Test 11 Passed: 'xx.xxx' precision percentage verified for both Charm and standard sale pricing.")
 
 if __name__ == "__main__":
     unittest.main()

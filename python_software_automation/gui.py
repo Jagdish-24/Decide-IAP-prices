@@ -615,6 +615,8 @@ class PlaySaleAutomatorGUI(tk.Tk):
             if isinstance(target_p, (int, float)) and target_p > 0:
                 if float(target_p).is_integer():
                     price_val = f"{int(target_p)}{unit_str}"
+                elif pricing_mode == "discount_pct":
+                    price_val = f"{target_p:.3f}{unit_str}"
                 else:
                     price_val = f"{target_p:.2f}{unit_str}"
             elif target_p:

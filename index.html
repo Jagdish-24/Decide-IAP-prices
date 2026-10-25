@@ -66,7 +66,7 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.8.6</span>
+          <span class="version-tag" id="appVersionText">v1.8.10</span>
           <span class="version-sep">•</span>
           <span class="version-date" id="lastUpdatedDateText">Updated 25 Oct 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -239,7 +239,7 @@
           <div class="toggle-field" style="margin-top: 10px;">
             <div>
               <label for="discountCharmToggle" class="toggle-label" style="cursor: pointer;">Discount Charm Rounding</label>
-              <span class="toggle-desc">Rounds discounted prices to .99, .49, or local tiers</span>
+              <span class="toggle-desc">Applies psychological charm pricing (.99 / .49 / .29 / .19) to promotional prices (enabled by default).</span>
             </div>
             <label class="switch" for="discountCharmToggle">
               <input type="checkbox" id="discountCharmToggle" checked>
@@ -1086,8 +1086,73 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.8.6 -->
+          <!-- Release v1.8.10 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.8.10</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Comprehensive Charm Rounding Default Guarantee:</strong> Both Psychological Charm Rounding and Discount Charm Rounding are strictly enabled by default in core state and DOM initialization, ensuring all initial calculations across standard pricing, promotional sales, revenue simulations, and catalog exports immediately reflect psychological charm tiers (.99 / .49 / .29 / .19).</li>
+                <li><strong>Extended Charm Tier Coverage:</strong> Enhanced INR high-tier calculations beyond ₹5,000 using full integer charm ladders, and reinforced sub-$10 fallback ladders across international regional currencies.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.8.9 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.8.9</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Default Discount Charm Rounding with Exact % Precision:</strong> Enabled Discount Charm Rounding by default to preserve psychological consumer pricing tiers (.99 / .49 / .29 / .19, e.g. Canada CAD 0.59 and Chile CLP 229). The resulting effective discount percentage is mathematically calculated with full 3-decimal precision (e.g. <code>60.403%</code>, <code>59.754%</code>) matching Google Play Console's exact reverse-engineering.</li>
+                <li><strong>Synchronized Automation Suite:</strong> Bots and Desktop Automators seamlessly process raw 3-decimal precision percentages (<code>xx.xxx</code>) and charm sale prices with 0% variance.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.8.8 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.8.8</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Raw Text Discount % in Automation CSV:</strong> Exported automation CSV files now write raw text values (e.g. <code>xx.xxx</code> with 3 decimals, such as <code>59.732</code>) without percent (<code>%</code>) symbols or quotes in the Discount Percentage column for direct input entry.</li>
+                <li><strong>Bot &amp; Software Parser Synchronization:</strong> Updated Browser Bot (UserScript &amp; Chrome Extension) and Python Desktop Software Automator to seamlessly parse raw 3-decimal text strings and maintain exact target values.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.8.7 -->
+          <div class="changelog-item">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.8.7</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">25 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Precision Calibration for Sales &amp; Bot Automation:</strong> Eliminated under-1% (±0.40% / -0.25%) calculation differences between PlayPrice Engine and Google Play Console app sales. Promotional discounts now follow Google Play's exact standard mathematical rounding (e.g. Canada CAD 1.49 at 60% sale = CAD 0.60; Chile CLP 569 at 60% sale = CLP 228) by default.</li>
+                <li><strong>High-Precision `xx.xxx%` Discount Percentages:</strong> Updated all discount percentage displays, table cells, CSV exports, and clipboard copy operations to support full 3-decimal precision (<code>xx.xxx%</code>) without truncation.</li>
+                <li><strong>Clean Numeric Clipboard Copy:</strong> Discount percentage copy buttons now copy clean numeric percentage values (e.g. <code>59.732</code> or <code>60.000</code>) for instant, error-free pasting into Google Play Console and external spreadsheets.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.8.6 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">
