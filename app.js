@@ -7,7 +7,7 @@
   'use strict';
 
   // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-  const APP_VERSION = '1.7.3';
+  const APP_VERSION = '1.7.4';
   const APP_LAST_UPDATED = '25 Oct 2026';
 
   // 1. Initial State
@@ -2299,10 +2299,9 @@
     const isSaleMode = Boolean(state.discountEnabled);
 
     // Headers mapped directly to file_parser.py in play_sale_automation
-    const baseCode = (state.baseCurrency || 'USD').toUpperCase();
     const headers = isSaleMode
-      ? ['Country Name', 'Country Code', 'Currency', 'Discounted Price', 'Discount %', 'Retail Price', `Retail Price (${baseCode})`]
-      : ['Country Name', 'Country Code', 'Currency', 'Retail Price', `Retail Price (${baseCode})`, 'Discount %'];
+      ? ['Country Name', 'Country Code', 'Currency', 'Discounted Price', 'Discount %', 'End-User Retail Price']
+      : ['Country Name', 'Country Code', 'Currency', 'End-User Retail Price', 'Discount %'];
 
     const rows = [headers];
 
@@ -2316,9 +2315,6 @@
       const safeName = `"${country.name.replace(/"/g, '""')}"`;
       const cleanPct = `${calc.discountDiffPct.toFixed(2)}%`;
 
-      // Base Currency Price equivalent (directly from calc.retailInBase matching the "≈ BASE XXX" in UI)
-      const cleanRetailBase = calc.retailInBase.toFixed(2);
-
       if (isSaleMode) {
         rows.push([
           safeName,
@@ -2326,8 +2322,7 @@
           country.currency,
           cleanSale,
           `"${cleanPct}"`,
-          cleanRetail,
-          cleanRetailBase
+          cleanRetail
         ]);
       } else {
         rows.push([
@@ -2335,7 +2330,6 @@
           country.code,
           country.currency,
           cleanRetail,
-          cleanRetailBase,
           `"0.00%"`
         ]);
       }

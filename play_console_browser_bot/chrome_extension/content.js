@@ -5,7 +5,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.3...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.4...');
 
   // State Management
   const state = {
@@ -60,24 +60,6 @@
       h.includes('discount %') || h.includes('discount diff') || h.includes('discount difference') || h.includes('discount rate') || h.includes('pct') || h.includes('%')
     );
 
-    // 4. Retail Price in Base Currency (e.g. "Retail Price (EUR)", "Retail Price (USD)", "Retail Price (INR)", etc.)
-    let basePriceIdx = -1;
-    let baseCurrencyCode = 'EUR';
-
-    for (let i = 0; i < header.length; i++) {
-      const h = header[i];
-      const match = h.match(/retail\s*price\s*\(([a-z]{3})\)/i) || h.match(/price\s*\(([a-z]{3})\)/i);
-      if (match) {
-        basePriceIdx = i;
-        baseCurrencyCode = match[1].toUpperCase();
-        break;
-      }
-    }
-
-    if (basePriceIdx === -1) {
-      basePriceIdx = header.findIndex(h => h.includes('eur') || h.includes('euro') || h.includes('base'));
-    }
-
     if (nameIdx === -1) nameIdx = 0;
 
     const items = [];
@@ -105,7 +87,6 @@
       const rawRetailPrice = (retailPriceIdx !== -1 ? row[retailPriceIdx] : '').replace(/^["']|["']$/g, '').trim();
       const rawSalePrice = (salePriceIdx !== -1 ? row[salePriceIdx] : '').replace(/^["']|["']$/g, '').trim();
       const rawDiscountPct = (discountPctIdx !== -1 ? row[discountPctIdx] : '').replace(/^["']|["']$/g, '').trim();
-      const rawBasePrice = (basePriceIdx !== -1 ? row[basePriceIdx] : '').replace(/^["']|["']$/g, '').trim();
 
       if (!name) continue;
 
@@ -119,9 +100,6 @@
       const pctMatch = rawDiscountPct.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
       const discountPct = pctMatch ? Math.abs(parseFloat(pctMatch[0])) : null;
 
-      const baseMatch = rawBasePrice.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
-      const retailBasePrice = baseMatch ? parseFloat(baseMatch[0]) : null;
-
       const baseRetail = retailPrice !== null ? retailPrice : (salePrice !== null ? salePrice : 0);
       const baseSale = salePrice !== null ? salePrice : baseRetail;
       const basePct = discountPct !== null ? discountPct : (baseRetail > 0 && baseSale < baseRetail ? parseFloat((((baseRetail - baseSale) / baseRetail) * 100).toFixed(2)) : 0);
@@ -131,8 +109,6 @@
         code: code,
         salePrice: baseSale,
         retailPrice: baseRetail,
-        retailBasePrice: retailBasePrice,
-        baseCurrency: baseCurrencyCode,
         discountPct: basePct,
         targetValue: baseSale,
         priceFormatted: Number.isInteger(baseSale) ? `${baseSale}` : baseSale.toFixed(2),
@@ -151,18 +127,11 @@
   function applyModeTargets() {
     for (const c of state.countries) {
       if (state.mainCategory === 'app_price') {
-        // App Price Mode: Target Base Currency price (EUR, USD, INR, etc.) to skip ISO currency dropdown
-        if (c.retailBasePrice !== null && c.retailBasePrice > 0) {
-          c.targetValue = c.retailBasePrice;
-          c.priceFormatted = c.retailBasePrice.toFixed(2);
-          c.displayUnit = c.baseCurrency || 'EUR';
-          c.currency = c.baseCurrency || 'EUR';
-        } else {
-          const val = c.retailPrice !== null ? c.retailPrice : (c.salePrice !== null ? c.salePrice : 0);
-          c.targetValue = val;
-          c.priceFormatted = Number.isInteger(val) ? `${val}` : val.toFixed(2);
-          c.displayUnit = c.currency;
-        }
+        // App Price Mode: Target the End-User Retail Price from CSV
+        const val = c.retailPrice !== null ? c.retailPrice : (c.salePrice !== null ? c.salePrice : 0);
+        c.targetValue = val;
+        c.priceFormatted = Number.isInteger(val) ? `${val}` : val.toFixed(2);
+        c.displayUnit = c.currency;
       } else if (state.saleDiscountMode === 'percentage') {
         const val = c.discountPct !== null ? c.discountPct : 0;
         c.targetValue = val;
@@ -263,48 +232,77 @@
   }
 
   async function openRowEditModal(row) {
+    try {
+      row.scrollIntoView({ block: 'center', inline: 'nearest' });
+    } catch (e) {}
     row.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, composed: true }));
     row.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, composed: true }));
     await humanMicroPause(90, 200);
 
-    let pencil = row.querySelector('button[aria-label*="Edit" i]') ||
-                 row.querySelector('button[title*="Edit" i]') ||
-                 row.querySelector('button[aria-label*="price" i]') ||
-                 row.querySelector('button[aria-label*="discount" i]') ||
-                 row.querySelector('material-icon[icon*="edit"]') ||
-                 row.querySelector('.material-icons, [data-icon="edit"], svg');
+    // 1. Look for edit button specifically inside the price column
+    const priceCell = row.querySelector('ess-cell[essfield="price-column"], [data-col*="price"], td:nth-child(2), [role="gridcell"]:nth-child(2)');
+    let pencil = null;
+    if (priceCell) {
+      priceCell.dispatchEvent(new MouseEvent('mouseover', { bubbles: true, composed: true }));
+      priceCell.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true, composed: true }));
+      pencil = priceCell.querySelector('button[aria-label*="Edit" i], button[title*="Edit" i], button, [role="button"]');
+    }
 
+    // 2. Generic row search for edit button
+    if (!pencil) {
+      pencil = row.querySelector('button[aria-label*="Edit" i], button[title*="Edit" i], button[aria-label*="price" i], button[aria-label*="discount" i], material-icon[icon*="edit"], [data-icon="edit"], svg');
+    }
+
+    // 3. Search for any button inside the row
     if (!pencil) {
       const btns = Array.from(row.querySelectorAll('button, [role="button"]'));
       pencil = btns.find(b => {
         const al = (b.getAttribute('aria-label') || '').toLowerCase();
-        return al.includes('edit') || al.includes('price') || al.includes('discount') || b.querySelector('svg, i, material-icon');
+        const tt = (b.getAttribute('title') || '').toLowerCase();
+        return al.includes('edit') || tt.includes('edit') || al.includes('price') || b.querySelector('svg, i, material-icon');
       }) || btns[0];
     }
 
-    if (!pencil) {
-      // Fallback for Google Play Console App Pricing table: click the Price column cell or row itself
-      pencil = row.querySelector('td:nth-child(2), [role="gridcell"]:nth-child(2), [role="cell"]:nth-child(2)') || row;
+    if (!pencil && priceCell) {
+      pencil = priceCell;
     }
 
     if (pencil) {
-      activelyClickElement(pencil, ['.mdc-button__touch', '.mdc-button__label', '.mdc-button__ripple']);
+      activelyClickElement(pencil, ['.mdc-button__touch', '.mdc-button__label', '.mdc-button__ripple', 'svg', 'path']);
       return true;
     }
     return false;
-
   }
 
-  async function waitForEditPricePopup(timeoutMs = 4000) {
+  async function waitForEditPricePopup(timeoutMs = 4500) {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
       if (!state.isRunning) return null;
 
-      const dialog = document.querySelector('[role="dialog"], dialog, material-dialog, .modal-dialog');
-      if (dialog) {
-        const input = dialog.querySelector('input');
-        if (input) return { dialog, input };
+      // 1. Check known dialog / popup containers
+      const dialogCandidates = Array.from(document.querySelectorAll(
+        '[role="dialog"], dialog, material-dialog, .modal-dialog, .mdc-dialog, .cdk-overlay-pane, console-mega-overlay, material-popup, .popup-container, .popup, div[popupsource]'
+      )).filter(d => !d.closest('#play-price-automator-root') && isElementReallyVisible(d));
+
+      for (const d of dialogCandidates) {
+        const input = d.querySelector('input:not([type="checkbox"]):not([type="radio"])');
+        if (input) return { dialog: d, input };
       }
+
+      // 2. Search by heading / text "Edit price"
+      const allHeadings = Array.from(document.querySelectorAll('h1, h2, h3, h4, [role="heading"], div, span'));
+      for (const el of allHeadings) {
+        if (el.closest('#play-price-automator-root')) continue;
+        const txt = (el.textContent || '').trim().toLowerCase();
+        if (txt === 'edit price' || txt.startsWith('edit price') || txt.includes('edit price')) {
+          const container = el.closest('[role="dialog"], dialog, material-dialog, .cdk-overlay-pane, material-popup, .popup-container, div') || el.parentElement.parentElement;
+          if (container && isElementReallyVisible(container)) {
+            const input = container.querySelector('input:not([type="checkbox"]):not([type="radio"])');
+            if (input) return { dialog: container, input };
+          }
+        }
+      }
+
       await sleep(120);
     }
     return null;
@@ -1212,8 +1210,8 @@
     log(`🚀 Starting automation in ${modeLabel} for ${state.countries.length} countries (Speed: ${state.speedDelay}ms)...`);
 
     const searchBox = findSearchBox();
-    if (!searchBox && state.mainCategory === 'app_sale_price') {
-      log('❌ Could not locate Google Play Console search bar! Are you on the "Availability and pricing" / "Edit sale" page?');
+    if (!searchBox) {
+      log('❌ Could not locate Google Play Console search bar ("Search by country or region")! Are you on the "Pricing" or "Availability and pricing" page?');
       state.isRunning = false;
       stopTimers();
       updateUI();
@@ -1247,212 +1245,115 @@
 
       const isPercentage = state.mainCategory === 'app_sale_price' && state.saleDiscountMode === 'percentage';
       const unitText = isPercentage ? '%' : ` ${c.currency}`;
-      const typeLabel = state.mainCategory === 'app_price' ? 'App Price' : (isPercentage ? 'Sale Discount' : 'Sale Price');
+      const typeLabel = state.mainCategory === 'app_price' ? 'App Retail Price' : (isPercentage ? 'Sale Discount' : 'Sale Price');
       log(`📍 [${idx + 1}/${state.countries.length}] ${c.name} • Target ${typeLabel}: ${c.priceFormatted}${unitText}`);
 
       try {
-        if (state.mainCategory === 'app_price') {
-          // =========================================================
-          // WORKFLOW A: Multi-Step "App Price" Automation
-          // ("Set pricing" button -> Look for country in list -> Checkbox -> Continue -> Price & Currency -> Update)
-          // =========================================================
+        // Step 1: Focus and double-click to select all text in search bar & paste country name
+        searchBox.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        searchBox.focus();
+        await humanMicroPause(70, 160);
+        searchBox.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
+        if (typeof searchBox.select === 'function') searchBox.select();
+        await humanMicroPause(50, 130);
+        setNativeValue(searchBox, c.name);
 
-          // Step 1: Find and click the "Set pricing" button EACH time to enter selection state
-          const activated = await clickSetPricingButton(5000);
-          if (!activated) {
-            log(`⚠️ [${c.name}] Could not activate "Set pricing" state. Retrying...`);
-            await sleep(1000);
-            await clickSetPricingButton(3000);
-          }
+        // Safe Cadence Delay
+        await sleep(getHumanizedDelay(state.speedDelay));
 
-          // Step 2: Look for the country by name directly from the table list (bypassing search bar)
-          log(`🔎 [${c.name}] Locating country in table list...`);
-          const match = await findCountryRowInList(c.name, 10000);
-          if (!match) {
-            log(`⚠️ Country row not found in list for ${c.name}, skipping...`);
-            c.status = 'failed';
-            c.message = 'Row not found in list';
-            updateUI();
-            continue;
-          }
-          await humanMicroPause(120, 240);
+        // Step 2: Wait for filtered row in table
+        const row = await waitForFilteredRow(c.name, 4500);
+        if (!row) {
+          log(`⚠️ Row not found for ${c.name}, skipping...`);
+          c.status = 'failed';
+          c.message = 'Row not found';
+          updateUI();
+          continue;
+        }
+        await humanMicroPause(100, 240);
 
-          // Step 3: Check mark the country's checkbox
-          const checked = await checkCountryRowCheckbox(match, c.name);
-          if (!checked) {
-            log(`⚠️ Could not check row checkbox for ${c.name}, skipping...`);
-            c.status = 'failed';
-            c.message = 'Checkbox not checked';
-            updateUI();
-            continue;
-          }
-          await humanMicroPause(150, 300);
+        // Step 3: Open Edit Price modal by clicking pencil button in row
+        const opened = await openRowEditModal(row);
+        if (!opened) {
+          log(`⚠️ Could not click edit button for ${c.name}, skipping...`);
+          c.status = 'failed';
+          c.message = 'Edit button not found';
+          updateUI();
+          continue;
+        }
 
-          // Step 4: Press the blue "Continue" button in the bottom action bar
-          const continued = await clickBottomContinueButton(4000);
-          if (!continued) {
-            log(`⚠️ Bottom "Continue" button not active for ${c.name}, skipping...`);
-            c.status = 'failed';
-            c.message = 'Continue not found';
-            updateUI();
-            continue;
-          }
+        await sleep(getHumanizedDelay(Math.min(900, state.speedDelay)));
 
-          // Step 5: Wait for "Set price for selected countries and regions" modal dialog
-          const modalObj = await waitForAppPricingModal(5000);
-          if (!modalObj) {
-            log(`⚠️ Pricing popup did not open for ${c.name}, skipping...`);
-            c.status = 'failed';
-            c.message = 'Modal did not open';
-            updateUI();
-            continue;
-          }
+        // Step 4: Handle Edit Modal Input
+        const modalObj = await waitForEditPricePopup(4500);
+        if (!modalObj) {
+          log(`⚠️ Edit popup did not open for ${c.name}, skipping...`);
+          c.status = 'failed';
+          c.message = 'Modal did not open';
+          updateUI();
+          continue;
+        }
 
-          const { dialog, input } = modalObj;
-          await humanMicroPause(150, 300);
+        const { dialog, input } = modalObj;
+        await humanMicroPause(150, 320);
 
-          // Step 6: Input the Base Currency price number directly into the input field!
-          // SKIPPING ISO CURRENCY SELECTION: In Google Play Console, the modal defaults to your account Base Currency.
-          // Directly pasting the base price number avoids dropdown instability and currency mismatch errors.
-          log(`🔄 [${c.name}] Setting ${c.currency} Price '${c.priceFormatted}' (skipping ISO dropdown)...`);
-          await setModalPrice(input, c.priceFormatted);
-          await humanMicroPause(180, 320);
+        // Step 5: Check current existing value in input
+        const existingVal = input.value.trim();
+        const numMatch = existingVal.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
+        const existingNum = numMatch ? parseFloat(numMatch[0]) : null;
 
-          // Step 7: Press the blue "Update" button & wait for modal to close
-          const updated = await clickModalUpdateButton(dialog);
-          if (updated) {
-            c.status = 'done';
-            c.message = `Updated: ${c.priceFormatted} ${c.currency}`;
-            log(`✅ [${c.name}] Update clicked: ${c.priceFormatted} ${c.currency}`);
+        if (existingNum !== null && Math.abs(existingNum - c.targetValue) < 0.001) {
+          // Already matches target value!
+          log(`✨ [${c.name}] Value already matches target (${existingNum} == ${c.priceFormatted}${unitText}). Cleanly dismissing modal...`);
+          c.status = 'matched';
+          c.message = 'Already matches';
+
+          await humanMicroPause(140, 280);
+          const cancelBtn = dialog.querySelector('button[aria-label*="Cancel" i]') ||
+                            Array.from(dialog.querySelectorAll('button')).find(b => b.textContent.toLowerCase().includes('cancel'));
+          if (cancelBtn) {
+            activelyClickElement(cancelBtn);
           } else {
-            log(`⚠️ [${c.name}] Update button could not be clicked.`);
-            c.status = 'failed';
-            c.message = 'Update failed';
+            dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
           }
-
-          // Step 8: Dedicated 3-4s pause to let popup complete setting the price in Play Console
-          log(`⏳ [${c.name}] Waiting 3-4s for Play Console popup to finish applying price...`);
-          await sleep(randomBetween(3200, 4000));
-
-          // Step 9: CRITICAL MULTI-SELECTION PREVENTION:
-          // Immediately UNCHECK this country's checkbox while its row is still mounted in view!
-          if (match && match.chk) {
-            await toggleCheckbox(match.chk, false);
-            log(`  🧹 Unchecked [${c.name}] to keep selection clean for next country.`);
-          }
-          await clearOtherRowSelections();
-
-          // Step 10: Dismiss any transient Play Console snackbars if present
-          dismissConsoleToast();
-
-          // Step 11: Wait for Play Console to settle and return to the normal Pricing table
-          await sleep(getHumanizedDelay(Math.max(1000, state.speedDelay)));
-
+          await humanMicroPause(90, 190);
         } else {
-          // =========================================================
-          // WORKFLOW B: "App Sale Price" Automation
-          // (Search -> Row Edit Pencil -> Sale Modal -> Save)
-          // =========================================================
+          // Set new price value
+          log(`🔄 [${c.name}] Setting '${existingVal || 'empty'}' -> '${c.priceFormatted}${unitText}'...`);
+          await setModalPrice(input, c.priceFormatted);
+          await humanMicroPause(280, 520);
 
-          // Step 1: Focus and double-click to select all text in search bar & paste country name
-          searchBox.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-          searchBox.focus();
-          await humanMicroPause(70, 160);
-          searchBox.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
-          if (typeof searchBox.select === 'function') searchBox.select();
-          await humanMicroPause(50, 130);
-          setNativeValue(searchBox, c.name);
+          // Find Save button in dialog
+          const saveBtn = dialog.querySelector('button[aria-label*="Save" i]') ||
+                          dialog.querySelector('button[aria-label*="Apply" i]') ||
+                          dialog.querySelector('button[aria-label*="Update" i]') ||
+                          Array.from(dialog.querySelectorAll('button')).find(b => {
+                            const t = b.textContent.toLowerCase().trim();
+                            return (t === 'save' || t === 'apply' || t === 'update' || t.includes('save')) && !b.disabled;
+                          });
 
-          // Safe Humanized Delay with Cadence Jitter
-          await sleep(getHumanizedDelay(state.speedDelay));
+          if (saveBtn) {
+            activelyClickElement(saveBtn, ['.mdc-button__touch', '.mdc-button__label']);
+            c.status = 'done';
+            c.message = `Saved: ${c.priceFormatted}${unitText}`;
+            log(`✅ [${c.name}] Saved: ${c.priceFormatted}${unitText}`);
 
-          // Step 2: Wait for filtered row
-          const row = await waitForFilteredRow(c.name, 4500);
-          if (!row) {
-            log(`⚠️ Row not found for ${c.name}, skipping...`);
-            c.status = 'failed';
-            c.message = 'Row not found';
-            updateUI();
-            continue;
-          }
-          await humanMicroPause(100, 240);
-
-          // Step 3: Open Edit Price / Discount modal
-          const opened = await openRowEditModal(row);
-          if (!opened) {
-            log(`⚠️ Could not click edit button for ${c.name}, skipping...`);
-            c.status = 'failed';
-            c.message = 'Edit button not found';
-            updateUI();
-            continue;
-          }
-
-          await sleep(getHumanizedDelay(state.speedDelay));
-
-          // Step 4: Handle Edit Modal Input
-          const modalObj = await waitForEditPricePopup(4000);
-          if (!modalObj) {
-            log(`⚠️ Edit popup did not open for ${c.name}, skipping...`);
-            c.status = 'failed';
-            c.message = 'Modal did not open';
-            updateUI();
-            continue;
-          }
-
-          const { dialog, input } = modalObj;
-          await humanMicroPause(150, 320);
-
-          // Check current existing value in input
-          const existingVal = input.value.trim();
-          const numMatch = existingVal.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
-          const existingNum = numMatch ? parseFloat(numMatch[0]) : null;
-
-          if (existingNum !== null && Math.abs(existingNum - c.targetValue) < 0.001) {
-            // Already matches target value!
-            log(`✨ [${c.name}] Value already matches target (${existingNum} == ${c.priceFormatted}${unitText}). Cleanly dismissing modal...`);
-            c.status = 'matched';
-            c.message = 'Already matches';
-
-            await humanMicroPause(140, 280);
-            const cancelBtn = dialog.querySelector('button[aria-label*="Cancel" i]') ||
-                              Array.from(dialog.querySelectorAll('button')).find(b => b.textContent.toLowerCase().includes('cancel'));
-            if (cancelBtn) {
-              cancelBtn.click();
-            } else {
-              dialog.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+            // Wait for popup to disappear
+            const closeStart = Date.now();
+            while (Date.now() - closeStart < 3500) {
+              if (!document.body.contains(dialog) || !isElementReallyVisible(dialog)) break;
+              await sleep(100);
             }
-            await humanMicroPause(90, 190);
           } else {
-            // Mismatch or empty: set new target value
-            log(`🔄 [${c.name}] Setting '${existingVal || 'empty'}' -> '${c.priceFormatted}${unitText}'...`);
-            setNativeValue(input, c.priceFormatted);
-            await humanMicroPause(280, 520);
-
-            // Find Save button in dialog
-            const saveBtn = dialog.querySelector('button[aria-label*="Save" i]') ||
-                            dialog.querySelector('button[aria-label*="Apply" i]') ||
-                            Array.from(dialog.querySelectorAll('button')).find(b => {
-                              const t = b.textContent.toLowerCase();
-                              return (t.includes('save') || t.includes('apply')) && !b.disabled;
-                            });
-
-            if (saveBtn) {
-              saveBtn.click();
-              c.status = 'done';
-              c.message = `Saved: ${c.priceFormatted}${unitText}`;
-              log(`✅ [${c.name}] Saved: ${c.priceFormatted}${unitText}`);
-              await humanMicroPause(110, 220);
-            } else {
-              log(`⚠️ [${c.name}] Save button disabled or not found.`);
-              c.status = 'failed';
-              c.message = 'Save disabled';
-            }
+            log(`⚠️ [${c.name}] Save button disabled or not found.`);
+            c.status = 'failed';
+            c.message = 'Save disabled';
           }
         }
 
+        dismissConsoleToast();
         processedSinceLastCooldown++;
         await sleep(getHumanizedDelay(state.speedDelay));
-
 
       } catch (err) {
         log(`❌ Error processing ${c.name}: ${err.message}`);

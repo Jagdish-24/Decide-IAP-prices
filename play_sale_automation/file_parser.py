@@ -69,6 +69,8 @@ def _parse_csv(file_path):
 
             # Identify Retail Price (Mode 1)
             retail_str = (
+                row_dict.get("end-user retail price") or 
+                row_dict.get("end user retail price") or 
                 row_dict.get("retail price") or 
                 row_dict.get("price") or 
                 row_dict.get("base price") or 
