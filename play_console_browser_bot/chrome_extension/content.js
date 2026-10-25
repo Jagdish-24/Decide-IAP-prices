@@ -5,7 +5,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.6...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.7...');
 
   // State Management
   const state = {
@@ -25,7 +25,8 @@
     totalPausedMs: 0,
     pauseStartTime: null,
     timerIntervalId: null,
-    lastEtaUiUpdateTime: 0
+    lastEtaUiUpdateTime: 0,
+    lastTaskDurationMs: null
   };
 
   // -------------------------------------------------------------
@@ -1139,6 +1140,7 @@
       state.totalPausedMs = 0;
       state.pauseStartTime = null;
       state.lastEtaUiUpdateTime = 0;
+      state.lastTaskDurationMs = null;
       const elElapsed = document.getElementById('ppa-timer-elapsed');
       const elRemain = document.getElementById('ppa-timer-remaining');
       if (elElapsed) elElapsed.textContent = '00:00';
@@ -1186,17 +1188,14 @@
     if (shouldUpdateEta) {
       state.lastEtaUiUpdateTime = now;
 
-      if (completed >= 2) {
-        const avgMsPerCountry = elapsedMs / completed;
-        const remainingMs = remaining * avgMsPerCountry;
-        const etaDate = new Date(now + remainingMs);
-        const etaStr = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        elRemain.textContent = `${formatDuration(remainingMs)} (ETA: ${etaStr})`;
-      } else {
-        // Projected baseline using safe speed delay + average modal transaction overhead (1,500ms)
-        const estimatedMs = remaining * (state.speedDelay + 1500);
-        elRemain.textContent = `~${formatDuration(estimatedMs)}`;
-      }
+      // Calculate total remaining time based on:
+      // (time taken to complete the last task) * (total remaining number of tasks)
+      const perTaskMs = state.lastTaskDurationMs || (state.speedDelay + 1500);
+      const remainingMs = remaining * perTaskMs;
+      const etaDate = new Date(now + remainingMs);
+      const etaStr = etaDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const prefix = state.lastTaskDurationMs ? '' : '~';
+      elRemain.textContent = `${prefix}${formatDuration(remainingMs)} (ETA: ${etaStr})`;
     }
   }
 
@@ -1257,6 +1256,9 @@
       const c = state.countries[idx];
       c.status = 'active';
       updateUI();
+
+      const taskStartTime = Date.now();
+      const taskStartPausedMs = state.totalPausedMs;
 
       const isPercentage = state.mainCategory === 'app_sale_price' && state.saleDiscountMode === 'percentage';
       const unitText = isPercentage ? '%' : ` ${c.currency}`;
@@ -1376,7 +1378,15 @@
         c.message = err.message;
       }
 
+      // Record active duration of this task (excluding user pause intervals)
+      const taskCurrentPaused = state.totalPausedMs + (state.pauseStartTime ? (Date.now() - state.pauseStartTime) : 0);
+      const taskActiveMs = Math.max(0, Date.now() - taskStartTime - (taskCurrentPaused - taskStartPausedMs));
+      if (taskActiveMs > 200) {
+        state.lastTaskDurationMs = taskActiveMs;
+      }
+
       updateUI();
+      updateTimersTick(true);
     }
 
     if (state.isRunning && state.currentIndex >= state.countries.length - 1) {
@@ -1514,7 +1524,7 @@
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.6</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.7</div>
             </div>
           </div>
           <div id="ppa-header-badge">
