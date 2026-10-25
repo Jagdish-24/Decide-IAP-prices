@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Google Play Console Sale Price Automator (PlayPrice Engine)
 // @namespace    https://github.com/Jagdish-24/Decide-IAP-prices
-// @version      1.7.1
+// @version      1.7.3
 // @description  Automates setting country sale prices and app prices in Google Play Console with 1-click DOM injection and zero mouse movement.
 // @author       PlayPrice Engine Team
 // @match        https://play.google.com/console/*
@@ -15,7 +15,7 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.1...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.7.3...');
 
   // State Management
   const state = {
@@ -70,6 +70,14 @@
       h.includes('discount %') || h.includes('discount diff') || h.includes('discount difference') || h.includes('discount rate') || h.includes('pct') || h.includes('%')
     );
 
+    // 4. Retail Price in EUR (e.g. "Retail Price (EUR)", "Retail Price EUR", "Price EUR", "EUR")
+    let eurPriceIdx = header.findIndex(h => 
+      (h.includes('eur') || h.includes('euro')) && (h.includes('retail') || h.includes('price'))
+    );
+    if (eurPriceIdx === -1) {
+      eurPriceIdx = header.findIndex(h => h.includes('eur') || h.includes('euro'));
+    }
+
     if (nameIdx === -1) nameIdx = 0;
 
     const items = [];
@@ -97,6 +105,7 @@
       const rawRetailPrice = (retailPriceIdx !== -1 ? row[retailPriceIdx] : '').replace(/^["']|["']$/g, '').trim();
       const rawSalePrice = (salePriceIdx !== -1 ? row[salePriceIdx] : '').replace(/^["']|["']$/g, '').trim();
       const rawDiscountPct = (discountPctIdx !== -1 ? row[discountPctIdx] : '').replace(/^["']|["']$/g, '').trim();
+      const rawEurPrice = (eurPriceIdx !== -1 ? row[eurPriceIdx] : '').replace(/^["']|["']$/g, '').trim();
 
       if (!name) continue;
 
@@ -110,6 +119,9 @@
       const pctMatch = rawDiscountPct.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
       const discountPct = pctMatch ? Math.abs(parseFloat(pctMatch[0])) : null;
 
+      const eurMatch = rawEurPrice.replace(/,/g, '').match(/[-+]?\d*\.?\d+/);
+      const retailEurPrice = eurMatch ? parseFloat(eurMatch[0]) : null;
+
       const baseRetail = retailPrice !== null ? retailPrice : (salePrice !== null ? salePrice : 0);
       const baseSale = salePrice !== null ? salePrice : baseRetail;
       const basePct = discountPct !== null ? discountPct : (baseRetail > 0 && baseSale < baseRetail ? parseFloat((((baseRetail - baseSale) / baseRetail) * 100).toFixed(2)) : 0);
@@ -119,6 +131,7 @@
         code: code,
         salePrice: baseSale,
         retailPrice: baseRetail,
+        retailEurPrice: retailEurPrice,
         discountPct: basePct,
         targetValue: baseSale,
         priceFormatted: Number.isInteger(baseSale) ? `${baseSale}` : baseSale.toFixed(2),
@@ -137,10 +150,18 @@
   function applyModeTargets() {
     for (const c of state.countries) {
       if (state.mainCategory === 'app_price') {
-        const val = c.retailPrice !== null ? c.retailPrice : (c.salePrice !== null ? c.salePrice : 0);
-        c.targetValue = val;
-        c.priceFormatted = Number.isInteger(val) ? `${val}` : val.toFixed(2);
-        c.displayUnit = c.currency;
+        // App Price Mode: Target EUR price by default to skip ISO currency dropdown
+        if (c.retailEurPrice !== null && c.retailEurPrice > 0) {
+          c.targetValue = c.retailEurPrice;
+          c.priceFormatted = c.retailEurPrice.toFixed(2);
+          c.displayUnit = 'EUR';
+          c.currency = 'EUR';
+        } else {
+          const val = c.retailPrice !== null ? c.retailPrice : (c.salePrice !== null ? c.salePrice : 0);
+          c.targetValue = val;
+          c.priceFormatted = Number.isInteger(val) ? `${val}` : val.toFixed(2);
+          c.displayUnit = c.currency;
+        }
       } else if (state.saleDiscountMode === 'percentage') {
         const val = c.discountPct !== null ? c.discountPct : 0;
         c.targetValue = val;
@@ -266,8 +287,7 @@
     }
 
     if (pencil) {
-      pencil.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      pencil.click();
+      activelyClickElement(pencil, ['.mdc-button__touch', '.mdc-button__label', '.mdc-button__ripple']);
       return true;
     }
     return false;
@@ -295,29 +315,41 @@
 
   const COUNTRY_ALIASES = {
     'czech republic': 'czechia',
+    'czechia': 'czechia',
     'democratic republic of the congo': 'congo kinshasa',
     'republic of the congo': 'congo brazzaville',
     'dr congo': 'congo kinshasa',
+    'congo kinshasa': 'congo kinshasa',
+    'congo brazzaville': 'congo brazzaville',
     'cabo verde': 'cape verde',
+    'cape verde': 'cape verde',
     'cote d ivoire': 'cote divoire',
+    'cote divoire': 'cote divoire',
     'ivory coast': 'cote divoire',
     'turkey': 'turkiye',
-    'türkiye': 'turkiye',
+    'turkiye': 'turkiye',
     'eswatini': 'swaziland',
-    'swaziland': 'eswatini',
-    'myanmar': 'myanmar burma',
-    'burma': 'myanmar burma',
+    'swaziland': 'swaziland',
+    'myanmar': 'myanmar',
+    'burma': 'myanmar',
+    'myanmar burma': 'myanmar',
     'united states of america': 'united states',
-    'usa': 'united states'
+    'usa': 'united states',
+    'united states': 'united states',
+    'hong kong': 'hong kong',
+    'hong kong sar': 'hong kong',
+    'macau': 'macao',
+    'macao': 'macao'
   };
 
   function normalizeCountry(str) {
     if (!str) return '';
     return str
       .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove diacritics: Côte -> Cote
+      .replace(/[’']/g, '') // remove curly and straight apostrophes
       .replace(/\band\b/g, '&')
-      .replace(/[^\w\s&]/g, '')
+      .replace(/[^\w\s&]/g, ' ') // convert hyphens, dots, parentheses to spaces
       .replace(/\s+/g, ' ')
       .trim();
   }
@@ -347,15 +379,15 @@
     }
 
     // 2. Check region column cell / main text inside the row
-    const regionCell = row.querySelector('ess-cell[essfield="region-column"], [role="gridcell"]:first-child, td:first-child') || row;
-    const cellNorm = normalizeCountry(regionCell.textContent);
+    const regionTextEl = row.querySelector('ess-cell[essfield="region-column"] .main-text, console-table-text-cell .main-text, ess-cell[essfield="region-column"]') || row;
+    const cellNorm = normalizeCountry(regionTextEl.textContent);
     const aliasedCellNorm = COUNTRY_ALIASES[cellNorm] || cellNorm;
 
     if (cellNorm === targetNorm || aliasedCellNorm === aliasedTargetNorm ||
         cellNorm === aliasedTargetNorm || aliasedCellNorm === targetNorm) {
       return true;
     }
-    if (cellNorm.startsWith(targetNorm)) {
+    if (cellNorm.startsWith(targetNorm) || (aliasedTargetNorm && cellNorm.startsWith(aliasedTargetNorm))) {
       const nextChar = cellNorm.charAt(targetNorm.length);
       if (!nextChar || /[\s&]/.test(nextChar)) return true;
     }
@@ -378,123 +410,158 @@
     return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
   }
 
-  function simulateFullClick(el) {
-    if (!el) return;
-    el.scrollIntoView({ block: 'center', inline: 'center' });
-    
+  // Actively and reliably clicks any target element and its inner delegates
+  function activelyClickElement(el, innerSelectors = []) {
+    if (!el) return false;
+    try {
+      el.scrollIntoView({ block: 'center', inline: 'nearest' });
+    } catch (e) {}
+
     const rect = el.getBoundingClientRect();
     const clientX = rect.left + rect.width / 2;
     const clientY = rect.top + rect.height / 2;
-    const opts = { bubbles: true, cancelable: true, view: window, clientX, clientY };
+    const commonOpts = {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      view: window,
+      clientX,
+      clientY,
+      screenX: clientX,
+      screenY: clientY
+    };
 
-    el.dispatchEvent(new PointerEvent('pointerdown', opts));
-    el.dispatchEvent(new MouseEvent('mousedown', opts));
-    el.dispatchEvent(new PointerEvent('pointerup', opts));
-    el.dispatchEvent(new MouseEvent('mouseup', opts));
-    el.dispatchEvent(new MouseEvent('click', opts));
-    if (typeof el.click === 'function') {
-      try { el.click(); } catch (e) { /* ignore */ }
+    if (typeof el.focus === 'function') {
+      try { el.focus(); } catch (e) {}
     }
+
+    // Dispatch full pointer and mouse sequence on main host element
+    el.dispatchEvent(new PointerEvent('pointerdown', { ...commonOpts, button: 0, buttons: 1, pointerId: 1, pointerType: 'mouse', isPrimary: true }));
+    el.dispatchEvent(new MouseEvent('mousedown', { ...commonOpts, button: 0, buttons: 1 }));
+    el.dispatchEvent(new PointerEvent('pointerup', { ...commonOpts, button: 0, buttons: 0, pointerId: 1, pointerType: 'mouse', isPrimary: true }));
+    el.dispatchEvent(new MouseEvent('mouseup', { ...commonOpts, button: 0, buttons: 0 }));
+    el.dispatchEvent(new MouseEvent('click', { ...commonOpts, button: 0, buttons: 0 }));
+
+    if (typeof el.click === 'function') {
+      try { el.click(); } catch (e) {}
+    }
+
+    // Actively dispatch to inner delegates (e.g. .mdc-button__touch, .mat-checkbox-container)
+    for (const sel of innerSelectors) {
+      const inner = typeof sel === 'string' ? el.querySelector(sel) : sel;
+      if (inner && inner !== el) {
+        try {
+          inner.dispatchEvent(new PointerEvent('pointerdown', { ...commonOpts, button: 0, buttons: 1, pointerId: 1, pointerType: 'mouse', isPrimary: true }));
+          inner.dispatchEvent(new MouseEvent('mousedown', { ...commonOpts, button: 0, buttons: 1 }));
+          inner.dispatchEvent(new PointerEvent('pointerup', { ...commonOpts, button: 0, buttons: 0, pointerId: 1, pointerType: 'mouse', isPrimary: true }));
+          inner.dispatchEvent(new MouseEvent('mouseup', { ...commonOpts, button: 0, buttons: 0 }));
+          inner.dispatchEvent(new MouseEvent('click', { ...commonOpts, button: 0, buttons: 0 }));
+          if (typeof inner.click === 'function') inner.click();
+        } catch (e) {}
+      }
+    }
+    return true;
+  }
+
+  function simulateFullClick(el) {
+    return activelyClickElement(el);
   }
 
   function findSetPricingElement() {
-    // 1. Direct high-precision selectors from Google Play Console Angular / Material 3 layout
-    const directSelectors = [
-      'bulk-price-edit-button[debug-id="bulk-price-edit-button"] button',
-      '[debug-id="bulk-price-edit-button"] button',
-      'bulk-price-edit-button button',
-      'bulk-price-edit-button [role="button"]',
-      'console-button-set bulk-price-edit-button button',
-      'console-button button'
-    ];
+    // 1. Direct search by button and role="button" matching text "Set pricing"
+    const buttons = Array.from(document.querySelectorAll('button, [role="button"], .mdc-button, bulk-price-edit-button button'));
+    for (const btn of buttons) {
+      if (btn.closest('#play-price-automator-root')) continue;
+      
+      const labelEl = btn.querySelector('.mdc-button__label');
+      const text = (labelEl ? labelEl.textContent : btn.textContent || '').replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase();
+      const aria = (btn.getAttribute('aria-label') || '').trim().toLowerCase();
 
-    for (const sel of directSelectors) {
-      const btn = document.querySelector(sel);
-      if (btn && !btn.closest('#play-price-automator-root')) {
-        const txt = (btn.textContent || '').replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase();
-        if (txt.includes('set pricing') || txt.includes('set price')) {
-          const isDisabled = btn.disabled || 
-                             btn.getAttribute('aria-disabled') === 'true' || 
+      if (text === 'set pricing' || text === 'set price' || aria === 'set pricing' || aria === 'set price' || text.startsWith('set pricing')) {
+        const isDisabled = btn.disabled ||
+                           btn.getAttribute('aria-disabled') === 'true' ||
+                           btn.classList.contains('disabled') ||
+                           btn.classList.contains('mdc-button--disabled');
+        const touchEl = btn.querySelector('.mdc-button__touch') || labelEl || btn;
+        return { clickable: btn, innerEl: touchEl, isDisabled };
+      }
+    }
+
+    // 2. Search by inner label element directly: <span class="mdc-button__label">Set pricing</span>
+    const labels = Array.from(document.querySelectorAll('.mdc-button__label, span, div'));
+    for (const lbl of labels) {
+      if (lbl.closest('#play-price-automator-root')) continue;
+      const txt = (lbl.textContent || '').replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase();
+      if (txt === 'set pricing' || txt === 'set price') {
+        const btn = lbl.closest('button, [role="button"], .mdc-button') || lbl;
+        if (isElementReallyVisible(btn)) {
+          const isDisabled = btn.disabled ||
+                             btn.getAttribute('aria-disabled') === 'true' ||
                              btn.classList.contains('disabled') ||
                              btn.classList.contains('mdc-button--disabled');
-          return { clickable: btn, innerEl: btn.querySelector('.mdc-button__label') || btn, isDisabled };
+          return { clickable: btn, innerEl: lbl, isDisabled };
         }
       }
     }
 
-    // 2. Fallback: Search all interactive candidates across DOM
-    const all = Array.from(document.querySelectorAll('button, [role="button"], material-button, a, bulk-price-edit-button, div, span'));
-    
-    for (const el of all) {
-      if (el.closest('#play-price-automator-root')) continue;
-
-      const txt = (el.textContent || '').replace(/[\s\u00a0]+/g, ' ').trim().toLowerCase();
-      const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
-      
-      const isTarget = txt === 'set pricing' || 
-                       txt === 'set price' || 
-                       ariaLabel === 'set pricing' || 
-                       ariaLabel === 'set price';
-
-      if (isTarget) {
-        // Resolve to outermost interactive element
-        const clickable = el.closest('button, [role="button"], material-button, console-button, bulk-price-edit-button, a') || el;
-        if (isElementReallyVisible(clickable)) {
-          const isDisabled = clickable.disabled || 
-                             clickable.getAttribute('aria-disabled') === 'true' || 
-                             clickable.classList.contains('disabled') ||
-                             clickable.classList.contains('mdc-button--disabled');
-          return { clickable, innerEl: el, isDisabled };
-        }
-      }
-    }
     return null;
   }
 
   function isPricingTableInSelectionMode() {
-    // Only consider selection mode active if pricing table rows explicitly contain row checkboxes
+    // Check if table currently contains visible row checkboxes
     const tableCheckboxes = Array.from(document.querySelectorAll(
-      'table tbody input[type="checkbox"], [role="rowgroup"] [role="row"] [role="checkbox"], [role="rowgroup"] [role="row"] input[type="checkbox"], material-table material-checkbox'
-    )).filter(chk => !chk.closest('#play-price-automator-root') && isElementReallyVisible(chk));
+      '.particle-table-row mat-checkbox, ess-cell mat-checkbox, console-table-tools-cell mat-checkbox, [role="row"] mat-checkbox, .ess-table-canvas mat-checkbox, [role="grid"] [role="checkbox"]'
+    )).filter(chk => {
+      if (chk.closest('#play-price-automator-root')) return false;
+      const label = (chk.getAttribute('aria-label') || '').toLowerCase();
+      if (label.includes('select all')) return false;
+      return isElementReallyVisible(chk);
+    });
 
     return tableCheckboxes.length > 0;
   }
 
   async function clickSetPricingButton(timeoutMs = 6000) {
+    // If the table is already in selection mode with checkboxes, return true immediately
+    if (isPricingTableInSelectionMode()) {
+      return true;
+    }
+
     log('🔍 Locating "Set pricing" button in Google Play Console...');
     const start = Date.now();
 
     while (Date.now() - start < timeoutMs) {
       if (!state.isRunning) return false;
 
+      // Check if table selection mode became active
+      if (isPricingTableInSelectionMode()) {
+        log('✅ Table already in selection state with checkboxes.');
+        return true;
+      }
+
       const target = findSetPricingElement();
 
       if (target) {
         if (target.isDisabled) {
-          // If the button is disabled, selection mode is already active
-          log('ℹ️ "Set pricing" button is currently disabled (selection mode active).');
+          log('ℹ️ "Set pricing" button is disabled (selection mode active).');
           return true;
         }
 
         log('👆 Clicking "Set pricing" button...');
-        // Click both the clickable wrapper and the inner element with full event simulation
-        simulateFullClick(target.clickable);
-        if (target.innerEl && target.innerEl !== target.clickable) {
-          simulateFullClick(target.innerEl);
-        }
+        // Actively click button and its inner touch / label elements
+        activelyClickElement(target.clickable, ['.mdc-button__touch', '.mdc-button__label', '.mdc-button__ripple']);
 
         // Wait for selection mode or row checkboxes to appear
         const waitStart = Date.now();
         while (Date.now() - waitStart < 3500) {
           if (isPricingTableInSelectionMode()) {
             log('✅ "Set pricing" selection state active.');
-            await humanMicroPause(150, 300);
+            await humanMicroPause(120, 240);
             return true;
           }
-          await sleep(120);
+          await sleep(100);
         }
 
-        // If target became disabled, it was accepted
         const recheck = findSetPricingElement();
         if (recheck && recheck.isDisabled) {
           log('✅ "Set pricing" accepted.');
@@ -503,16 +570,26 @@
         return true;
       }
 
-      // Check if table already has active row checkboxes
-      if (isPricingTableInSelectionMode()) {
-        log('✅ Table already in selection state with checkboxes.');
-        return true;
-      }
-
       await sleep(200);
     }
 
+    if (isPricingTableInSelectionMode()) {
+      return true;
+    }
+
     log('⚠️ Could not locate or click active "Set pricing" button.');
+    return false;
+  }
+
+  function isCheckboxChecked(chk) {
+    if (!chk) return false;
+    if (chk.getAttribute('aria-checked') === 'true') return true;
+    if (chk.hasAttribute('checked')) return true;
+    if (chk.checked === true) return true;
+    const container = chk.querySelector('.mat-checkbox-container');
+    if (container && (container.classList.contains('checked') || container.getAttribute('aria-checked') === 'true')) return true;
+    const path = chk.querySelector('path');
+    if (path && (path.style.visibility === 'visible' || path.getAttribute('style')?.includes('visibility: visible'))) return true;
     return false;
   }
 
@@ -521,9 +598,9 @@
     const targetNorm = normalizeCountry(targetName);
     const aliasedTargetNorm = COUNTRY_ALIASES[targetNorm] || targetNorm;
 
-    // 1. Direct scan of all mat-checkbox elements with aria-label
+    // 1. Direct scan of all row mat-checkbox elements with aria-label
     const checkboxes = Array.from(document.querySelectorAll(
-      'mat-checkbox[aria-label], [role="checkbox"][aria-label]'
+      '.particle-table-row mat-checkbox, ess-cell mat-checkbox, console-table-tools-cell mat-checkbox, mat-checkbox[aria-label], [role="checkbox"][aria-label]'
     )).filter(c => !c.closest('#play-price-automator-root'));
 
     // 1a. Exact match on aria-label
@@ -554,13 +631,13 @@
       }
     }
 
-    // 2. Scan all particle-table-row and [role="row"] elements
+    // 2. Scan all particle-table-row and [role="row"] elements by text
     const rows = Array.from(document.querySelectorAll('.particle-table-row, [role="row"], tr'));
     for (const r of rows) {
       if (r.closest('#play-price-automator-root') || r.closest('[role="dialog"]')) continue;
       if (rowMatchesCountry(r, targetName)) {
         const chk = r.querySelector('mat-checkbox, [role="checkbox"], input[type="checkbox"], material-checkbox');
-        return { chk, row: r };
+        if (chk) return { chk, row: r };
       }
     }
 
@@ -570,70 +647,62 @@
   async function toggleCheckbox(chk, shouldBeChecked = true) {
     if (!chk) return false;
 
-    const isChecked = () => {
-      return chk.getAttribute('aria-checked') === 'true' || 
-             chk.classList.contains('mat-checkbox-checked') ||
-             chk.classList.contains('is-checked') ||
-             chk.checked === true;
-    };
-
-    if (isChecked() === shouldBeChecked) {
+    if (isCheckboxChecked(chk) === shouldBeChecked) {
       return true; // Already desired state
     }
 
     chk.scrollIntoView({ block: 'center', inline: 'nearest' });
-    await humanMicroPause(80, 160);
+    await humanMicroPause(60, 120);
 
-    // The inner container with delegate-events="" in Angular Material
     const container = chk.querySelector('.mat-checkbox-container') || chk;
+    const toolsCell = chk.closest('console-table-tools-cell') || chk.parentElement;
 
-    // 1. Full mouse/pointer sequence on .mat-checkbox-container (has delegate-events)
-    simulateFullClick(container);
-    await sleep(150);
-    if (isChecked() === shouldBeChecked) return true;
+    // Attempt 1: Actively click the inner .mat-checkbox-container (has delegate-events="")
+    activelyClickElement(container, [chk, 'svg']);
+    await sleep(120);
+    if (isCheckboxChecked(chk) === shouldBeChecked) return true;
 
-    // 2. Full mouse/pointer sequence on mat-checkbox custom element
-    simulateFullClick(chk);
-    await sleep(150);
-    if (isChecked() === shouldBeChecked) return true;
+    // Attempt 2: Actively click the host mat-checkbox element
+    activelyClickElement(chk, ['.mat-checkbox-container', 'svg']);
+    await sleep(120);
+    if (isCheckboxChecked(chk) === shouldBeChecked) return true;
 
-    // 3. Space keypress (standard for tabindex="0" role="checkbox")
+    // Attempt 3: Standard W3C Space keypress on tabindex="0" role="checkbox"
     try {
       chk.focus();
-      chk.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', keyCode: 32, which: 32, bubbles: true }));
-      chk.dispatchEvent(new KeyboardEvent('keyup', { key: ' ', code: 'Space', keyCode: 32, which: 32, bubbles: true }));
-      await sleep(150);
-    } catch (e) {
-      // ignore
-    }
-    if (isChecked() === shouldBeChecked) return true;
+      const spaceOpts = { key: ' ', code: 'Space', keyCode: 32, which: 32, bubbles: true, composed: true };
+      chk.dispatchEvent(new KeyboardEvent('keydown', spaceOpts));
+      chk.dispatchEvent(new KeyboardEvent('keyup', spaceOpts));
+      await sleep(120);
+      if (isCheckboxChecked(chk) === shouldBeChecked) return true;
+    } catch (e) {}
 
-    // 4. Native click fallback
-    try {
-      if (typeof container.click === 'function') container.click();
-      else if (typeof chk.click === 'function') chk.click();
-      await sleep(150);
-    } catch (e) {
-      // ignore
+    // Attempt 4: Actively click toolsCell container
+    if (toolsCell && toolsCell !== chk) {
+      activelyClickElement(toolsCell);
+      await sleep(120);
+      if (isCheckboxChecked(chk) === shouldBeChecked) return true;
     }
 
-    return isChecked() === shouldBeChecked;
+    return isCheckboxChecked(chk) === shouldBeChecked;
   }
 
   async function clearOtherRowSelections(exceptCheckbox = null) {
     try {
-      const checkedBoxes = Array.from(document.querySelectorAll(
-        'mat-checkbox[aria-checked="true"], [role="checkbox"][aria-checked="true"], input[type="checkbox"]:checked, material-checkbox.is-checked'
-      ));
-      for (const chk of checkedBoxes) {
-        if (chk.closest('#play-price-automator-root')) continue;
+      const allCheckboxes = Array.from(document.querySelectorAll(
+        '.particle-table-row mat-checkbox, ess-cell mat-checkbox, [role="row"] mat-checkbox, mat-checkbox[aria-checked="true"], [role="checkbox"][aria-checked="true"]'
+      )).filter(chk => !chk.closest('#play-price-automator-root'));
+
+      for (const chk of allCheckboxes) {
         if (exceptCheckbox && (chk === exceptCheckbox || chk.contains(exceptCheckbox) || exceptCheckbox.contains(chk))) continue;
 
         const label = (chk.getAttribute('aria-label') || '').toLowerCase();
         // NEVER uncheck or click "Select all rows"!
         if (label.includes('select all')) continue;
 
-        await toggleCheckbox(chk, false);
+        if (isCheckboxChecked(chk)) {
+          await toggleCheckbox(chk, false);
+        }
       }
     } catch (e) {
       // ignore
@@ -653,10 +722,11 @@
 
     // 2. Identify scroll containers in Google Play Console
     const scrollContainers = [
+      document.querySelector('.ess-table-canvas'),
+      document.querySelector('.ess-table-wrapper'),
       document.querySelector('[acxscrollhost]'),
       document.getElementById('main-content'),
       document.querySelector('.main-content'),
-      document.querySelector('.ess-table-canvas'),
       window
     ].filter(Boolean);
 
@@ -685,9 +755,9 @@
         if (!state.isRunning) return null;
 
         if (isWindow) {
-          window.scrollBy({ top: 450, behavior: 'instant' });
+          window.scrollBy({ top: 350, behavior: 'instant' });
         } else {
-          container.scrollTop += 450;
+          container.scrollTop += 350;
         }
         await sleep(150);
 
@@ -769,11 +839,19 @@
         return (txt === 'continue' || txt === 'next' || txt === 'set price' || txt.startsWith('continue')) && isVisible && isNotDisabled;
       });
       if (continueBtn) {
-        continueBtn.scrollIntoView({ block: 'nearest' });
-        await humanMicroPause(120, 260);
-        simulateFullClick(continueBtn);
+        await humanMicroPause(100, 200);
+        activelyClickElement(continueBtn, ['.mdc-button__touch', '.mdc-button__label']);
         return true;
       }
+
+      // Fallback: Check if top "Set pricing" button is enabled and acts as the entry action
+      const setPricingBtn = findSetPricingElement();
+      if (setPricingBtn && !setPricingBtn.isDisabled && isElementReallyVisible(setPricingBtn.clickable)) {
+        await humanMicroPause(100, 200);
+        activelyClickElement(setPricingBtn.clickable, ['.mdc-button__touch', '.mdc-button__label']);
+        return true;
+      }
+
       await sleep(120);
     }
     return false;
@@ -996,8 +1074,8 @@
     });
 
     if (updateBtn) {
-      await humanMicroPause(150, 300);
-      simulateFullClick(updateBtn);
+      await humanMicroPause(120, 240);
+      activelyClickElement(updateBtn, ['.mdc-button__touch', '.mdc-button__label']);
       
       // Wait for dialog to disappear
       const start = Date.now();
@@ -1010,6 +1088,18 @@
       return true;
     }
     return false;
+  }
+
+  function dismissConsoleToast() {
+    try {
+      const toasts = Array.from(document.querySelectorAll(
+        'console-snackbar, .console-snackbar, [role="alert"], material-snackbar, .mdc-snackbar, .snackbar'
+      )).filter(t => !t.closest('#play-price-automator-root') && isElementReallyVisible(t));
+      for (const t of toasts) {
+        const closeBtn = t.querySelector('button, [role="button"], .close, [aria-label*="close" i], [aria-label*="dismiss" i]');
+        if (closeBtn) activelyClickElement(closeBtn);
+      }
+    } catch (e) {}
   }
 
   // -------------------------------------------------------------
@@ -1220,31 +1310,42 @@
           const { dialog, input } = modalObj;
           await humanMicroPause(150, 300);
 
-          // Step 6: Input the correct price number & select ISO currency
-          // (Even if existing value matches, user requested to set the value and press update)
-          log(`🔄 [${c.name}] Setting Price '${c.priceFormatted}' & Currency '${c.currency || 'default'}'...`);
+          // Step 6: Input the EUR price number directly into the input field!
+          // SKIPPING ISO CURRENCY SELECTION: In Google Play Console, the modal defaults to EUR.
+          // Setting the EUR number directly avoids dropdown instability and currency mismatch errors.
+          log(`🔄 [${c.name}] Setting EUR Price '${c.priceFormatted}' (skipping ISO dropdown)...`);
           await setModalPrice(input, c.priceFormatted);
-          await humanMicroPause(220, 420);
-
-          if (c.currency) {
-            await selectModalCurrency(dialog, c.currency);
-            await humanMicroPause(160, 320);
-          }
+          await humanMicroPause(180, 320);
 
           // Step 7: Press the blue "Update" button & wait for modal to close
           const updated = await clickModalUpdateButton(dialog);
           if (updated) {
             c.status = 'done';
-            c.message = `Updated: ${c.priceFormatted} ${c.currency}`;
-            log(`✅ [${c.name}] Updated: ${c.priceFormatted} ${c.currency}`);
+            c.message = `Updated: €${c.priceFormatted} EUR`;
+            log(`✅ [${c.name}] Update clicked: €${c.priceFormatted} EUR`);
           } else {
             log(`⚠️ [${c.name}] Update button could not be clicked.`);
             c.status = 'failed';
             c.message = 'Update failed';
           }
 
-          // Step 8: Wait for Play Console to settle and return to the normal Pricing table
-          await sleep(getHumanizedDelay(state.speedDelay));
+          // Step 8: Dedicated 3-4s pause to let popup complete setting the price in Play Console
+          log(`⏳ [${c.name}] Waiting 3-4s for Play Console popup to finish applying price...`);
+          await sleep(randomBetween(3200, 4000));
+
+          // Step 9: CRITICAL MULTI-SELECTION PREVENTION:
+          // Immediately UNCHECK this country's checkbox while its row is still mounted in view!
+          if (match && match.chk) {
+            await toggleCheckbox(match.chk, false);
+            log(`  🧹 Unchecked [${c.name}] to keep selection clean for next country.`);
+          }
+          await clearOtherRowSelections();
+
+          // Step 10: Dismiss any transient Play Console snackbars if present
+          dismissConsoleToast();
+
+          // Step 11: Wait for Play Console to settle and return to the normal Pricing table
+          await sleep(getHumanizedDelay(Math.max(1000, state.speedDelay)));
 
         } else {
           // =========================================================
@@ -1485,15 +1586,18 @@
     root.id = 'play-price-automator-root';
 
     root.innerHTML = `
-      <!-- Main Command Center (540px Wide) -->
+      <!-- Main Command Center (30% Reduced Base • Resizable) -->
       <div id="ppa-container">
+        <!-- Corner Resize Grip Handle -->
+        <div id="ppa-resize-handle" title="Drag to resize window"></div>
+
         <!-- Draggable Header -->
         <div id="ppa-header">
           <div id="ppa-title-bar">
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.1</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.7.2</div>
             </div>
           </div>
           <div id="ppa-header-badge">
@@ -1624,8 +1728,16 @@
     injectStyles();
     attachEvents();
 
-    // Check saved visibility state
+    // Restore saved size and visibility
     try {
+      const savedWidth = localStorage.getItem('ppa_window_width');
+      const savedHeight = localStorage.getItem('ppa_window_height');
+      const container = document.getElementById('ppa-container');
+      if (container) {
+        if (savedWidth) container.style.width = savedWidth + 'px';
+        if (savedHeight) container.style.height = savedHeight + 'px';
+      }
+
       const savedVis = localStorage.getItem('ppa_panel_visible');
       if (savedVis === 'false') {
         setPanelVisibility(false);
@@ -1639,36 +1751,44 @@
     const css = `
       #play-price-automator-root {
         position: fixed;
-        top: 20px;
-        right: 20px;
+        top: 15px;
+        right: 15px;
         z-index: 99999999;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         color: #F8FAFC;
-        font-size: 13px;
-        line-height: 1.4;
+        font-size: 11px;
+        line-height: 1.35;
       }
 
-      /* Main Command Panel: 540px Width */
+      /* Main Command Panel: 30% Smaller Base (378px Width) & Fully Resizable */
       #ppa-container {
-        width: 540px;
+        position: relative;
+        width: 378px;
+        min-width: 280px;
+        max-width: 95vw;
+        min-height: 320px;
+        max-height: 95vh;
+        display: flex;
+        flex-direction: column;
         background: rgba(11, 17, 33, 0.96);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         border: 1px solid rgba(56, 189, 248, 0.32);
-        border-radius: 14px;
-        box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65), 0 0 24px rgba(56, 189, 248, 0.15);
+        border-radius: 10px;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(56, 189, 248, 0.15);
         overflow: hidden;
-        transition: box-shadow 0.2s ease;
+        box-sizing: border-box;
       }
       #ppa-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 12px 18px;
+        padding: 8px 12px;
         background: rgba(8, 13, 26, 0.95);
         border-bottom: 1px solid rgba(30, 41, 59, 0.9);
         cursor: grab;
         user-select: none;
+        flex-shrink: 0;
       }
       #ppa-header:active {
         cursor: grabbing;
@@ -1676,22 +1796,22 @@
       #ppa-title-bar {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
         pointer-events: none;
       }
       #ppa-logo {
-        font-size: 20px;
+        font-size: 16px;
         pointer-events: none;
       }
       #ppa-title {
         font-weight: 700;
-        font-size: 14px;
+        font-size: 12px;
         color: #38BDF8;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.2px;
         pointer-events: none;
       }
       #ppa-sub {
-        font-size: 11px;
+        font-size: 9.5px;
         color: #94A3B8;
         pointer-events: none;
       }
@@ -1703,10 +1823,10 @@
       .ppa-shortcut-tag {
         background: rgba(30, 41, 59, 0.7);
         color: #94A3B8;
-        font-size: 11px;
+        font-size: 9.5px;
         font-family: Consolas, monospace;
-        padding: 3px 8px;
-        border-radius: 6px;
+        padding: 2px 6px;
+        border-radius: 5px;
         border: 1px solid rgba(56, 189, 248, 0.25);
         letter-spacing: 0.2px;
         user-select: none;
@@ -1714,38 +1834,60 @@
       }
 
       #ppa-body {
-        padding: 16px 18px;
+        padding: 10px 12px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 8px;
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      /* Custom sleek scrollbar */
+      #ppa-body::-webkit-scrollbar,
+      #ppa-log-box::-webkit-scrollbar {
+        width: 5px;
+      }
+      #ppa-body::-webkit-scrollbar-track,
+      #ppa-log-box::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.5);
+      }
+      #ppa-body::-webkit-scrollbar-thumb,
+      #ppa-log-box::-webkit-scrollbar-thumb {
+        background: rgba(56, 189, 248, 0.25);
+        border-radius: 3px;
+      }
+      #ppa-body::-webkit-scrollbar-thumb:hover,
+      #ppa-log-box::-webkit-scrollbar-thumb:hover {
+        background: rgba(56, 189, 248, 0.5);
       }
 
       /* Main Category Switcher (App Price vs App Sale Price) */
       #ppa-category-card {
         background: rgba(8, 13, 26, 0.7);
         border: 1px solid #1E293B;
-        border-radius: 10px;
-        padding: 5px;
+        border-radius: 8px;
+        padding: 4px;
       }
       #ppa-category-tabs {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 6px;
+        gap: 5px;
       }
       .ppa-cat-tab {
         background: transparent;
         border: 1px solid transparent;
-        border-radius: 8px;
+        border-radius: 6px;
         color: #94A3B8;
-        padding: 9px 12px;
-        font-size: 13px;
+        padding: 6px 8px;
+        font-size: 11px;
         font-weight: 700;
         cursor: pointer;
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
+        gap: 5px;
       }
       .ppa-cat-tab:hover {
         color: #F8FAFC;
@@ -1755,22 +1897,22 @@
         background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(2, 132, 199, 0.3));
         border-color: rgba(56, 189, 248, 0.55);
         color: #38BDF8;
-        box-shadow: 0 2px 10px rgba(56, 189, 248, 0.15);
+        box-shadow: 0 2px 8px rgba(56, 189, 248, 0.15);
       }
       #ppa-app-price-desc {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px 12px;
-        font-size: 11px;
+        gap: 6px;
+        padding: 6px 8px;
+        font-size: 9.5px;
         color: #94A3B8;
         background: rgba(8, 13, 26, 0.5);
         border: 1px solid #1E293B;
-        border-radius: 8px;
+        border-radius: 6px;
       }
       #ppa-app-dot {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
         border-radius: 50%;
         background: #10B981;
         flex-shrink: 0;
@@ -1780,23 +1922,23 @@
       #ppa-mode-card {
         background: rgba(8, 13, 26, 0.6);
         border: 1px solid #1E293B;
-        border-radius: 10px;
-        padding: 6px;
+        border-radius: 8px;
+        padding: 4px;
       }
 
       #ppa-mode-tabs {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 6px;
+        gap: 5px;
       }
       .ppa-mode-tab {
         border: 1px solid transparent;
         background: transparent;
         color: #94A3B8;
-        padding: 9px 12px;
-        border-radius: 8px;
+        padding: 6px 8px;
+        border-radius: 6px;
         font-weight: 700;
-        font-size: 12px;
+        font-size: 10.5px;
         cursor: pointer;
         transition: all 0.2s ease;
         text-align: center;
@@ -1808,29 +1950,30 @@
       .ppa-mode-tab.active {
         background: linear-gradient(135deg, #0284C7, #0EA5E9);
         color: #FFFFFF;
-        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+        box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35);
         border-color: rgba(56, 189, 248, 0.4);
       }
       #ppa-mode-desc {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 8px 10px 4px 10px;
-        font-size: 11px;
+        gap: 6px;
+        padding: 6px 8px 3px 8px;
+        font-size: 9.5px;
         color: #94A3B8;
       }
       #ppa-mode-dot {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
         border-radius: 50%;
         background: #10B981;
+        flex-shrink: 0;
       }
 
       /* Upload Zone */
       #ppa-upload-zone {
         border: 2px dashed rgba(56, 189, 248, 0.35);
-        border-radius: 10px;
-        padding: 20px;
+        border-radius: 8px;
+        padding: 12px 14px;
         text-align: center;
         cursor: pointer;
         background: rgba(15, 23, 42, 0.65);
@@ -1841,32 +1984,32 @@
         background: rgba(56, 189, 248, 0.08);
       }
       #ppa-upload-icon {
-        font-size: 30px;
-        margin-bottom: 6px;
+        font-size: 22px;
+        margin-bottom: 4px;
       }
       #ppa-upload-text {
         color: #F8FAFC;
-        font-size: 13px;
+        font-size: 11px;
       }
       #ppa-upload-sub {
-        font-size: 11px;
+        font-size: 9.5px;
         color: #94A3B8;
-        margin-top: 3px;
+        margin-top: 2px;
       }
       #ppa-file-info {
         background: rgba(8, 13, 26, 0.8);
         border: 1px solid #1E293B;
-        border-radius: 8px;
-        padding: 8px 12px;
+        border-radius: 6px;
+        padding: 5px 8px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 12px;
+        font-size: 10.5px;
       }
       #ppa-file-name {
         color: #38BDF8;
         font-weight: 600;
-        max-width: 340px;
+        max-width: 240px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -1880,14 +2023,14 @@
       #ppa-progress-section {
         background: rgba(8, 13, 26, 0.55);
         border: 1px solid #1E293B;
-        border-radius: 8px;
-        padding: 10px 14px;
+        border-radius: 6px;
+        padding: 6px 10px;
       }
       #ppa-progress-labels {
         display: flex;
         justify-content: space-between;
-        font-size: 12px;
-        margin-bottom: 6px;
+        font-size: 10.5px;
+        margin-bottom: 4px;
       }
       #ppa-progress-status {
         color: #CBD5E1;
@@ -1897,11 +2040,11 @@
         font-weight: 700;
       }
       #ppa-progress-track {
-        height: 8px;
+        height: 6px;
         background: #1E293B;
-        border-radius: 4px;
+        border-radius: 3px;
         overflow: hidden;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
       }
       #ppa-progress-bar {
         height: 100%;
@@ -1911,11 +2054,11 @@
       }
       #ppa-stat-badges {
         display: flex;
-        gap: 8px;
+        gap: 6px;
       }
       .ppa-badge {
-        font-size: 11px;
-        padding: 3px 8px;
+        font-size: 9.5px;
+        padding: 2px 6px;
         border-radius: 4px;
         background: #1E293B;
         font-weight: 600;
@@ -1928,19 +2071,19 @@
       #ppa-timers-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        gap: 6px;
       }
       .ppa-timer-card {
         background: rgba(15, 23, 42, 0.7);
         border: 1px solid #1E293B;
-        border-radius: 8px;
-        padding: 8px 12px;
+        border-radius: 6px;
+        padding: 5px 8px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 6px;
       }
       .ppa-timer-icon {
-        font-size: 20px;
+        font-size: 15px;
       }
       .ppa-timer-content {
         display: flex;
@@ -1948,14 +2091,14 @@
         overflow: hidden;
       }
       .ppa-timer-label {
-        font-size: 10px;
+        font-size: 8.5px;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.4px;
+        letter-spacing: 0.3px;
         color: #64748B;
       }
       .ppa-timer-val {
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 700;
         font-family: Consolas, monospace;
         color: #F8FAFC;
@@ -1968,14 +2111,14 @@
       #ppa-controls {
         display: grid;
         grid-template-columns: 2fr 1fr 1fr 1fr;
-        gap: 8px;
+        gap: 5px;
       }
       .ppa-btn {
         border: none;
-        padding: 10px 8px;
-        border-radius: 8px;
+        padding: 7px 6px;
+        border-radius: 6px;
         font-weight: 700;
-        font-size: 13px;
+        font-size: 11px;
         cursor: pointer;
         transition: all 0.15s ease;
       }
@@ -2018,41 +2161,48 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 11px;
+        font-size: 9.5px;
         color: #94A3B8;
-        padding: 2px 2px;
+        padding: 1px 1px;
+        flex-wrap: wrap;
+        gap: 4px;
       }
       .ppa-option-lbl {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
       }
       #ppa-options-row select {
         background: #1E293B;
         color: #F8FAFC;
         border: 1px solid #334155;
-        border-radius: 6px;
-        padding: 4px 8px;
-        font-size: 11px;
+        border-radius: 5px;
+        padding: 3px 6px;
+        font-size: 10px;
         cursor: pointer;
+        max-width: 170px;
       }
 
       /* Activity Log */
       #ppa-log-container {
         border: 1px solid #1E293B;
-        border-radius: 8px;
+        border-radius: 6px;
         background: #090D16;
-        padding: 8px 10px;
+        padding: 6px 8px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 80px;
       }
       #ppa-log-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 10px;
+        font-size: 8.5px;
         font-weight: 700;
         color: #64748B;
         text-transform: uppercase;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
       }
       #ppa-log-clear {
         cursor: pointer;
@@ -2062,14 +2212,43 @@
         text-decoration: underline;
       }
       #ppa-log-box {
-        height: 120px;
+        flex: 1;
+        height: 80px;
+        min-height: 50px;
         overflow-y: auto;
         font-family: Consolas, monospace;
-        font-size: 11px;
-        line-height: 1.45;
+        font-size: 9.5px;
+        line-height: 1.4;
         color: #94A3B8;
         word-break: break-all;
         white-space: pre-wrap;
+      }
+
+      /* Interactive Corner Resize Grip Handle */
+      #ppa-resize-handle {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 16px;
+        height: 16px;
+        cursor: se-resize;
+        z-index: 100;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        padding: 3px;
+        box-sizing: border-box;
+      }
+      #ppa-resize-handle::after {
+        content: '';
+        width: 7px;
+        height: 7px;
+        border-right: 2px solid rgba(56, 189, 248, 0.7);
+        border-bottom: 2px solid rgba(56, 189, 248, 0.7);
+        border-radius: 1px;
+      }
+      #ppa-resize-handle:hover::after {
+        border-color: #38BDF8;
       }
     `;
 
@@ -2077,7 +2256,6 @@
     styleEl.textContent = css;
     document.head.appendChild(styleEl);
   }
-
   function attachEvents() {
     // Main Target Category (App Price vs App Sale Price)
     const catBtnSale = document.getElementById('ppa-cat-btn-sale');
@@ -2256,6 +2434,9 @@
 
     // Make panel draggable by header
     makeDraggable(document.getElementById('ppa-header'), document.getElementById('play-price-automator-root'));
+
+    // Make panel resizable by corner handle
+    makeResizable(document.getElementById('ppa-container'), document.getElementById('ppa-resize-handle'));
   }
 
   function handleFile(file) {
@@ -2284,6 +2465,76 @@
     reader.readAsText(file);
   }
 
+  function makeResizable(container, handle) {
+    if (!container || !handle) return;
+
+    let isResizing = false;
+    let startX = 0;
+    let startY = 0;
+    let startW = 0;
+    let startH = 0;
+
+    handle.addEventListener('mousedown', onResizeStart);
+    handle.addEventListener('touchstart', onResizeStart, { passive: false });
+
+    function onResizeStart(e) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      isResizing = true;
+      const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+      startX = clientX;
+      startY = clientY;
+
+      const rect = container.getBoundingClientRect();
+      startW = rect.width;
+      startH = rect.height;
+
+      document.body.style.userSelect = 'none';
+
+      window.addEventListener('mousemove', onResizeMove, { passive: false });
+      window.addEventListener('touchmove', onResizeMove, { passive: false });
+      window.addEventListener('mouseup', onResizeEnd);
+      window.addEventListener('touchend', onResizeEnd);
+    }
+
+    function onResizeMove(e) {
+      if (!isResizing) return;
+      e.preventDefault();
+
+      const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+      const deltaX = clientX - startX;
+      const deltaY = clientY - startY;
+
+      const newW = Math.max(280, Math.min(window.innerWidth - 30, Math.round(startW + deltaX)));
+      const newH = Math.max(300, Math.min(window.innerHeight - 30, Math.round(startH + deltaY)));
+
+      container.style.width = newW + 'px';
+      container.style.height = newH + 'px';
+    }
+
+    function onResizeEnd() {
+      if (!isResizing) return;
+      isResizing = false;
+      document.body.style.userSelect = '';
+
+      window.removeEventListener('mousemove', onResizeMove);
+      window.removeEventListener('touchmove', onResizeMove);
+      window.removeEventListener('mouseup', onResizeEnd);
+      window.removeEventListener('touchend', onResizeEnd);
+
+      try {
+        const finalRect = container.getBoundingClientRect();
+        localStorage.setItem('ppa_window_width', Math.round(finalRect.width));
+        localStorage.setItem('ppa_window_height', Math.round(finalRect.height));
+      } catch (e) {}
+    }
+  }
+
   function makeDraggable(handle, target) {
     if (!handle || !target) return;
 
@@ -2297,7 +2548,7 @@
     handle.addEventListener('touchstart', onDragStart, { passive: false });
 
     function onDragStart(e) {
-      if (e.target.closest('button, input, select, textarea, a')) return;
+      if (e.target.closest('button, input, select, textarea, a, #ppa-resize-handle')) return;
 
       isDragging = true;
       const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
@@ -2310,7 +2561,7 @@
       startPanelLeft = rect.left;
       startPanelTop = rect.top;
 
-      // Lock positioning to left/top so right:20px doesn't fight the movement
+      // Lock positioning to left/top so right:15px doesn't fight the movement
       target.style.left = startPanelLeft + 'px';
       target.style.top = startPanelTop + 'px';
       target.style.right = 'auto';
@@ -2338,9 +2589,10 @@
       let newTop = startPanelTop + deltaY;
 
       // Viewport safety boundary clamping
-      const panelWidth = target.offsetWidth || 540;
+      const panelWidth = target.offsetWidth || 378;
+      const panelHeight = target.offsetHeight || 400;
       const maxLeft = Math.max(10, window.innerWidth - panelWidth - 10);
-      const maxTop = Math.max(10, window.innerHeight - 80);
+      const maxTop = Math.max(10, window.innerHeight - 60);
 
       newLeft = Math.max(10, Math.min(newLeft, maxLeft));
       newTop = Math.max(10, Math.min(newTop, maxTop));
@@ -2360,7 +2612,6 @@
       window.removeEventListener('touchend', onDragEnd);
     }
   }
-
   // -------------------------------------------------------------
   // Extension Message Listener (From popup.js)
   // -------------------------------------------------------------

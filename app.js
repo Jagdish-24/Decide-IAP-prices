@@ -7,8 +7,8 @@
   'use strict';
 
   // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-  const APP_VERSION = '1.7.1';
-  const APP_LAST_UPDATED = '24 Oct 2026';
+  const APP_VERSION = '1.7.3';
+  const APP_LAST_UPDATED = '25 Oct 2026';
 
   // 1. Initial State
   const state = {
@@ -2300,10 +2300,12 @@
 
     // Headers mapped directly to file_parser.py in play_sale_automation
     const headers = isSaleMode
-      ? ['Country Name', 'Country Code', 'Currency', 'Discounted Price', 'Discount %', 'Retail Price']
-      : ['Country Name', 'Country Code', 'Currency', 'Retail Price', 'Discount %'];
+      ? ['Country Name', 'Country Code', 'Currency', 'Discounted Price', 'Discount %', 'Retail Price', 'Retail Price (EUR)']
+      : ['Country Name', 'Country Code', 'Currency', 'Retail Price', 'Retail Price (EUR)', 'Discount %'];
 
     const rows = [headers];
+
+    const eurRate = getRate('EUR');
 
     // Export all 174 real countries (skipping virtual GLOBAL_USD / GLOBAL_EUR fallback entries)
     state.countries.forEach(country => {
@@ -2315,6 +2317,14 @@
       const safeName = `"${country.name.replace(/"/g, '""')}"`;
       const cleanPct = `${calc.discountDiffPct.toFixed(2)}%`;
 
+      // EUR price equivalent: if baseCurrency is EUR use calc.retailInBase directly, else calculate from USD
+      const localRate = getRate(country.currency) || 1.0;
+      const retailInUsd = country.currency === 'USD' ? calc.retailPrice : (calc.retailPrice / localRate);
+      const retailInEur = country.currency === 'EUR'
+        ? calc.retailPrice
+        : (state.baseCurrency === 'EUR' ? calc.retailInBase : (retailInUsd * eurRate));
+      const cleanRetailEur = retailInEur.toFixed(2);
+
       if (isSaleMode) {
         rows.push([
           safeName,
@@ -2322,7 +2332,8 @@
           country.currency,
           cleanSale,
           `"${cleanPct}"`,
-          cleanRetail
+          cleanRetail,
+          cleanRetailEur
         ]);
       } else {
         rows.push([
@@ -2330,6 +2341,7 @@
           country.code,
           country.currency,
           cleanRetail,
+          cleanRetailEur,
           `"0.00%"`
         ]);
       }

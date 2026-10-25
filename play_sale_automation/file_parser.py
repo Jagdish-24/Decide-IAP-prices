@@ -92,14 +92,24 @@ def _parse_csv(file_path):
                 "0%"
             )
 
+            # Identify Retail Price (EUR) if exported
+            retail_eur_str = (
+                row_dict.get("retail price (eur)") or 
+                row_dict.get("retail price eur") or 
+                row_dict.get("price eur") or 
+                "0"
+            )
+
             results[country_name] = {
                 "name": country_name,
                 "code": code,
                 "currency": curr,
                 "retail_price": _clean_number(retail_str),
+                "retail_price_eur": _clean_number(retail_eur_str),
                 "sale_price": _clean_number(sale_str),
                 "discount_pct": _clean_number(discount_pct_str),
                 "retail_raw": str(retail_str).strip(),
+                "retail_eur_raw": str(retail_eur_str).strip(),
                 "sale_raw": str(sale_str).strip(),
                 "discount_pct_raw": str(discount_pct_str).strip()
             }
