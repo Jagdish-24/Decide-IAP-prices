@@ -1087,6 +1087,15 @@ input:checked + .slider.round:before {
 .products-header-hint {
   font-size: 0.72rem;
   color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.drag-hint-icon {
+  color: var(--accent-blue);
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 .items-grid-scroll-wrap {
@@ -1141,11 +1150,18 @@ input:checked + .slider.round:before {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: all var(--transition-fast);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
+  cursor: grab;
+  user-select: none;
+  position: relative;
 }
 
 .sku-card:hover {
   border-color: var(--border-strong);
+}
+
+.sku-card:active {
+  cursor: grabbing;
 }
 
 .sku-card.is-active-sku {
@@ -1157,6 +1173,29 @@ input:checked + .slider.round:before {
   border-color: var(--accent-blue) !important;
   box-shadow: 0 0 0 1px var(--accent-blue), 0 4px 16px rgba(0, 0, 0, 0.4);
   background: rgba(15, 23, 42, 0.95);
+  cursor: default !important;
+}
+
+/* Drag & Drop Reorder Visual Feedback */
+.sku-card.is-dragging {
+  opacity: 0.35;
+  transform: scale(0.97);
+  border: 1px dashed var(--accent-blue) !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.3) !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  cursor: grabbing !important;
+}
+
+.sku-card.drop-target-before {
+  border-left: 3px solid var(--accent-blue) !important;
+  box-shadow: -4px 0 14px rgba(56, 189, 248, 0.45), inset 4px 0 10px rgba(56, 189, 248, 0.12) !important;
+  transform: translateX(2px);
+}
+
+.sku-card.drop-target-after {
+  border-right: 3px solid var(--accent-blue) !important;
+  box-shadow: 4px 0 14px rgba(56, 189, 248, 0.45), inset -4px 0 10px rgba(56, 189, 248, 0.12) !important;
+  transform: translateX(-2px);
 }
 
 .sku-card-top {
@@ -1164,6 +1203,54 @@ input:checked + .slider.round:before {
   align-items: center;
   justify-content: space-between;
   width: 100%;
+}
+
+.sku-top-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.sku-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  color: var(--text-muted);
+  cursor: grab;
+  border-radius: 0;
+  transition: color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
+  flex-shrink: 0;
+  padding: 2px;
+  user-select: none;
+  touch-action: none;
+}
+
+.sku-drag-handle:hover {
+  color: var(--accent-blue);
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.sku-drag-handle:focus-visible {
+  outline: 1px solid var(--accent-blue);
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.sku-drag-handle:active {
+  cursor: grabbing;
+}
+
+.sku-card button,
+.sku-card .btn-icon-copy,
+.sku-card .sku-action-btn {
+  cursor: pointer;
+}
+
+.sku-card input {
+  cursor: text;
 }
 
 .sku-info {

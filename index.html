@@ -66,9 +66,9 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.9.2</span>
+          <span class="version-tag" id="appVersionText">v1.9.3</span>
           <span class="version-sep">•</span>
-          <span class="version-date" id="lastUpdatedDateText">Updated 25 Oct 2026</span>
+          <span class="version-date" id="lastUpdatedDateText">Updated 28 Oct 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
         </div>
       </div>
@@ -374,7 +374,7 @@
                 <span class="sku-count-pill" id="skuCountPill">8 Products</span>
                 <span class="promo-status-pill" id="promoStatusPill" style="display: none;">Promo Offer IDs Active</span>
               </div>
-              <span class="products-header-hint">Click copy icon to copy ID directly to clipboard</span>
+              <span class="products-header-hint"><span class="drag-hint-icon" aria-hidden="true">⠿</span> Hold &amp; drag cards to reorder • Click copy icon to copy ID</span>
             </div>
 
             <!-- Catalogue Items Grid (Scrollable Container) -->
@@ -1067,9 +1067,9 @@
           <div>
             <div class="modal-title-row">
               <h3>PlayPrice Engine Version History</h3>
-              <span class="version-tag-pill">v1.9.2 (Latest)</span>
+              <span class="version-tag-pill">v1.9.3 (Latest)</span>
             </div>
-            <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 25 Oct 2026</p>
+            <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 28 Oct 2026</p>
           </div>
         </div>
         <button class="modal-close" id="btnCloseVersionModal" title="Close modal">
@@ -1086,8 +1086,26 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.9.2 -->
+          <!-- Release v1.9.3 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.9.3</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">28 Oct 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Catalogue Drag-and-Drop Reordering:</strong> Hold and drag any catalogue product card or grip handle to seamlessly rearrange items in your preferred order.</li>
+                <li><strong>Dynamic Drop Target Indicators:</strong> Interactive edge drop indicators with glowing borders show the exact insertion point in real-time.</li>
+                <li><strong>Persistent Custom Order:</strong> New item order instantly saves to local storage and syncs across pricing preview dropdowns and CSV exports.</li>
+                <li><strong>Touch &amp; Keyboard Accessible:</strong> Full mobile/tablet touch drag-and-drop support plus Alt+Arrow keyboard reordering shortcuts.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.9.2 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">

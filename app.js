@@ -7,8 +7,8 @@
   'use strict';
 
   // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-  const APP_VERSION = '1.9.2';
-  const APP_LAST_UPDATED = '25 Oct 2026';
+  const APP_VERSION = '1.9.3';
+  const APP_LAST_UPDATED = '28 Oct 2026';
 
   // 1. Initial State
   const state = {
@@ -951,6 +951,9 @@
     }
   }
 
+  let draggedItemId = null;
+  let isDraggingAny = false;
+
   function renderCatalogueItems() {
     elements.catalogueItemsList.innerHTML = '';
     const baseCode = state.baseCurrency;
@@ -997,6 +1000,7 @@
       const card = document.createElement('div');
       card.className = `sku-card ${isActive ? 'is-active-sku' : ''}`;
       card.setAttribute('data-id', escapeHTML(item.id));
+      card.setAttribute('draggable', 'true');
 
       let discountOfferRowHtml = '';
       if (state.discountEnabled) {
@@ -1006,7 +1010,7 @@
               <span class="sku-id-label label-discount">OFFER (-${state.discountRate}%)</span>
               <span class="sku-id-code discount-offer-code" title="${escapeHTML(ids.discountOfferId)}">${escapeHTML(ids.discountOfferId)}</span>
             </div>
-            <button class="btn-icon-copy" data-copy-val="${escapeHTML(ids.discountOfferId)}" data-type="Discount Offer ID" title="Copy Discount Offer ID to clipboard">
+            <button draggable="false" class="btn-icon-copy" data-copy-val="${escapeHTML(ids.discountOfferId)}" data-type="Discount Offer ID" title="Copy Discount Offer ID to clipboard">
               ${COPY_ICON_SVG}
             </button>
           </div>
@@ -1016,16 +1020,28 @@
       card.innerHTML = `
         <!-- View Mode Top Bar -->
         <div class="sku-card-top view-mode">
-          <div class="sku-info" title="Click to preview this item in pricing tables">
-            <span class="sku-name">${escapeHTML(item.name)}</span>
-            <span class="sku-price">${baseCode} ${item.price.toFixed(2)}</span>
-            ${isActive ? '<span class="sku-active-tag">PREVIEW</span>' : ''}
+          <div class="sku-top-left">
+            <div class="sku-drag-handle" draggable="false" title="Hold &amp; drag to reorder" aria-label="Hold and drag to reorder ${escapeHTML(item.name)}" tabindex="0">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="8" cy="6" r="1.8" />
+                <circle cx="16" cy="6" r="1.8" />
+                <circle cx="8" cy="12" r="1.8" />
+                <circle cx="16" cy="12" r="1.8" />
+                <circle cx="8" cy="18" r="1.8" />
+                <circle cx="16" cy="18" r="1.8" />
+              </svg>
+            </div>
+            <div class="sku-info" title="Click to preview this item in pricing tables">
+              <span class="sku-name">${escapeHTML(item.name)}</span>
+              <span class="sku-price">${baseCode} ${item.price.toFixed(2)}</span>
+              ${isActive ? '<span class="sku-active-tag">PREVIEW</span>' : ''}
+            </div>
           </div>
           <div class="sku-top-actions">
-            <button class="sku-action-btn sku-edit-btn" title="Edit product name &amp; price" data-id="${item.id}">
+            <button draggable="false" class="sku-action-btn sku-edit-btn" title="Edit product name &amp; price" data-id="${item.id}">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
             </button>
-            <button class="sku-action-btn sku-delete-btn" title="Delete product SKU" data-id="${item.id}">
+            <button draggable="false" class="sku-action-btn sku-delete-btn" title="Delete product SKU" data-id="${item.id}">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
           </div>
@@ -1074,7 +1090,7 @@
               <span class="sku-id-label label-product">PRODUCT ID</span>
               <span class="sku-id-code product-code" title="${escapeHTML(ids.productId)}">${escapeHTML(ids.productId)}</span>
             </div>
-            <button class="btn-icon-copy" data-copy-val="${escapeHTML(ids.productId)}" data-type="Product ID" title="Copy Product ID to clipboard">
+            <button draggable="false" class="btn-icon-copy" data-copy-val="${escapeHTML(ids.productId)}" data-type="Product ID" title="Copy Product ID to clipboard">
               ${COPY_ICON_SVG}
             </button>
           </div>
@@ -1083,7 +1099,7 @@
               <span class="sku-id-label label-offer">OFFER ID</span>
               <span class="sku-id-code offer-code" title="${escapeHTML(ids.offerId)}">${escapeHTML(ids.offerId)}</span>
             </div>
-            <button class="btn-icon-copy" data-copy-val="${escapeHTML(ids.offerId)}" data-type="Offer ID" title="Copy Offer ID to clipboard">
+            <button draggable="false" class="btn-icon-copy" data-copy-val="${escapeHTML(ids.offerId)}" data-type="Offer ID" title="Copy Offer ID to clipboard">
               ${COPY_ICON_SVG}
             </button>
           </div>
@@ -1101,9 +1117,10 @@
       const priceInput = card.querySelector('.sku-edit-price-input');
       const skuInfo = card.querySelector('.sku-info');
 
-      // Click on sku-info selects this item as active preview
+      // Click on sku-info selects this item as active preview (unless dragging)
       skuInfo.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (isDraggingAny) return;
         state.activeProductId = item.id;
         saveCatalogueItems();
         renderCatalogueItems();
@@ -1113,6 +1130,7 @@
 
       // Enter edit mode
       function startEditing() {
+        card.setAttribute('draggable', 'false');
         card.classList.add('is-editing');
         viewMode.style.display = 'none';
         editMode.style.display = 'flex';
@@ -1123,6 +1141,7 @@
       // Exit edit mode
       function stopEditing() {
         card.classList.remove('is-editing');
+        card.setAttribute('draggable', 'true');
         editMode.style.display = 'none';
         viewMode.style.display = 'flex';
         nameInput.value = item.name;
@@ -1241,6 +1260,195 @@
           });
         });
       });
+
+      // =========================================================================
+      // Hold & Drag Reordering Mechanism (Desktop Mouse, HTML5 & Touch Supported)
+      // =========================================================================
+
+      // 1. Desktop Mouse HTML5 Drag and Drop
+      card.addEventListener('dragstart', (e) => {
+        if (card.classList.contains('is-editing') || e.target.closest('button, input')) {
+          e.preventDefault();
+          return;
+        }
+        draggedItemId = item.id;
+        isDraggingAny = true;
+        card.classList.add('is-dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', item.id);
+      });
+
+      card.addEventListener('dragend', () => {
+        card.classList.remove('is-dragging');
+        document.querySelectorAll('.sku-card').forEach(c => {
+          c.classList.remove('drop-target-before', 'drop-target-after');
+        });
+        setTimeout(() => {
+          draggedItemId = null;
+          isDraggingAny = false;
+        }, 80);
+      });
+
+      card.addEventListener('dragover', (e) => {
+        if (!draggedItemId || draggedItemId === item.id) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+
+        const rect = card.getBoundingClientRect();
+        const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+        card.classList.toggle('drop-target-after', isAfter);
+        card.classList.toggle('drop-target-before', !isAfter);
+      });
+
+      card.addEventListener('dragleave', (e) => {
+        if (!card.contains(e.relatedTarget)) {
+          card.classList.remove('drop-target-before', 'drop-target-after');
+        }
+      });
+
+      card.addEventListener('drop', (e) => {
+        e.preventDefault();
+        card.classList.remove('drop-target-before', 'drop-target-after');
+        if (!draggedItemId || draggedItemId === item.id) return;
+
+        const fromIndex = state.catalogueItems.findIndex(i => i.id === draggedItemId);
+        const targetIndex = state.catalogueItems.findIndex(i => i.id === item.id);
+
+        if (fromIndex !== -1 && targetIndex !== -1) {
+          const rect = card.getBoundingClientRect();
+          const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+          let destIndex = isAfter ? targetIndex + 1 : targetIndex;
+          if (fromIndex < destIndex) {
+            destIndex -= 1;
+          }
+
+          if (fromIndex !== destIndex) {
+            const [movedItem] = state.catalogueItems.splice(fromIndex, 1);
+            state.catalogueItems.splice(destIndex, 0, movedItem);
+            saveCatalogueItems();
+            renderCatalogueItems();
+            renderAllTables();
+            showToast(`Reordered "${movedItem.name}" to position #${destIndex + 1}`, 'success');
+          }
+        }
+      });
+
+      // 2. Touch Screen & Mobile Hold-and-Drag Support on Grip Handle
+      const handle = card.querySelector('.sku-drag-handle');
+      if (handle) {
+        let touchActive = false;
+        let currentDropTarget = null;
+        let isAfterTouch = false;
+
+        handle.addEventListener('touchstart', (e) => {
+          if (e.touches.length !== 1 || card.classList.contains('is-editing')) return;
+          touchActive = true;
+          draggedItemId = item.id;
+          isDraggingAny = true;
+          card.classList.add('is-dragging');
+        }, { passive: true });
+
+        handle.addEventListener('touchmove', (e) => {
+          if (!touchActive || e.touches.length !== 1) return;
+          const touch = e.touches[0];
+          if (e.cancelable) e.preventDefault();
+
+          const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+          const targetCard = elem?.closest('.sku-card');
+
+          document.querySelectorAll('.sku-card').forEach(c => {
+            if (c !== targetCard) c.classList.remove('drop-target-before', 'drop-target-after');
+          });
+
+          if (targetCard && targetCard !== card) {
+            currentDropTarget = targetCard;
+            const rect = targetCard.getBoundingClientRect();
+            isAfterTouch = (touch.clientX - rect.left) > (rect.width / 2);
+            targetCard.classList.toggle('drop-target-after', isAfterTouch);
+            targetCard.classList.toggle('drop-target-before', !isAfterTouch);
+          } else {
+            currentDropTarget = null;
+          }
+        }, { passive: false });
+
+        handle.addEventListener('touchend', () => {
+          if (!touchActive) return;
+          touchActive = false;
+          card.classList.remove('is-dragging');
+
+          if (currentDropTarget) {
+            const targetId = currentDropTarget.getAttribute('data-id');
+            currentDropTarget.classList.remove('drop-target-before', 'drop-target-after');
+
+            const fromIndex = state.catalogueItems.findIndex(i => i.id === draggedItemId);
+            const targetIndex = state.catalogueItems.findIndex(i => i.id === targetId);
+
+            if (fromIndex !== -1 && targetIndex !== -1) {
+              let destIndex = isAfterTouch ? targetIndex + 1 : targetIndex;
+              if (fromIndex < destIndex) destIndex -= 1;
+              if (fromIndex !== destIndex) {
+                const [movedItem] = state.catalogueItems.splice(fromIndex, 1);
+                state.catalogueItems.splice(destIndex, 0, movedItem);
+                saveCatalogueItems();
+                renderCatalogueItems();
+                renderAllTables();
+                showToast(`Reordered "${movedItem.name}" to position #${destIndex + 1}`, 'success');
+              }
+            }
+          }
+          setTimeout(() => {
+            draggedItemId = null;
+            isDraggingAny = false;
+            currentDropTarget = null;
+          }, 80);
+        });
+
+        handle.addEventListener('touchcancel', () => {
+          touchActive = false;
+          card.classList.remove('is-dragging');
+          document.querySelectorAll('.sku-card').forEach(c => c.classList.remove('drop-target-before', 'drop-target-after'));
+          setTimeout(() => {
+            draggedItemId = null;
+            isDraggingAny = false;
+            currentDropTarget = null;
+          }, 80);
+        });
+
+        // 3. Accessible Keyboard Shortcuts (Alt+ArrowUp/Down/Left/Right)
+        handle.addEventListener('keydown', (e) => {
+          if ((e.key === 'ArrowUp' || e.key === 'ArrowLeft') && (e.altKey || e.ctrlKey)) {
+            e.preventDefault();
+            const fromIndex = state.catalogueItems.findIndex(i => i.id === item.id);
+            if (fromIndex > 0) {
+              const [movedItem] = state.catalogueItems.splice(fromIndex, 1);
+              state.catalogueItems.splice(fromIndex - 1, 0, movedItem);
+              saveCatalogueItems();
+              renderCatalogueItems();
+              renderAllTables();
+              showToast(`Moved "${movedItem.name}" up`, 'info');
+              setTimeout(() => {
+                const newHandle = elements.catalogueItemsList.querySelector(`[data-id="${item.id}"] .sku-drag-handle`);
+                newHandle?.focus();
+              }, 40);
+            }
+          } else if ((e.key === 'ArrowDown' || e.key === 'ArrowRight') && (e.altKey || e.ctrlKey)) {
+            e.preventDefault();
+            const fromIndex = state.catalogueItems.findIndex(i => i.id === item.id);
+            if (fromIndex < state.catalogueItems.length - 1) {
+              const [movedItem] = state.catalogueItems.splice(fromIndex, 1);
+              state.catalogueItems.splice(fromIndex + 1, 0, movedItem);
+              saveCatalogueItems();
+              renderCatalogueItems();
+              renderAllTables();
+              showToast(`Moved "${movedItem.name}" down`, 'info');
+              setTimeout(() => {
+                const newHandle = elements.catalogueItemsList.querySelector(`[data-id="${item.id}"] .sku-drag-handle`);
+                newHandle?.focus();
+              }, 40);
+            }
+          }
+        });
+      }
 
       elements.catalogueItemsList.appendChild(card);
     });
@@ -2828,6 +3036,31 @@
     elements.btnQuickAdd.addEventListener('click', () => {
       elements.newItemName.focus();
     });
+
+    // Catalogue grid container drop listener (allows dragging to empty trailing space)
+    if (elements.catalogueItemsList) {
+      elements.catalogueItemsList.addEventListener('dragover', (e) => {
+        if (draggedItemId) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+        }
+      });
+
+      elements.catalogueItemsList.addEventListener('drop', (e) => {
+        if (e.target === elements.catalogueItemsList && draggedItemId) {
+          e.preventDefault();
+          const fromIndex = state.catalogueItems.findIndex(i => i.id === draggedItemId);
+          if (fromIndex !== -1 && fromIndex !== state.catalogueItems.length - 1) {
+            const [movedItem] = state.catalogueItems.splice(fromIndex, 1);
+            state.catalogueItems.push(movedItem);
+            saveCatalogueItems();
+            renderCatalogueItems();
+            renderAllTables();
+            showToast(`Moved "${movedItem.name}" to end of catalogue`, 'success');
+          }
+        }
+      });
+    }
 
     elements.btnGenerate.addEventListener('click', async () => {
       const originalText = elements.btnGenerate.innerHTML;
