@@ -66,7 +66,7 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.9.4</span>
+          <span class="version-tag" id="appVersionText">v1.9.5</span>
           <span class="version-sep">•</span>
           <span class="version-date" id="lastUpdatedDateText">Updated 03 Nov 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -1067,7 +1067,7 @@
           <div>
             <div class="modal-title-row">
               <h3>PlayPrice Engine Version History</h3>
-              <span class="version-tag-pill">v1.9.4 (Latest)</span>
+              <span class="version-tag-pill">v1.9.5 (Latest)</span>
             </div>
             <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 03 Nov 2026</p>
           </div>
@@ -1086,8 +1086,29 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.9.4 -->
+          <!-- Release v1.9.5 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.9.5</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">03 Nov 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Gentle "+1 Issue" Audio Notification:</strong> Added a soothing, non-harsh Web Audio chime (dual sine oscillator chord with lowpass filtering) that sounds exclusively when the plugin encounters an issue (+1 Issue), with an in-panel toggle to mute or preview anytime.</li>
+                <li><strong>"New countries/regions" Direct Currency Search &amp; Foldout Expansion:</strong> Updated the search query for global fallback pools to use exact terms <code>"New countries/regions (USD)"</code> and <code>"New countries/regions (EUR)"</code>, and added automated detection and expansion for the parent row foldout (<code>button[debug-id="zippy-button"]</code>) whenever child pools are collapsed.</li>
+                <li><strong>"New countries/regions" Direct Currency Search &amp; Foldout Expansion:</strong> Updated the search query for global fallback pools to use exact terms <code>"New countries/regions (USD)"</code> and <code>"New countries/regions (EUR)"</code>, and added automated detection and expansion for the parent row foldout (<code>button[debug-id="zippy-button"]</code>) whenever child pools are collapsed.</li>
+                <li><strong>Tags Input Field Exclusion Filter:</strong> Added strict exclusion rules to ignore Google Play Console's <code>&lt;console-multi-suggest-input inputarialabel="Enter tags"&gt;</code> and tag chips, ensuring the robot never mistargets developer tag input fields as price inputs.</li>
+                <li><strong>Custom CSV Range Control (Start / Stop Index) in Browser Robot:</strong> Added precise Start Index and Stop Index input controls to the PlayPrice Automator floating panel with live country name previews and quick "Select All" toggle, enabling developers to update custom ranges or individual countries in Google Play Console without running the full catalog.</li>
+                <li><strong>Dynamic Discount % in Automation Export Filename:</strong> Automation CSV exports now explicitly specify the active discount percentage in promotional mode following <code>{App Name} - {Discount %} Discount - {Item Name}.csv</code> (e.g. <code>GrassKing - 60% Discount - IAP - No Ads pack.csv</code>).</li>
+                <li><strong>Desktop &amp; Browser Mode Detection Alignment:</strong> Enhanced bot file parsers to recognize <code>discount</code> alongside legacy formats, auto-binding Mode 2 ("Set Discounted Retail Price") seamlessly upon file load.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.9.4 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">

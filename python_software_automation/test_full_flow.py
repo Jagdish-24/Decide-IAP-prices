@@ -144,7 +144,7 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
         # Check mode auto-detection logic against context-correct exported filenames
         def detect_mode(filename):
             fn = filename.lower()
-            if "discounted" in fn or "sale" in fn:
+            if "discounted" in fn or "sale" in fn or ("discount" in fn and "percentage" not in fn and "pct" not in fn):
                 return "sale"
             elif "percentage" in fn or "pct" in fn:
                 return "discount_pct"
@@ -153,6 +153,8 @@ class TestPlaySaleAutomatorFlow(unittest.TestCase):
             return "sale"
 
         # User's exact context-correct filename examples
+        self.assertEqual(detect_mode("GrassKing - 60% Discount - IAP - No Ads pack.csv"), "sale")
+        self.assertEqual(detect_mode("Sine Rush - 60% Discount - App Price.csv"), "sale")
         self.assertEqual(detect_mode("Sine Rush - Discounted - App Price.csv"), "sale")
         self.assertEqual(detect_mode("Sine Rush - Discounted - IAP - No Ads.csv"), "sale")
         self.assertEqual(detect_mode("Sine Rush - App Price.csv"), "retail")

@@ -7,7 +7,7 @@
   'use strict';
 
   // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-  const APP_VERSION = '1.9.4';
+  const APP_VERSION = '1.9.5';
   const APP_LAST_UPDATED = '03 Nov 2026';
 
   // 1. Initial State
@@ -2584,10 +2584,10 @@
     const a = document.createElement('a');
     a.href = url;
 
-    // Construct context-correct filename: {App Name} - {Preview Pricing For}.csv
+    // Construct context-correct filename: {App Name} - {Discount %} Discount - {Preview Pricing For}.csv
     // Examples:
-    // Sine Rush - App Price.csv or Sine Rush - Discounted - App Price.csv
-    // Sine Rush - IAP - No Ads.csv or Sine Rush - Discounted - IAP - No Ads.csv
+    // Sine Rush - App Price.csv or Sine Rush - 60% Discount - App Price.csv
+    // Sine Rush - IAP - No Ads.csv or Sine Rush - 60% Discount - IAP - No Ads.csv
     const rawAppName = (state.appName && state.appName.trim()) ? state.appName.trim() : 'App';
     const cleanAppName = rawAppName.replace(/[\\/:*?"<>|]/g, '').trim() || 'App';
 
@@ -2602,7 +2602,8 @@
 
     const parts = [cleanAppName];
     if (isSaleMode) {
-      parts.push('Discounted');
+      const discountRate = Math.abs(parseInt(state.discountRate, 10)) || 0;
+      parts.push(`${discountRate}% Discount`);
     }
     parts.push(pricingPart);
 

@@ -581,7 +581,7 @@ class PlaySaleAutomatorGUI(tk.Tk):
             self.loaded_file_name = os.path.basename(path)
             # Smart Mode auto-switch based on exported file naming
             fn_lower = self.loaded_file_name.lower()
-            if ("discounted" in fn_lower or "sale" in fn_lower) and hasattr(self, "mode_display_var"):
+            if ("discounted" in fn_lower or "sale" in fn_lower or ("discount" in fn_lower and "percentage" not in fn_lower and "pct" not in fn_lower)) and hasattr(self, "mode_display_var"):
                 self.mode_display_var.set(CODE_TO_DISPLAY["sale"])
                 self.pricing_mode_var.set("sale")
                 self.config_data["pricing_target_mode"] = "sale"

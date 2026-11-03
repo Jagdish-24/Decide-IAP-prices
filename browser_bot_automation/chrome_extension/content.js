@@ -5,12 +5,16 @@
   if (window.__PLAY_PRICE_AUTOMATOR_INJECTED__) return;
   window.__PLAY_PRICE_AUTOMATOR_INJECTED__ = true;
 
-  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.9.2...');
+  console.log('[PlayPrice Automator] Initializing in-browser console automator v1.9.5...');
 
   // State Management
   const state = {
     countries: [],        // [{ name, code, salePrice, retailPrice, discountPct, targetValue, priceFormatted, currency, displayUnit, status }]
     currentIndex: 0,
+    startIndex: 1,        // 1-based start index (CSV row index)
+    stopIndex: 1,         // 1-based stop index (CSV row index)
+    soundEnabled: true,   // Audio alert on +1 issue
+    lastReportedFailedCount: 0,
     isRunning: false,
     isPaused: false,
     speedDelay: 1600,     // Default: Safe & Steady (1600ms) to avoid rate limits
@@ -31,6 +35,65 @@
     pendingFixRequested: false,
     targetFixCountry: null
   };
+
+  // -------------------------------------------------------------
+  // Gentle Web Audio Issue Chime (Non-Harsh Soft Warning Sound)
+  // -------------------------------------------------------------
+  let issueAudioCtx = null;
+  function playGentleIssueChime() {
+    if (state.soundEnabled === false) return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!issueAudioCtx) {
+        issueAudioCtx = new AudioCtx();
+      }
+      if (issueAudioCtx.state === 'suspended') {
+        issueAudioCtx.resume().catch(() => {});
+      }
+
+      const t = issueAudioCtx.currentTime;
+
+      // Master gain node with smooth envelope (no clicks, soft volume)
+      const masterGain = issueAudioCtx.createGain();
+      masterGain.gain.setValueAtTime(0.0001, t);
+      masterGain.gain.exponentialRampToValueAtTime(0.08, t + 0.02);
+      masterGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.26);
+
+      // Lowpass filter to ensure sound is warm and mellow (never harsh or piercing)
+      const filter = issueAudioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(800, t);
+
+      // Dual oscillator: soft fundamental + gentle subtle lower harmonic
+      const osc1 = issueAudioCtx.createOscillator();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(415.3, t); // G#4 warm subtle chime
+      osc1.frequency.exponentialRampToValueAtTime(311.13, t + 0.20); // D#4 warm resolution
+
+      const osc2 = issueAudioCtx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(277.18, t); // C#4 lower warm resonance
+      osc2.frequency.exponentialRampToValueAtTime(207.65, t + 0.20);
+
+      const subGain = issueAudioCtx.createGain();
+      subGain.gain.setValueAtTime(0.03, t);
+
+      osc1.connect(filter);
+      osc2.connect(subGain);
+      subGain.connect(filter);
+
+      filter.connect(masterGain);
+      masterGain.connect(issueAudioCtx.destination);
+
+      osc1.start(t);
+      osc2.start(t);
+      osc1.stop(t + 0.28);
+      osc2.stop(t + 0.28);
+    } catch (e) {
+      // Audio playback silently ignored if blocked by autoplay policy
+    }
+  }
 
   // -------------------------------------------------------------
   // CSV Parser
@@ -219,12 +282,23 @@
   }
 
   function findSearchBox() {
-    return document.querySelector('input[placeholder*="country" i]') ||
-           document.querySelector('input[aria-label*="country" i]') ||
-           document.querySelector('input[placeholder*="region" i]') ||
-           document.querySelector('input[aria-label*="region" i]') ||
-           document.querySelector('input[aria-label*="Search" i]') ||
-           document.querySelector('input[placeholder*="Search" i]');
+    const candidates = [
+      document.querySelector('input[placeholder*="country" i]'),
+      document.querySelector('input[aria-label*="country" i]'),
+      document.querySelector('input[placeholder*="region" i]'),
+      document.querySelector('input[aria-label*="region" i]'),
+      document.querySelector('input[aria-label*="Search" i]'),
+      document.querySelector('input[placeholder*="Search" i]')
+    ].filter(Boolean);
+
+    for (const inp of candidates) {
+      if (inp.closest('#play-price-automator-root')) continue;
+      if (inp.closest('console-multi-suggest-input, multi-suggest-input, material-chips, .search-chips, .pc-console-chips')) continue;
+      const aria = (inp.getAttribute('aria-label') || '').toLowerCase();
+      if (aria.includes('tag')) continue;
+      return inp;
+    }
+    return null;
   }
 
   async function waitForFilteredRow(countryName, timeoutMs = 6000) {
@@ -274,16 +348,38 @@
         }
       }
 
-      // 2. If it's a global fallback pool (USD/EUR) and child row not yet visible, check if parent tree group is collapsed
+      // 2. If it's a global fallback pool (USD/EUR) and child row not yet visible, check if parent foldout is collapsed
       if (isGlobalNew) {
+        // Strategy A: Target official Google Play Console zippy foldout button
+        // Reference: <button class="mdc-icon-button zippy-button" debug-id="zippy-button" aria-label="Collapse/Expand row: New countries/regions" aria-expanded="false">
+        const zippyBtn = Array.from(document.querySelectorAll(
+          'button[debug-id="zippy-button"], button.zippy-button, [aria-label*="row: New countries/regions" i], [title*="row: New countries/regions" i]'
+        )).find(btn => {
+          if (btn.closest('#play-price-automator-root') || btn.closest('[role="dialog"]')) return false;
+          const label = (btn.getAttribute('aria-label') || btn.getAttribute('title') || '').toLowerCase();
+          const expanded = btn.getAttribute('aria-expanded');
+          const isCollapsed = expanded === 'false' || label.includes('expand');
+          const isNewCountries = label.includes('new countries') || label.includes('new regions') ||
+                                 btn.closest('tr, [role="row"], .table-row')?.textContent.toLowerCase().includes('new countries');
+          return isCollapsed && isNewCountries;
+        });
+
+        if (zippyBtn) {
+          log('📂 Expanding "New countries/regions" foldout row via zippy-button to reveal USD/EUR rates...');
+          activelyClickElement(zippyBtn, ['.mdc-icon-button__touch', '.mdc-icon-button__ripple', 'material-icon[debug-id="zippy-icon"]', 'i']);
+          await sleep(400);
+          continue;
+        }
+
+        // Strategy B: General row expand button fallback
         for (const row of rows) {
           if (row.closest('[role="dialog"]') || row.closest('dialog') || row.closest('#play-price-automator-root')) continue;
           const text = row.textContent.toLowerCase();
           if (text.includes('new countries') || text.includes('new regions')) {
-            const expandBtn = row.querySelector('[aria-expanded="false"], button, [role="button"], mat-icon, material-icon, svg, [aria-label*="expand" i]') || row;
+            const expandBtn = row.querySelector('[aria-expanded="false"], button[debug-id="zippy-button"], button.zippy-button, button, [role="button"], mat-icon, material-icon, svg, [aria-label*="expand" i]') || row;
             const ariaExpanded = expandBtn.getAttribute('aria-expanded') || row.getAttribute('aria-expanded');
             if (ariaExpanded === 'false' || expandBtn.getAttribute('aria-label')?.toLowerCase().includes('expand')) {
-              activelyClickElement(expandBtn);
+              activelyClickElement(expandBtn, ['.mdc-icon-button__touch', '.mdc-icon-button__ripple', 'material-icon[debug-id="zippy-icon"]']);
               await sleep(350);
               break;
             }
@@ -376,13 +472,18 @@
       }
     }
 
-    // 3. Inspect button aria-label / title attributes directly in the row
+    // 3. Inspect button aria-label / title attributes directly in the row (excluding zippy-button)
     if (!pencil) {
-      const allButtons = Array.from(row.querySelectorAll('button, [role="button"]'));
+      const allButtons = Array.from(row.querySelectorAll('button, [role="button"]')).filter(b => {
+        if (b.classList.contains('zippy-button') || b.getAttribute('debug-id') === 'zippy-button') return false;
+        if (b.querySelector('[debug-id="zippy-icon"]')) return false;
+        return true;
+      });
       pencil = allButtons.find(b => {
         const aria = (b.getAttribute('aria-label') || '').toLowerCase();
         const title = (b.getAttribute('title') || '').toLowerCase();
         const combined = `${aria} ${title}`;
+        if (combined.includes('collapse') || combined.includes('expand')) return false;
         if (wantRetail) {
           return (combined.includes('price') || combined.includes('retail')) && !combined.includes('sale') && !combined.includes('discount');
         } else {
@@ -391,14 +492,25 @@
       });
     }
 
-    // 4. Fallback: Generic edit button in row
+    // 4. Fallback: Generic edit button in row (strictly excluding foldout zippy buttons)
     if (!pencil) {
-      pencil = row.querySelector('button[aria-label*="edit" i], button[title*="edit" i], material-icon[icon*="edit"], [data-icon="edit"]');
+      const editBtns = Array.from(row.querySelectorAll('button[aria-label*="edit" i], button[title*="edit" i], material-icon[icon*="edit"], [data-icon="edit"]')).filter(b => {
+        const btn = b.closest('button') || b;
+        return !btn.classList.contains('zippy-button') && btn.getAttribute('debug-id') !== 'zippy-button';
+      });
+      pencil = editBtns[0];
     }
 
-    // 5. Ultimate fallback: First button in row
+    // 5. Ultimate fallback: First button in row (strictly excluding foldout zippy buttons)
     if (!pencil) {
-      const btns = Array.from(row.querySelectorAll('button, [role="button"]')).filter(b => isElementReallyVisible(b));
+      const btns = Array.from(row.querySelectorAll('button, [role="button"]')).filter(b => {
+        if (!isElementReallyVisible(b)) return false;
+        if (b.classList.contains('zippy-button') || b.getAttribute('debug-id') === 'zippy-button') return false;
+        if (b.querySelector('[debug-id="zippy-icon"]')) return false;
+        const aria = (b.getAttribute('aria-label') || '').toLowerCase();
+        if (aria.includes('collapse') || aria.includes('expand')) return false;
+        return true;
+      });
       pencil = btns[0];
     }
 
@@ -409,18 +521,125 @@
     return false;
   }
 
+  // -------------------------------------------------------------
+  // Price Input Identification & Exclusion Filter
+  // Strictly ignores Google Play Console Tags fields:
+  // <console-multi-suggest-input inputarialabel="Enter tags">...<input aria-label="Enter tags">
+  // -------------------------------------------------------------
+  function isIgnoredOrInvalidPriceInput(input) {
+    if (!input || !(input instanceof Element)) return true;
+
+    // 1. Ignore inputs inside our own automator panel
+    if (input.closest('#play-price-automator-root')) return true;
+
+    // 2. Ignore non-text or unusable inputs
+    if (input.disabled || input.readOnly || input.type === 'hidden' || input.type === 'checkbox' || input.type === 'radio') {
+      return true;
+    }
+
+    // 3. Ignore Google Play Console Tag Multi-Suggest Input component & chip containers
+    if (
+      input.closest('console-multi-suggest-input') ||
+      input.closest('multi-suggest-input') ||
+      input.closest('material-chips') ||
+      input.closest('.search-chips') ||
+      input.closest('.pc-console-chips') ||
+      input.closest('.chipsRow') ||
+      input.closest('.multi-suggest-popup') ||
+      input.closest('div[popupsource]') ||
+      input.closest('.searchContainer')
+    ) {
+      return true;
+    }
+
+    // 4. Check attributes on the input and its ancestors: aria-label, inputarialabel, placeholder, etc.
+    const ariaLabel = (input.getAttribute('aria-label') || '').toLowerCase();
+    const placeholder = (input.getAttribute('placeholder') || '').toLowerCase();
+    const inputAriaLabel = (input.closest('[inputarialabel]')?.getAttribute('inputarialabel') || '').toLowerCase();
+    const name = (input.getAttribute('name') || '').toLowerCase();
+    const id = (input.id || '').toLowerCase();
+    const className = (input.className || '').toLowerCase();
+
+    // Check for tag-related keywords
+    if (
+      ariaLabel.includes('tag') ||
+      inputAriaLabel.includes('tag') ||
+      placeholder.includes('tag') ||
+      name.includes('tag') ||
+      id.includes('tag')
+    ) {
+      return true;
+    }
+
+    // 5. Check for table search / country / region filter inputs
+    if (
+      ariaLabel.includes('country') || ariaLabel.includes('region') ||
+      placeholder.includes('country') || placeholder.includes('region') ||
+      (className.includes('search-input') && !ariaLabel.includes('price'))
+    ) {
+      return true;
+    }
+
+    // 6. Check for tag hint text in proximity ("Must start with a lowercase letter...", "at most 20 characters")
+    const parentContainer = input.closest('console-multi-suggest-input, multi-suggest-input, .input-container, div');
+    if (parentContainer) {
+      const hint = parentContainer.parentElement?.querySelector('[debug-id="hint-text"]') ||
+                   parentContainer.querySelector('[debug-id="hint-text"]') ||
+                   parentContainer.parentElement?.querySelector('.hint-text') ||
+                   parentContainer.querySelector('.hint-text');
+      if (hint && /lowercase letter|at most \d+ characters|hyphens/i.test(hint.textContent || '')) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function findPriceInput(container) {
+    if (!container || !container.querySelectorAll) return null;
+
+    // Filter out all invalid or ignored inputs (including Play Console tags inputs)
+    const inputs = Array.from(container.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])'))
+      .filter(inp => !isIgnoredOrInvalidPriceInput(inp) && isElementReallyVisible(inp));
+
+    if (inputs.length === 0) return null;
+    if (inputs.length === 1) return inputs[0];
+
+    // Priority 1: explicitly labeled as price, amount, or currency
+    const priceLabeled = inputs.find(inp => {
+      const aria = (inp.getAttribute('aria-label') || '').toLowerCase();
+      const ph = (inp.getAttribute('placeholder') || '').toLowerCase();
+      const cls = (inp.className || '').toLowerCase();
+      return aria.includes('price') || aria.includes('amount') || ph.includes('price') || ph.includes('amount') || cls.includes('price');
+    });
+    if (priceLabeled) return priceLabeled;
+
+    // Priority 2: input of type "number" or "tel" or decimal inputmode
+    const numInput = inputs.find(inp => inp.type === 'number' || inp.type === 'tel' || inp.getAttribute('inputmode') === 'decimal');
+    if (numInput) return numInput;
+
+    // Priority 3: First valid visible text input
+    return inputs[0];
+  }
+
   async function waitForEditPricePopup(timeoutMs = 4500) {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
       if (!state.isRunning) return null;
 
-      // 1. Check known dialog / popup containers
+      // 1. Check known dialog / popup containers (strictly exclude tag suggest popups and trigger divs)
       const dialogCandidates = Array.from(document.querySelectorAll(
-        '[role="dialog"], dialog, material-dialog, .modal-dialog, .mdc-dialog, .cdk-overlay-pane, console-mega-overlay, material-popup, .popup-container, .popup, div[popupsource]'
-      )).filter(d => !d.closest('#play-price-automator-root') && isElementReallyVisible(d));
+        '[role="dialog"], dialog, material-dialog, .modal-dialog, .mdc-dialog, .cdk-overlay-pane, console-mega-overlay, .popup-container, .popup, material-popup:not(.multi-suggest-popup)'
+      )).filter(d => {
+        if (d.closest('#play-price-automator-root')) return false;
+        if (d.closest('console-multi-suggest-input, multi-suggest-input, .pc-console-chips')) return false;
+        if (d.classList.contains('multi-suggest-popup') || d.classList.contains('searchContainer')) return false;
+        if (d.hasAttribute('popupsource')) return false;
+        return isElementReallyVisible(d);
+      });
 
       for (const d of dialogCandidates) {
-        const input = d.querySelector('input:not([type="checkbox"]):not([type="radio"])');
+        const input = findPriceInput(d);
         if (input) return { dialog: d, input };
       }
 
@@ -428,11 +647,12 @@
       const allHeadings = Array.from(document.querySelectorAll('h1, h2, h3, h4, [role="heading"], div, span'));
       for (const el of allHeadings) {
         if (el.closest('#play-price-automator-root')) continue;
+        if (el.closest('console-multi-suggest-input, multi-suggest-input, .pc-console-chips')) continue;
         const txt = (el.textContent || '').trim().toLowerCase();
         if (txt === 'edit price' || txt.startsWith('edit price') || txt.includes('edit price')) {
-          const container = el.closest('[role="dialog"], dialog, material-dialog, .cdk-overlay-pane, material-popup, .popup-container, div') || el.parentElement.parentElement;
-          if (container && isElementReallyVisible(container)) {
-            const input = container.querySelector('input:not([type="checkbox"]):not([type="radio"])');
+          const container = el.closest('[role="dialog"], dialog, material-dialog, .cdk-overlay-pane, .popup-container, div') || el.parentElement.parentElement;
+          if (container && isElementReallyVisible(container) && !container.closest('console-multi-suggest-input, multi-suggest-input, .pc-console-chips')) {
+            const input = findPriceInput(container);
             if (input) return { dialog: container, input };
           }
         }
@@ -1004,7 +1224,7 @@
       for (const d of dialogCandidates) {
         const text = (d.textContent || '').toLowerCase();
         if (text.includes('set price for selected') || text.includes('update') || text.includes('pricing for the selected')) {
-          const input = d.querySelector('input:not([type="checkbox"]):not([type="radio"])');
+          const input = findPriceInput(d);
           if (input) {
             return { dialog: d, input };
           }
@@ -1033,7 +1253,7 @@
   }
 
   async function setModalPrice(input, priceValue) {
-    if (!input) return false;
+    if (!input || isIgnoredOrInvalidPriceInput(input)) return false;
     input.scrollIntoView({ block: 'nearest' });
     input.focus();
     await humanMicroPause(60, 120);
@@ -1366,9 +1586,19 @@
       searchBox.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true, view: window }));
       if (typeof searchBox.select === 'function') searchBox.select();
       await humanMicroPause(50, 130);
-      // Normalize search term: Google Play Console indexes fallback pools under "New countries/regions"
+      // Search term calculation: For fallback pools, use exact terms "New countries/regions (USD)" and "New countries/regions (EUR)"
       const isGlobalNew = c.name.toLowerCase().includes('new countries') || c.name.toLowerCase().includes('new regions');
-      const searchTerm = isGlobalNew ? 'New countries' : c.name;
+      let searchTerm = c.name;
+      if (isGlobalNew) {
+        const lowerName = c.name.toLowerCase();
+        if (lowerName.includes('usd') || c.currency === 'USD' || c.code === 'GLOBAL_USD') {
+          searchTerm = 'New countries/regions (USD)';
+        } else if (lowerName.includes('eur') || c.currency === 'EUR' || c.code === 'GLOBAL_EUR') {
+          searchTerm = 'New countries/regions (EUR)';
+        } else {
+          searchTerm = 'New countries/regions';
+        }
+      }
       setNativeValue(searchBox, '');
       await humanMicroPause(40, 80);
       setNativeValue(searchBox, searchTerm);
@@ -1377,7 +1607,19 @@
       await sleep(getHumanizedDelay(state.speedDelay));
 
       // Step 2: Wait for filtered row in table
-      const row = await waitForFilteredRow(c.name, 6000);
+      let row = await waitForFilteredRow(c.name, 5000);
+
+      // Fallback for New countries/regions: If exact currency search didn't show the row (e.g. collapsed under parent foldout),
+      // search for "New countries/regions", expand the foldout using the zippy button, and find the child row
+      if (!row && isGlobalNew) {
+        log(`ℹ️ Exact search "${searchTerm}" did not yield row. Trying parent "New countries/regions" with foldout expansion...`);
+        setNativeValue(searchBox, '');
+        await humanMicroPause(40, 80);
+        setNativeValue(searchBox, 'New countries/regions');
+        await sleep(getHumanizedDelay(state.speedDelay));
+        row = await waitForFilteredRow(c.name, 5000);
+      }
+
       if (!row) {
         log(`⚠️ Row not found for ${c.name}, skipping...`);
         c.status = 'failed';
@@ -1401,10 +1643,10 @@
 
       // Step 4: Handle Edit Modal Input
       const modalObj = await waitForEditPricePopup(4500);
-      if (!modalObj) {
-        log(`⚠️ Edit popup did not open for ${c.name}, skipping...`);
+      if (!modalObj || !modalObj.input || isIgnoredOrInvalidPriceInput(modalObj.input)) {
+        log(`⚠️ Valid edit price input not found for ${c.name}, skipping...`);
         c.status = 'failed';
-        c.message = 'Modal did not open';
+        c.message = 'Valid price input not found';
         try { updateUI(); } catch (e) {}
         return false;
       }
@@ -1645,7 +1887,15 @@
 
     let processedSinceLastCooldown = 0;
 
-    for (let idx = state.currentIndex; idx < state.countries.length; idx++) {
+    const total = state.countries.length;
+    const start0 = Math.max(0, (state.startIndex || 1) - 1);
+    const stop0 = Math.min(total - 1, (state.stopIndex || total) - 1);
+
+    if (state.currentIndex < start0 || state.currentIndex > stop0) {
+      state.currentIndex = start0;
+    }
+
+    for (let idx = state.currentIndex; idx <= stop0; idx++) {
       if (!state.isRunning) {
         log('🛑 Automation stopped by user.');
         break;
@@ -1719,8 +1969,8 @@
       }
     }
 
-    if (state.isRunning && state.currentIndex >= state.countries.length - 1) {
-      log('🏆 All countries in queue finished!');
+    if (state.isRunning && state.currentIndex >= stop0) {
+      log('🏆 All countries in defined range finished!');
       const remainingIssues = state.countries.filter(c => c.status === 'failed').length;
       if (remainingIssues === 0) {
         log('🎉 Zero issues remaining! All prices applied successfully.');
@@ -1738,21 +1988,123 @@
     updateUI();
   }
 
+  // -------------------------------------------------------------
+  // Custom CSV Range Helpers
+  // -------------------------------------------------------------
+  function renderRangePreview() {
+    const total = state.countries.length;
+    const startIdx = state.startIndex || 1;
+    const stopIdx = state.stopIndex || (total > 0 ? total : 1);
+
+    const startCountryEl = document.getElementById('ppa-start-country');
+    const stopCountryEl = document.getElementById('ppa-stop-country');
+    const summaryEl = document.getElementById('ppa-range-summary');
+
+    if (total === 0) {
+      if (startCountryEl) startCountryEl.textContent = '-';
+      if (stopCountryEl) stopCountryEl.textContent = '-';
+      if (summaryEl) summaryEl.textContent = '0 Countries';
+      return;
+    }
+
+    const start0 = Math.max(0, Math.min(startIdx - 1, total - 1));
+    const stop0 = Math.max(start0, Math.min(stopIdx - 1, total - 1));
+    const count = stop0 - start0 + 1;
+
+    const startC = state.countries[start0];
+    const stopC = state.countries[stop0];
+
+    if (startCountryEl && startC) {
+      startCountryEl.textContent = `${startC.name} (${startC.currency || 'USD'})`;
+      startCountryEl.title = `Index #${start0 + 1}: ${startC.name}`;
+    }
+    if (stopCountryEl && stopC) {
+      stopCountryEl.textContent = `${stopC.name} (${stopC.currency || 'USD'})`;
+      stopCountryEl.title = `Index #${stop0 + 1}: ${stopC.name}`;
+    }
+    if (summaryEl) {
+      summaryEl.textContent = count === total ? `All ${total} Countries` : `${count} of ${total} Countries`;
+    }
+  }
+
+  function handleRangeInputChange(isStartChanged) {
+    const total = state.countries.length;
+    if (total === 0) return;
+
+    const startInput = document.getElementById('ppa-start-idx');
+    const stopInput = document.getElementById('ppa-stop-idx');
+    if (!startInput || !stopInput) return;
+
+    let sVal = parseInt(startInput.value, 10);
+    let eVal = parseInt(stopInput.value, 10);
+
+    if (isNaN(sVal) || sVal < 1) sVal = 1;
+    if (sVal > total) sVal = total;
+
+    if (isNaN(eVal) || eVal < 1) eVal = 1;
+    if (eVal > total) eVal = total;
+
+    if (isStartChanged && sVal > eVal) {
+      eVal = sVal;
+      stopInput.value = eVal;
+    } else if (!isStartChanged && eVal < sVal) {
+      sVal = eVal;
+      startInput.value = sVal;
+    }
+
+    state.startIndex = sVal;
+    state.stopIndex = eVal;
+
+    if (!state.isRunning) {
+      state.currentIndex = sVal - 1;
+    }
+
+    renderRangePreview();
+    updateUI();
+  }
+
   async function saveConsoleChanges() {
-    log('💾 Looking for bottom "Save changes" bar in Google Play Console...');
+    log('💾 Looking for main "Save" / "Save changes" button in Google Play Console...');
     await humanMicroPause(700, 1100);
-    const saveAllBtn = Array.from(document.querySelectorAll('button')).find(b => {
-      const txt = b.textContent.trim().toLowerCase();
-      return txt === 'save changes' || (txt === 'save' && b.closest('.bottom-bar, footer, [role="region"]'));
+
+    // Strategy 1: Find by official Google Play Console debug-id="save-button"
+    let saveAllBtn = Array.from(document.querySelectorAll('button[debug-id="save-button"], [debug-id="save-button"]')).find(b => {
+      return !b.closest('[role="dialog"], dialog, material-dialog, .modal-dialog, #play-price-automator-root');
     });
 
+    // Strategy 2: Find by debug-id containing "save"
+    if (!saveAllBtn) {
+      saveAllBtn = Array.from(document.querySelectorAll('button[debug-id*="save"]')).find(b => {
+        return !b.closest('[role="dialog"], dialog, material-dialog, .modal-dialog, #play-price-automator-root');
+      });
+    }
+
+    // Strategy 3: Find by button text or .mdc-button__label text ("Save" or "Save changes")
+    if (!saveAllBtn) {
+      const candidates = Array.from(document.querySelectorAll('button'));
+      saveAllBtn = candidates.find(b => {
+        if (b.closest('[role="dialog"], dialog, material-dialog, .modal-dialog, #play-price-automator-root')) {
+          return false;
+        }
+        const labelEl = b.querySelector('.mdc-button__label');
+        const rawTxt = (labelEl ? labelEl.textContent : b.textContent) || '';
+        const txt = rawTxt.trim().toLowerCase();
+        return txt === 'save' || txt === 'save changes' || txt.startsWith('save changes');
+      });
+    }
+
     if (saveAllBtn && !saveAllBtn.disabled) {
-      saveAllBtn.scrollIntoView({ block: 'nearest' });
-      await humanMicroPause(180, 340);
-      saveAllBtn.click();
-      log('🎉 Clicked main "Save changes" in Google Play Console!');
+      saveAllBtn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      await humanMicroPause(250, 450);
+      saveAllBtn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
+      saveAllBtn.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
+      saveAllBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      if (typeof saveAllBtn.click === 'function') {
+        saveAllBtn.click();
+      }
+      log('🎉 Successfully triggered main "Save" button in Google Play Console!');
     } else {
-      log('ℹ️ Main "Save changes" button not found or already saved.');
+      log('ℹ️ Main "Save" button not found or already disabled (changes already saved).');
     }
   }
 
@@ -1776,13 +2128,26 @@
   function updateUI() {
     try {
       const total = state.countries.length;
+      const start0 = Math.max(0, (state.startIndex || 1) - 1);
+      const stop0 = Math.min(total > 0 ? total - 1 : 0, (state.stopIndex || total) - 1);
+      const rangeTotal = Math.max(1, stop0 - start0 + 1);
+
       const cur = state.currentIndex;
-      const pct = total > 0 ? Math.round((cur / total) * 100) : 0;
+      const progressCount = Math.max(0, Math.min(cur - start0, rangeTotal));
+      const pct = total > 0 ? Math.round((progressCount / rangeTotal) * 100) : 0;
 
       const doneCount = state.countries.filter(c => c.status === 'done').length;
       const matchedCount = state.countries.filter(c => c.status === 'matched').length;
       const failedCount = state.countries.filter(c => c.status === 'failed').length;
       const failedCountries = state.countries.filter(c => c.status === 'failed');
+
+      // Trigger gentle issue chime on +1 issue increment
+      if (failedCount > (state.lastReportedFailedCount || 0)) {
+        playGentleIssueChime();
+        state.lastReportedFailedCount = failedCount;
+      } else if (failedCount < (state.lastReportedFailedCount || 0)) {
+        state.lastReportedFailedCount = failedCount;
+      }
 
       const bar = document.getElementById('ppa-progress-bar');
       const pctLbl = document.getElementById('ppa-progress-pct');
@@ -1795,10 +2160,10 @@
         if (state.isFixingIssues) {
           statusLbl.textContent = `Fixing issues: Reapplying prices...`;
         } else if (state.isRunning && !state.isPaused) {
-          statusLbl.textContent = `Running: ${cur + 1} / ${total}`;
+          statusLbl.textContent = `Running: #${cur + 1} (${state.countries[cur]?.name || ''})`;
         } else if (state.isPaused) {
-          statusLbl.textContent = `Paused at ${cur + 1} / ${total}`;
-        } else if (cur >= total && total > 0) {
+          statusLbl.textContent = `Paused at #${cur + 1} (${state.countries[cur]?.name || ''})`;
+        } else if (cur >= stop0 && total > 0) {
           if (failedCount > 0) {
             statusLbl.textContent = `Finished (${total}/${total}) • ${failedCount} Issue${failedCount === 1 ? '' : 's'}`;
           } else {
@@ -1919,7 +2284,7 @@
             <span id="ppa-logo">⚡</span>
             <div>
               <div id="ppa-title">PlayPrice Automator</div>
-              <div id="ppa-sub">Google Play Console DOM Robot • v1.9.2</div>
+              <div id="ppa-sub">Google Play Console DOM Robot • v1.9.5</div>
             </div>
           </div>
           <div id="ppa-header-badge">
@@ -1954,6 +2319,43 @@
           <div id="ppa-file-info" style="display: none;">
             <span id="ppa-file-name">-</span>
             <span id="ppa-file-count">0 Countries</span>
+          </div>
+
+          <!-- Custom Country Range Control (Start / Stop CSV Index) -->
+          <div id="ppa-range-card" style="display: none;">
+            <div id="ppa-range-header">
+              <div id="ppa-range-title-group">
+                <span id="ppa-range-icon">🎯</span>
+                <span id="ppa-range-title">Custom CSV Range:</span>
+              </div>
+              <span id="ppa-range-summary">0 Countries</span>
+            </div>
+            <div id="ppa-range-grid">
+              <div class="ppa-range-col">
+                <label for="ppa-start-idx" class="ppa-range-lbl">Start Index (CSV):</label>
+                <div class="ppa-range-input-box">
+                  <span class="ppa-range-idx-prefix">#</span>
+                  <input type="number" id="ppa-start-idx" class="ppa-range-input" min="1" value="1" />
+                </div>
+                <div class="ppa-range-country-tag" id="ppa-start-country" title="First country in range">-</div>
+              </div>
+              <div class="ppa-range-divider">
+                <span>to</span>
+                <div class="ppa-range-arrow">→</div>
+              </div>
+              <div class="ppa-range-col">
+                <label for="ppa-stop-idx" class="ppa-range-lbl">Stop Index (CSV):</label>
+                <div class="ppa-range-input-box">
+                  <span class="ppa-range-idx-prefix">#</span>
+                  <input type="number" id="ppa-stop-idx" class="ppa-range-input" min="1" value="1" />
+                </div>
+                <div class="ppa-range-country-tag" id="ppa-stop-country" title="Last country in range">-</div>
+              </div>
+            </div>
+            <div id="ppa-range-actions">
+              <span id="ppa-range-help-text">Updates only countries within this defined range</span>
+              <button type="button" id="ppa-btn-reset-range" class="ppa-range-btn" title="Reset range to all countries">Select All</button>
+            </div>
           </div>
 
           <!-- Progress Bar & Status -->
@@ -2026,6 +2428,9 @@
             </label>
             <label class="ppa-option-lbl" title="Auto-click main 'Save changes' button at bottom of Google Play Console when finished">
               <input type="checkbox" id="ppa-chk-autosave" /> Auto-Save Console
+            </label>
+            <label class="ppa-option-lbl" title="Play a soft, non-harsh chime notification whenever a country encounters an issue (+1 Issue)">
+              <input type="checkbox" id="ppa-chk-sound" checked /> 🔔 Issue Alert Sound
             </label>
           </div>
 
@@ -2285,6 +2690,144 @@
       #ppa-file-count {
         color: #10B981;
         font-weight: 700;
+      }
+
+      /* Custom Range Card */
+      #ppa-range-card {
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        border-radius: 6px;
+        padding: 7px 9px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      #ppa-range-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      #ppa-range-title-group {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        color: #38BDF8;
+      }
+      #ppa-range-summary {
+        background: rgba(56, 189, 248, 0.15);
+        color: #38BDF8;
+        padding: 1px 6px;
+        border-radius: 10px;
+        font-size: 9.5px;
+        font-weight: 700;
+      }
+      #ppa-range-grid {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+      }
+      .ppa-range-col {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .ppa-range-lbl {
+        font-size: 8.5px;
+        color: #94A3B8;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+      .ppa-range-input-box {
+        display: flex;
+        align-items: center;
+        background: rgba(2, 6, 23, 0.75);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 4px;
+        padding: 0 4px;
+        transition: border-color 0.15s ease;
+      }
+      .ppa-range-input-box:focus-within {
+        border-color: #38BDF8;
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+      }
+      .ppa-range-idx-prefix {
+        font-size: 10px;
+        color: #64748B;
+        font-weight: 700;
+        margin-right: 2px;
+      }
+      .ppa-range-input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        color: #F8FAFC;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 0;
+        outline: none;
+        -moz-appearance: textfield;
+      }
+      .ppa-range-input::-webkit-outer-spin-button,
+      .ppa-range-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+      .ppa-range-country-tag {
+        font-size: 8.5px;
+        color: #38BDF8;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 1px 2px;
+        max-width: 130px;
+      }
+      .ppa-range-divider {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0 2px;
+        color: #64748B;
+        font-size: 9px;
+        font-weight: 700;
+      }
+      .ppa-range-arrow {
+        color: #38BDF8;
+        font-size: 11px;
+      }
+      #ppa-range-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1px;
+      }
+      #ppa-range-help-text {
+        font-size: 8.5px;
+        color: #64748B;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .ppa-range-btn {
+        background: rgba(56, 189, 248, 0.15);
+        color: #38BDF8;
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-size: 9px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .ppa-range-btn:hover {
+        background: rgba(56, 189, 248, 0.28);
+        border-color: #38BDF8;
+        color: #FFF;
       }
 
       /* Progress Bar & Badges */
@@ -2732,15 +3275,52 @@
       state.isFixingIssues = false;
       state.pendingFixRequested = false;
       state.targetFixCountry = null;
-      state.currentIndex = 0;
-      for (const c of state.countries) {
-        c.status = 'pending';
-        c.message = '';
+
+      const total = state.countries.length;
+      const start0 = Math.max(0, (state.startIndex || 1) - 1);
+      const stop0 = Math.min(total > 0 ? total - 1 : 0, (state.stopIndex || total) - 1);
+      state.currentIndex = start0;
+
+      for (let i = start0; i <= stop0; i++) {
+        if (state.countries[i]) {
+          state.countries[i].status = 'pending';
+          state.countries[i].message = '';
+        }
       }
       stopTimers(true);
-      log('🔄 Queue reset to first country.');
+      state.lastReportedFailedCount = 0;
+      log(`🔄 Queue reset to start index #${start0 + 1} (${state.countries[start0]?.name || ''}).`);
       updateUI();
     });
+
+    // Custom CSV Range Controls
+    const startInput = document.getElementById('ppa-start-idx');
+    const stopInput = document.getElementById('ppa-stop-idx');
+    const btnResetRange = document.getElementById('ppa-btn-reset-range');
+
+    if (startInput) {
+      startInput.addEventListener('input', () => handleRangeInputChange(true));
+      startInput.addEventListener('change', () => handleRangeInputChange(true));
+    }
+    if (stopInput) {
+      stopInput.addEventListener('input', () => handleRangeInputChange(false));
+      stopInput.addEventListener('change', () => handleRangeInputChange(false));
+    }
+    if (btnResetRange) {
+      btnResetRange.addEventListener('click', () => {
+        if (!state.countries || state.countries.length === 0) return;
+        state.startIndex = 1;
+        state.stopIndex = state.countries.length;
+        if (startInput) startInput.value = 1;
+        if (stopInput) stopInput.value = state.countries.length;
+        if (!state.isRunning) {
+          state.currentIndex = 0;
+        }
+        renderRangePreview();
+        updateUI();
+        log(`🎯 Range reset to all ${state.countries.length} countries (#1 to #${state.countries.length}).`);
+      });
+    }
 
     // Fix Issues Button
     const btnFix = document.getElementById('ppa-btn-fix');
@@ -2789,9 +3369,23 @@
     // Auto-save console checkbox
     const chkAutoSave = document.getElementById('ppa-chk-autosave');
     if (chkAutoSave) {
+      chkAutoSave.checked = state.autoSaveConsole;
       chkAutoSave.addEventListener('change', (e) => {
         state.autoSaveConsole = e.target.checked;
         log(`💾 Auto-save console: ${state.autoSaveConsole ? 'ENABLED' : 'DISABLED'}`);
+      });
+    }
+
+    // Issue Sound Alert Checkbox
+    const chkSound = document.getElementById('ppa-chk-sound');
+    if (chkSound) {
+      chkSound.checked = state.soundEnabled !== false;
+      chkSound.addEventListener('change', (e) => {
+        state.soundEnabled = e.target.checked;
+        log(`🔔 Issue alert sound: ${state.soundEnabled ? 'ENABLED' : 'DISABLED'}`);
+        if (state.soundEnabled) {
+          playGentleIssueChime();
+        }
       });
     }
 
@@ -2826,13 +3420,16 @@
       const parsed = parseCSV(e.target.result);
       if (parsed.length > 0) {
         state.countries = parsed;
+        state.startIndex = 1;
+        state.stopIndex = parsed.length;
         state.currentIndex = 0;
+        state.lastReportedFailedCount = 0;
 
         // Smart Mode auto-switch based on exported file naming
         const fnLower = (file.name || '').toLowerCase();
         if (fnLower.includes('percentage') || fnLower.includes('pct')) {
           state.targetMode = 'discount_pct';
-        } else if (fnLower.includes('discounted') || fnLower.includes('sale')) {
+        } else if (fnLower.includes('discount') || fnLower.includes('sale')) {
           state.targetMode = 'sale';
         } else if (fnLower.includes('app price') || fnLower.includes('app_price') || fnLower.includes('retail') || fnLower.includes('iap')) {
           state.targetMode = 'retail';
@@ -2860,8 +3457,25 @@
         const fileCountEl = document.getElementById('ppa-file-count');
         if (fileCountEl) fileCountEl.textContent = `${parsed.length} Countries`;
 
+        // Configure Custom Range Controls
+        const rangeCard = document.getElementById('ppa-range-card');
+        const startInp = document.getElementById('ppa-start-idx');
+        const stopInp = document.getElementById('ppa-stop-idx');
+        if (rangeCard) rangeCard.style.display = 'flex';
+        if (startInp) {
+          startInp.min = 1;
+          startInp.max = parsed.length;
+          startInp.value = 1;
+        }
+        if (stopInp) {
+          stopInp.min = 1;
+          stopInp.max = parsed.length;
+          stopInp.value = parsed.length;
+        }
+        renderRangePreview();
+
         stopTimers(true);
-        log(`📂 Loaded ${parsed.length} countries from ${file.name}`);
+        log(`📂 Loaded ${parsed.length} countries from ${file.name} (Range: [#1 to #${parsed.length}]).`);
         updateUI();
       } else {
         alert('Could not parse countries from CSV. Please ensure the CSV has Country and Price/Discount columns.');
