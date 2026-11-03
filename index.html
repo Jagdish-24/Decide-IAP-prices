@@ -66,9 +66,9 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.9.3</span>
+          <span class="version-tag" id="appVersionText">v1.9.4</span>
           <span class="version-sep">•</span>
-          <span class="version-date" id="lastUpdatedDateText">Updated 28 Oct 2026</span>
+          <span class="version-date" id="lastUpdatedDateText">Updated 03 Nov 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
         </div>
       </div>
@@ -293,7 +293,7 @@
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><rect x="5" y="2" width="14" height="20"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
                   <div>
                     <h3 class="app-id-title">Google Play Package Identifier</h3>
-                    <p class="app-id-desc">All characters lowercase. Dots for Product IDs, dashes for Offer IDs.</p>
+                    <p class="app-id-desc">All characters lowercase. Dots only (.) for Product IDs, dashes only (-) for Offer IDs &amp; Promos.</p>
                   </div>
                 </div>
               </div>
@@ -301,7 +301,7 @@
                 <div class="form-group">
                   <label for="appNameInput">
                     <span>App / Game Identifier (Lower Case)</span>
-                    <span class="tooltip-trigger" title="All IDs are automatically converted to lowercase. For example, 'MyGame' or 'space runner' becomes 'mygame' or 'space-runner'.">
+                    <span class="tooltip-trigger" title="All IDs are automatically converted to lowercase. Product IDs use only dots (.) between words; Offer IDs and Promo Offers use only dashes (-) between words.">
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     </span>
                   </label>
@@ -320,7 +320,7 @@
 
                 <div class="preview-syntax-box">
                   <span class="preview-label">Live Syntax Preview:</span>
-                  <div class="preview-code-row"><span class="code-tag-blue">PROD:</span> <strong id="previewProdId">com.mygame.shop.no-ads</strong></div>
+                  <div class="preview-code-row"><span class="code-tag-blue">PROD:</span> <strong id="previewProdId">com.mygame.shop.no.ads</strong></div>
                   <div class="preview-code-row"><span class="code-tag-emerald">OFFER:</span> <strong id="previewOfferId">com-mygame-shop-no-ads</strong></div>
                 </div>
               </div>
@@ -998,7 +998,7 @@
                 Copy Command
               </button>
             </div>
-            <pre><code id="codeDryRunCmd">python sync_prices_to_play_console.py --key service-account.json --package com.mygame.shop --sku com.mygame.shop.no-ads --csv playprice-matrix.csv --dry-run</code></pre>
+            <pre><code id="codeDryRunCmd">python sync_prices_to_play_console.py --key service-account.json --package com.mygame.shop --sku com.mygame.shop.no.ads --csv playprice-matrix.csv --dry-run</code></pre>
           </div>
 
           <!-- Live Push Command Box -->
@@ -1010,7 +1010,7 @@
                 Copy Command
               </button>
             </div>
-            <pre><code id="codeLiveCmd">python sync_prices_to_play_console.py --key service-account.json --package com.mygame.shop --sku com.mygame.shop.no-ads --csv playprice-matrix.csv</code></pre>
+            <pre><code id="codeLiveCmd">python sync_prices_to_play_console.py --key service-account.json --package com.mygame.shop --sku com.mygame.shop.no.ads --csv playprice-matrix.csv</code></pre>
           </div>
         </div>
 
@@ -1067,9 +1067,9 @@
           <div>
             <div class="modal-title-row">
               <h3>PlayPrice Engine Version History</h3>
-              <span class="version-tag-pill">v1.9.3 (Latest)</span>
+              <span class="version-tag-pill">v1.9.4 (Latest)</span>
             </div>
-            <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 28 Oct 2026</p>
+            <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 03 Nov 2026</p>
           </div>
         </div>
         <button class="modal-close" id="btnCloseVersionModal" title="Close modal">
@@ -1086,8 +1086,25 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.9.3 -->
+          <!-- Release v1.9.4 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.9.4</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">03 Nov 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Strict Product ID Syntax (. only):</strong> Enforced strict full-stop (<code>.</code>) separation exclusively between words in Product IDs (e.g. <code>com.grassking.shop.no.ads</code>), eliminating any dash (<code>-</code>) leaks from product names, item slugs, or app package identifiers.</li>
+                <li><strong>Strict Offer ID &amp; Promo Offer Syntax (- only):</strong> Standardized strict dash (<code>-</code>) separation exclusively across Offer IDs and Promotional Offer discount suffixes (e.g. <code>com-grassking-shop-no-ads</code> and <code>com-grassking-shop-no-ads-60-percent-discount</code>), guaranteeing clean separation from store product SKUs.</li>
+                <li><strong>Live Syntax Preview &amp; Badge Synchronization:</strong> Synchronized Live Syntax Preview, Catalogue item cards, and Play Console API sync helper to automatically format Product and Offer IDs according to the official naming conventions in real-time.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.9.3 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">

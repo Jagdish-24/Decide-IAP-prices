@@ -7,8 +7,8 @@
   'use strict';
 
   // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-  const APP_VERSION = '1.9.3';
-  const APP_LAST_UPDATED = '28 Oct 2026';
+  const APP_VERSION = '1.9.4';
+  const APP_LAST_UPDATED = '03 Nov 2026';
 
   // 1. Initial State
   const state = {
@@ -192,29 +192,59 @@
     warning: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>'
   };
 
-  // Slug & IAP Identifier Sanitizer
-  function sanitizeSlug(text) {
+  // App Name & IAP Identifier Sanitizers
+  function cleanAppNameInput(text) {
+    let cleaned = String(text || '').trim();
+    cleaned = cleaned.replace(/^com[.\-_ ]+/i, '');
+    cleaned = cleaned.replace(/[.\-_ ]+shop$/i, '');
+    return cleaned;
+  }
+
+  function tokenizeIdentifier(text) {
     return String(text || '')
       .toLowerCase()
       .trim()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9_-]/g, '')
-      .replace(/-+/g, '-');
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+  }
+
+  // Product ID Sanitizer: "Only use . (fullstops) in between words in product ID"
+  function sanitizeForProductId(text) {
+    const tokens = tokenizeIdentifier(text);
+    if (!tokens) return '';
+    return tokens.split(/\s+/).filter(Boolean).join('.');
+  }
+
+  // Offer ID & Promo Offer Sanitizer: "Only use - (dash) in between words in offer ID and promo offer with it's suffix"
+  function sanitizeForOfferId(text) {
+    const tokens = tokenizeIdentifier(text);
+    if (!tokens) return '';
+    return tokens.split(/\s+/).filter(Boolean).join('-');
+  }
+
+  // Backward-compatible slug sanitizer (used for export filenames)
+  function sanitizeSlug(text) {
+    return sanitizeForOfferId(text);
   }
 
   // Generate Google Play IAP Product ID & Offer IDs
   function generateIapIds(appName, prodName, discountRate) {
-    const cleanApp = sanitizeSlug(appName || 'mygame') || 'mygame';
-    const cleanProd = sanitizeSlug(prodName || 'item') || 'item';
+    const rawApp = cleanAppNameInput(appName);
+    const cleanAppProd = sanitizeForProductId(rawApp) || 'mygame';
+    const cleanProdProd = sanitizeForProductId(prodName) || 'item';
 
-    // Product ID: com.{app}.shop.{product}
-    const productId = `com.${cleanApp}.shop.${cleanProd}`;
+    const cleanAppOffer = sanitizeForOfferId(rawApp) || 'mygame';
+    const cleanProdOffer = sanitizeForOfferId(prodName) || 'item';
 
-    // Default Offer ID: com-{app}-shop-{product} (uses - instead of .)
-    const offerId = `com-${cleanApp}-shop-${cleanProd}`;
+    // Product ID: com.{app}.shop.{item} - ONLY fullstops (.) in between words
+    const productId = `com.${cleanAppProd}.shop.${cleanProdProd}`;
 
-    // Promotional Offer ID (with discount suffix)
-    const discountOfferId = `com-${cleanApp}-shop-${cleanProd}-${discountRate}-percent-discount`;
+    // Default Offer ID: com-{app}-shop-{item} - ONLY dashes (-) in between words
+    const offerId = `com-${cleanAppOffer}-shop-${cleanProdOffer}`;
+
+    // Promotional Offer ID (with discount suffix) - ONLY dashes (-) in between words and suffix
+    const rate = Math.abs(parseInt(discountRate, 10)) || 0;
+    const discountOfferId = `com-${cleanAppOffer}-shop-${cleanProdOffer}-${rate}-percent-discount`;
 
     return { productId, offerId, discountOfferId };
   }
@@ -959,11 +989,11 @@
     const baseCode = state.baseCurrency;
 
     // Update live previews in App Identifier card
-    const firstItem = state.catalogueItems[0] || { name: 'no-ads' };
+    const firstItem = state.catalogueItems[0] || { name: 'No Ads' };
     const sampleIds = generateIapIds(state.appName, firstItem.name, state.discountRate);
     if (elements.previewProdId) elements.previewProdId.textContent = sampleIds.productId;
     if (elements.previewOfferId) elements.previewOfferId.textContent = sampleIds.offerId;
-    if (elements.promoBadgeCode) elements.promoBadgeCode.textContent = `...-${state.discountRate}-percent-discount`;
+    if (elements.promoBadgeCode) elements.promoBadgeCode.textContent = `...-${Math.abs(parseInt(state.discountRate, 10)) || 0}-percent-discount`;
     if (elements.discountOfferSyntaxBadge) {
       elements.discountOfferSyntaxBadge.style.display = state.discountEnabled ? 'inline-flex' : 'none';
     }
@@ -2596,7 +2626,9 @@
     const isPaidApp = activeProd.id === 'app_price';
     const ids = generateIapIds(state.appName, activeProd.name, state.discountRate);
     const skuId = ids.productId;
-    const packageName = `com.${sanitizeSlug(state.appName || 'mygame')}.shop`;
+    const rawApp = cleanAppNameInput(state.appName);
+    const cleanAppProd = sanitizeForProductId(rawApp) || 'mygame';
+    const packageName = `com.${cleanAppProd}.shop`;
 
     const pricesPayload = {};
     let usPriceMicros = '990000';
@@ -2772,7 +2804,9 @@
     const activeProd = getActiveProduct();
     const ids = generateIapIds(state.appName, activeProd.name, state.discountRate);
     const sku = ids.productId;
-    const pkg = `com.${sanitizeSlug(state.appName || 'mygame')}.shop`;
+    const rawApp = cleanAppNameInput(state.appName);
+    const cleanAppProd = sanitizeForProductId(rawApp) || 'mygame';
+    const pkg = `com.${cleanAppProd}.shop`;
 
     if (elements.apiModalActiveSku) elements.apiModalActiveSku.textContent = sku;
     if (elements.codeDryRunCmd) {
