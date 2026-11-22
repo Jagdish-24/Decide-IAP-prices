@@ -244,8 +244,8 @@
     "code": "CF",
     "currency": "EUR",
     "tier": 3,
-    "minFloorPrice": 30.0,
-    "maxFloorPrice": 627340.0
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Chad",

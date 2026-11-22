@@ -679,8 +679,8 @@ window.PLAY_STORE_COUNTRIES = [
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
     },
-    "minFloorPrice": 30.0,
-    "maxFloorPrice": 627340.0
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Chad",
