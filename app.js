@@ -7,8 +7,8 @@
   'use strict';
 
   // Application Version Telemetry (Follows SemVer Major.Minor.Micro)
-  const APP_VERSION = '1.9.5';
-  const APP_LAST_UPDATED = '03 Nov 2026';
+  const APP_VERSION = '1.9.6';
+  const APP_LAST_UPDATED = '22 Nov 2026';
 
   // 1. Initial State
   const state = {
@@ -73,28 +73,42 @@
 
   // Google Play Official Regional Minimum Transaction Floors for Paid Apps (Upfront Download)
   const GOOGLE_PLAY_PAID_APP_MIN_PRICES = {
-    AED: 3.00, ARS: 50.00, AUD: 0.99, AZN: 1.00, BDT: 20.00, BOB: 6.00, BRL: 2.00, CAD: 0.99,
-    CHF: 1.00, CLP: 500.00, COP: 3000.00, CRC: 500.00, CZK: 10.00, DKK: 7.00, DZD: 100.00, EGP: 10.00,
-    ETB: 50.00, EUR: 0.99, GBP: 0.79, GEL: 2.50, GHS: 10.00, HKD: 8.00, HUF: 300.00, IDR: 3000.00,
-    ILS: 3.90, INR: 10.00, IQD: 250.00, JOD: 0.70, JPY: 100.00, KES: 100.00, KRW: 500.00, KZT: 400.00,
-    LKR: 200.00, MAD: 10.00, MMK: 250.00, MNT: 3000.00, MOP: 8.00, MXN: 10.00, MYR: 4.00, NGN: 500.00,
-    NOK: 10.00, NZD: 1.00, PEN: 3.00, PHP: 50.00, PKR: 100.00, PLN: 2.00, PYG: 500.00, QAR: 3.50,
-    RON: 4.00, RSD: 100.00, RUB: 10.00, SAR: 3.75, SEK: 10.00, SGD: 1.00, THB: 30.00, TRY: 3.00,
-    TWD: 30.00, TZS: 250.00, UAH: 25.00, USD: 0.99, UZS: 1000.00, VND: 20000.00, XAF: 500.00, XOF: 500.00,
-    ZAR: 10.00
+    AED: 0.30, ALL: 0.05, AMD: 0.05, AOA: 0.05, ARS: 74.75, AUD: 0.10, AWG: 0.05, AZN: 0.08,
+    BAM: 0.05, BDT: 5.00, BGN: 0.05, BHD: 0.05, BMD: 0.05, BOB: 0.40, BRL: 0.30, BSD: 0.05,
+    BWP: 0.05, BYN: 0.05, BZD: 0.05, CAD: 0.10, CDF: 0.05, CHF: 0.05, CLP: 50.00, COP: 221.00,
+    CRC: 35.00, CVE: 0.05, CZK: 1.30, DJF: 0.05, DKK: 0.40, DOP: 0.05, DZD: 7.90, EGP: 0.90,
+    ERN: 0.05, ETB: 7.92, EUR: 0.05, FJD: 0.05, GBP: 0.05, GEL: 0.20, GHS: 0.70, GIP: 0.05,
+    GMD: 0.05, GNF: 0.05, GTQ: 0.05, HKD: 0.50, HNL: 0.05, HTG: 0.05, HUF: 19.00, IDR: 1000.00,
+    ILS: 0.20, INR: 4.00, IQD: 80.00, ISK: 0.05, JMD: 0.05, JOD: 0.05, JPY: 7.00, KES: 6.40,
+    KGS: 0.05, KHR: 0.05, KMF: 0.05, KRW: 70.00, KWD: 0.05, KYD: 0.05, KZT: 25.00, LAK: 0.05,
+    LBP: 0.05, LKR: 11.40, LRD: 0.05, LYD: 0.05, MAD: 0.60, MDL: 0.05, MKD: 0.05, MMK: 100.00,
+    MNT: 170.00, MOP: 0.50, MUR: 0.05, MVR: 0.05, MXN: 1.20, MYR: 0.30, MZN: 0.05, NAD: 0.05,
+    NGN: 25.00, NIO: 0.05, NOK: 0.50, NPR: 0.05, NZD: 0.10, OMR: 0.05, PEN: 0.30, PGK: 0.05,
+    PHP: 3.00, PKR: 10.00, PLN: 0.25, PYG: 400.00, QAR: 0.20, RON: 0.30, RSD: 6.00, RUB: 15.00,
+    RWF: 0.05, SAR: 0.30, SBD: 0.05, SCR: 0.05, SEK: 0.60, SGD: 0.10, SLE: 0.05, SOS: 0.05,
+    SRD: 0.05, THB: 2.00, TJS: 0.05, TMT: 0.05, TND: 0.05, TOP: 0.05, TRY: 0.59, TTD: 0.05,
+    TWD: 2.00, TZS: 130.00, UAH: 2.00, UGX: 0.05, USD: 0.05, UYU: 0.05, UZS: 600.00, VND: 1300.00,
+    VUV: 0.05, WST: 0.05, XAF: 30.00, XCD: 0.05, XOF: 30.00, YER: 0.05, ZAR: 0.90, ZMW: 0.05
   };
 
   // Google Play Official Regional Minimum Floors for In-App Purchases (IAP), Micro-packs & Promotional Sales
   const GOOGLE_PLAY_IAP_MIN_PRICES = {
-    AED: 0.30, ARS: 0.30, AUD: 0.10, AZN: 0.08, BDT: 5.00, BOB: 0.40, BRL: 0.30, CAD: 0.10,
-    CHF: 0.05, CLP: 50.00, COP: 221.00, CRC: 35.00, CZK: 1.00, DKK: 0.50, DZD: 30.00, EGP: 5.00,
-    ETB: 10.00, EUR: 0.05, GBP: 0.05, GEL: 0.50, GHS: 2.00, HKD: 0.50, HUF: 19.00, IDR: 1000.00,
-    ILS: 0.20, INR: 4.00, IQD: 80.00, JOD: 0.05, JPY: 7.00, KES: 6.40, KRW: 100.00, KZT: 25.00,
-    LKR: 50.00, MAD: 0.60, MMK: 100.00, MNT: 170.00, MOP: 0.50, MXN: 1.20, MYR: 0.30, NGN: 50.00,
-    NOK: 0.50, NZD: 0.15, PEN: 0.30, PHP: 15.00, PKR: 20.00, PLN: 0.20, PYG: 400.00, QAR: 1.00,
-    RON: 1.00, RSD: 20.00, RUB: 10.00, SAR: 1.00, SEK: 0.50, SGD: 0.20, THB: 10.00, TRY: 1.50,
-    TWD: 10.00, TZS: 250.00, UAH: 2.00, USD: 0.05, UZS: 600.00, VND: 1300.00, XAF: 100.00, XOF: 100.00,
-    ZAR: 0.90
+    AED: 0.30, ALL: 0.05, AMD: 0.05, AOA: 0.05, ARS: 74.75, AUD: 0.10, AWG: 0.05, AZN: 0.08,
+    BAM: 0.05, BDT: 5.00, BGN: 0.05, BHD: 0.05, BMD: 0.05, BOB: 0.40, BRL: 0.30, BSD: 0.05,
+    BWP: 0.05, BYN: 0.05, BZD: 0.05, CAD: 0.10, CDF: 0.05, CHF: 0.05, CLP: 50.00, COP: 221.00,
+    CRC: 35.00, CVE: 0.05, CZK: 1.30, DJF: 0.05, DKK: 0.40, DOP: 0.05, DZD: 7.90, EGP: 0.90,
+    ERN: 0.05, ETB: 7.92, EUR: 0.05, FJD: 0.05, GBP: 0.05, GEL: 0.20, GHS: 0.70, GIP: 0.05,
+    GMD: 0.05, GNF: 0.05, GTQ: 0.05, HKD: 0.50, HNL: 0.05, HTG: 0.05, HUF: 19.00, IDR: 1000.00,
+    ILS: 0.20, INR: 4.00, IQD: 80.00, ISK: 0.05, JMD: 0.05, JOD: 0.05, JPY: 7.00, KES: 6.40,
+    KGS: 0.05, KHR: 0.05, KMF: 0.05, KRW: 70.00, KWD: 0.05, KYD: 0.05, KZT: 25.00, LAK: 0.05,
+    LBP: 0.05, LKR: 11.40, LRD: 0.05, LYD: 0.05, MAD: 0.60, MDL: 0.05, MKD: 0.05, MMK: 100.00,
+    MNT: 170.00, MOP: 0.50, MUR: 0.05, MVR: 0.05, MXN: 1.20, MYR: 0.30, MZN: 0.05, NAD: 0.05,
+    NGN: 25.00, NIO: 0.05, NOK: 0.50, NPR: 0.05, NZD: 0.10, OMR: 0.05, PEN: 0.30, PGK: 0.05,
+    PHP: 3.00, PKR: 10.00, PLN: 0.25, PYG: 400.00, QAR: 0.20, RON: 0.30, RSD: 6.00, RUB: 15.00,
+    RWF: 0.05, SAR: 0.30, SBD: 0.05, SCR: 0.05, SEK: 0.60, SGD: 0.10, SLE: 0.05, SOS: 0.05,
+    SRD: 0.05, THB: 2.00, TJS: 0.05, TMT: 0.05, TND: 0.05, TOP: 0.05, TRY: 0.59, TTD: 0.05,
+    TWD: 2.00, TZS: 130.00, UAH: 2.00, UGX: 0.05, USD: 0.05, UYU: 0.05, UZS: 600.00, VND: 1300.00,
+    VUV: 0.05, WST: 0.05, XAF: 30.00, XCD: 0.05, XOF: 30.00, YER: 0.05, ZAR: 0.90, ZMW: 0.05
   };
 
   // Backwards-compatibility alias
@@ -249,9 +263,9 @@
     return { productId, offerId, discountOfferId };
   }
 
-  // Standard Indian charm price points for mobile gaming (starts at official ₹10 Play Store min floor)
+  // Standard Indian charm price points for mobile gaming (starts at official ₹4 Play Store min floor)
   const INR_LADDER = [
-    10, 19, 29, 39, 49, 79, 89, 99, 110, 149, 199, 249, 299, 399, 499,
+    4, 9, 10, 19, 29, 39, 49, 79, 89, 99, 110, 149, 199, 249, 299, 399, 499,
     599, 799, 899, 999, 1199, 1499, 1999, 2499, 2999, 3999, 4999
   ];
 
@@ -749,13 +763,12 @@
     }
 
     // Google Play Minimum Price Floor check & enforcement
-    // Paid Apps enforce standard app download floors (e.g. $0.99 USD baseline)
-    // In-App Products (IAPs) enforce micro-transaction floors (sub-dollar down to $0.05 USD baseline)
+    // Paid Apps and In-App Products (IAPs) enforce official regional minimum transaction floors
     const minFloorDict = isPaidApp ? GOOGLE_PLAY_PAID_APP_MIN_PRICES : GOOGLE_PLAY_IAP_MIN_PRICES;
-    const defaultFallback = isPaidApp
-      ? Math.max(0.99, Math.round(0.99 * localRate * 100) / 100)
-      : Math.max(0.05, Math.round(0.05 * localRate * 100) / 100);
-    const minFloor = minFloorDict[country.currency] || defaultFallback;
+    const defaultFallback = 0.05;
+    const minFloor = (typeof country.minFloorPrice === 'number')
+      ? country.minFloorPrice
+      : (minFloorDict[country.currency] || minFloorDict[country.code] || defaultFallback);
     let isClampedToMin = false;
     if (retailPrice < minFloor) {
       retailPrice = minFloor;
@@ -764,8 +777,10 @@
 
     let isDiscountAtFloor = false;
     if (state.discountEnabled) {
-      // Promotional discounts for IAPs use IAP floor; for paid app promotional sales they cannot drop below the micro-sale floor
-      const promoFloor = isPaidApp ? (GOOGLE_PLAY_IAP_MIN_PRICES[country.currency] || 0.05) : minFloor;
+      // Promotional discounts for IAPs and Paid Apps cannot drop below the official minimum floor
+      const promoFloor = (typeof country.minFloorPrice === 'number')
+        ? country.minFloorPrice
+        : (minFloorDict[country.currency] || minFloorDict[country.code] || defaultFallback);
       if (discountedPrice < promoFloor) {
         discountedPrice = promoFloor;
         isDiscountAtFloor = true;

@@ -66,9 +66,9 @@
         <!-- Semantic Version & Telemetry Badge -->
         <div class="header-version-pill" id="headerVersionPill" role="button" tabindex="0" title="Click to view Version History &amp; Changelog">
           <span class="version-dot"></span>
-          <span class="version-tag" id="appVersionText">v1.9.5</span>
+          <span class="version-tag" id="appVersionText">v1.9.6</span>
           <span class="version-sep">•</span>
-          <span class="version-date" id="lastUpdatedDateText">Updated 03 Nov 2026</span>
+          <span class="version-date" id="lastUpdatedDateText">Updated 22 Nov 2026</span>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="version-info-icon"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
         </div>
       </div>
@@ -923,10 +923,10 @@
 
         <div class="logic-block">
           <h4>5. Google Play Minimum Price Floors (Paid Apps vs. IAP Catalogue)</h4>
-          <p>Google Play enforces two distinct minimum transaction limits across regional storefronts:</p>
+          <p>Google Play enforces synchronized official minimum transaction limits across all regional storefronts:</p>
           <ul>
-            <li><strong>Paid App (Download Price):</strong> Governed by <code>GOOGLE_PLAY_PAID_APP_MIN_PRICES</code>. Enforces standard upfront download minimums (e.g. $0.99 USD, €0.99 EUR, £0.79 GBP, ₹10.00 INR, R$ 2.00 BRL, ¥100 JPY), preventing paid apps from violating Google's minimum listing threshold.</li>
-            <li><strong>In-App Purchases (IAP) &amp; Promotional Sales:</strong> Governed by <code>GOOGLE_PLAY_IAP_MIN_PRICES</code>. Allows micro-pricing down to Google's official sub-dollar thresholds (e.g. $0.05 USD, €0.05 EUR, ₹4.00 INR, R$ 0.30 BRL, ¥7 JPY, 1,000 IDR) for consumable items, starter packs, and discounted sales.</li>
+            <li><strong>Paid App (Download Price):</strong> Governed by <code>GOOGLE_PLAY_PAID_APP_MIN_PRICES</code> and country-specific listing floors. Synchronized to Google's official regional minimum transaction floors (e.g. $0.05 USD, €0.05 EUR, £0.05 GBP, ₹4.00 INR, R$ 0.30 BRL, ¥7 JPY, 70 KRW, 7.90 DZD, 74.75 ARS) across all 174 countries + 2 regions.</li>
+            <li><strong>In-App Purchases (IAP) &amp; Promotional Sales:</strong> Governed by <code>GOOGLE_PLAY_IAP_MIN_PRICES</code>. Enforces official micro-pricing thresholds (e.g. $0.05 USD, €0.05 EUR, ₹4.00 INR, R$ 0.30 BRL, ¥7 JPY, 1,000 IDR) for consumable items, starter packs, and discounted sales.</li>
           </ul>
         </div>
       </div>
@@ -1067,9 +1067,9 @@
           <div>
             <div class="modal-title-row">
               <h3>PlayPrice Engine Version History</h3>
-              <span class="version-tag-pill">v1.9.5 (Latest)</span>
+              <span class="version-tag-pill">v1.9.6 (Latest)</span>
             </div>
-            <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 03 Nov 2026</p>
+            <p class="modal-sub">Semantic Versioning Tracking (Major.Minor.Micro) • Last Updated 22 Nov 2026</p>
           </div>
         </div>
         <button class="modal-close" id="btnCloseVersionModal" title="Close modal">
@@ -1086,8 +1086,26 @@
         </div>
 
         <div class="changelog-timeline">
-          <!-- Release v1.9.5 -->
+          <!-- Release v1.9.6 -->
           <div class="changelog-item current">
+            <div class="changelog-marker"></div>
+            <div class="changelog-content">
+              <div class="changelog-header">
+                <span class="changelog-version">v1.9.6</span>
+                <span class="changelog-tag tag-micro">Patch Release</span>
+                <span class="changelog-date">22 Nov 2026</span>
+              </div>
+              <ul class="changelog-list">
+                <li><strong>Comprehensive Google Play Minimum Price Floor Calibration:</strong> Synchronized official minimum transaction floors (<code>Min_Floor_Price</code>) for both Paid App Download Prices and In-App Purchases (IAP) across all 174 countries + 2 new fallback regions (176 total storefronts), fully matching the active Google Play Console matrix.</li>
+                <li><strong>Universal Sub-Dollar Paid App Minimums:</strong> Paid app upfront download minimums updated to Google Play's latest official platform limits (e.g. $0.05 USD, €0.05 EUR, £0.05 GBP, ₹4.00 INR, R$ 0.30 BRL, ¥7 JPY, 70 KRW, 1,000 IDR, 50 CLP, 221 COP), eliminating obsolete legacy $0.99 listing limits across all 176 markets.</li>
+                <li><strong>Critical Regional IAP Floor Recalibrations:</strong> Adjusted 30 storefront currencies to Google Play's active exchange floors—including Argentina ARS adjusted from 0.30 to 74.75 ARS for inflation, Russia RUB to 15.00, Czechia CZK to 1.30, Poland PLN to 0.25, Algeria DZD reduced to 7.90, Nigeria NGN to 25.00, Pakistan PKR to 10.00, Philippines PHP to 3.00, Sri Lanka LKR to 11.40, and Tanzania TZS to 130.00.</li>
+                <li><strong>Complete 128-Currency Coverage &amp; Country-Level Clamping:</strong> Expanded floor lookup dictionary from 64 to all 128 global currencies, and embedded <code>minFloorPrice</code> and <code>maxFloorPrice</code> directly into each country profile for 100% deterministic, storefront-level compliance.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Release v1.9.5 -->
+          <div class="changelog-item">
             <div class="changelog-marker"></div>
             <div class="changelog-content">
               <div class="changelog-header">

@@ -18,7 +18,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Algeria",
@@ -38,7 +40,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 7.9,
+    "maxFloorPrice": 134500.0
   },
   {
     "name": "Angola",
@@ -58,7 +62,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Antigua & Barbuda",
@@ -78,7 +84,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Argentina",
@@ -98,7 +106,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 74.75,
+    "maxFloorPrice": 1494985.05
   },
   {
     "name": "Armenia",
@@ -118,7 +128,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Aruba",
@@ -138,7 +150,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Australia",
@@ -158,7 +172,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.1,
+    "maxFloorPrice": 1550.0
   },
   {
     "name": "Austria",
@@ -178,7 +194,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Azerbaijan",
@@ -198,7 +216,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.08,
+    "maxFloorPrice": 1699.99
   },
   {
     "name": "Bahamas",
@@ -218,7 +238,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Bahrain",
@@ -238,7 +260,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Bangladesh",
@@ -258,7 +282,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 5.0,
+    "maxFloorPrice": 110000.0
   },
   {
     "name": "Belarus",
@@ -278,7 +304,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Belgium",
@@ -298,7 +326,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Belize",
@@ -318,7 +348,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Benin",
@@ -338,7 +370,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Bermuda",
@@ -358,7 +392,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Bolivia",
@@ -378,7 +414,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.4,
+    "maxFloorPrice": 11300.0
   },
   {
     "name": "Bosnia & Herzegovina",
@@ -398,7 +436,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Botswana",
@@ -418,7 +458,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Brazil",
@@ -438,7 +480,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 5200.0
   },
   {
     "name": "British Virgin Islands",
@@ -458,7 +502,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Bulgaria",
@@ -478,7 +524,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Burkina Faso",
@@ -498,7 +546,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Cambodia",
@@ -518,7 +568,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Cameroon",
@@ -538,7 +590,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 30.0,
+    "maxFloorPrice": 627340.0
   },
   {
     "name": "Canada",
@@ -558,7 +612,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.1,
+    "maxFloorPrice": 1380.0
   },
   {
     "name": "Cape Verde",
@@ -578,7 +634,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Cayman Islands",
@@ -598,7 +656,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Central African Republic",
@@ -618,7 +678,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 30.0,
+    "maxFloorPrice": 627340.0
   },
   {
     "name": "Chad",
@@ -638,7 +700,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Chile",
@@ -658,7 +722,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 50.0,
+    "maxFloorPrice": 955000.0
   },
   {
     "name": "Colombia",
@@ -678,7 +744,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 221.0,
+    "maxFloorPrice": 3920000.0
   },
   {
     "name": "Comoros",
@@ -698,7 +766,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Congo - Brazzaville",
@@ -718,7 +788,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Congo - Kinshasa",
@@ -738,7 +810,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Costa Rica",
@@ -758,7 +832,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 35.0,
+    "maxFloorPrice": 510000.0
   },
   {
     "name": "Croatia",
@@ -778,7 +854,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Cyprus",
@@ -798,7 +876,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Czechia",
@@ -818,7 +898,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 1.3,
+    "maxFloorPrice": 23700.0
   },
   {
     "name": "Côte d’Ivoire",
@@ -838,7 +920,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 30.0,
+    "maxFloorPrice": 627341.0
   },
   {
     "name": "Denmark",
@@ -858,7 +942,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.4,
+    "maxFloorPrice": 7000.0
   },
   {
     "name": "Djibouti",
@@ -878,7 +964,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Dominica",
@@ -898,7 +986,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Dominican Republic",
@@ -918,7 +1008,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Ecuador",
@@ -938,7 +1030,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Egypt",
@@ -958,7 +1052,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.9,
+    "maxFloorPrice": 49000.0
   },
   {
     "name": "El Salvador",
@@ -978,7 +1074,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Eritrea",
@@ -998,7 +1096,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Estonia",
@@ -1018,7 +1118,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Ethiopia",
@@ -1038,7 +1140,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 7.92,
+    "maxFloorPrice": 158478.42
   },
   {
     "name": "Fiji",
@@ -1058,7 +1162,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Finland",
@@ -1078,7 +1184,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "France",
@@ -1098,7 +1206,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Gabon",
@@ -1118,7 +1228,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Gambia",
@@ -1138,7 +1250,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Georgia",
@@ -1158,7 +1272,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.2,
+    "maxFloorPrice": 2700.0
   },
   {
     "name": "Germany",
@@ -1178,7 +1294,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Ghana",
@@ -1198,7 +1316,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.7,
+    "maxFloorPrice": 13500.0
   },
   {
     "name": "Gibraltar",
@@ -1218,7 +1338,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 810.0
   },
   {
     "name": "Greece",
@@ -1238,7 +1360,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Grenada",
@@ -1258,7 +1382,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Guatemala",
@@ -1278,7 +1404,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Guinea",
@@ -1298,7 +1426,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Guinea-Bissau",
@@ -1318,7 +1448,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Haiti",
@@ -1338,7 +1470,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Honduras",
@@ -1358,7 +1492,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Hong Kong",
@@ -1378,7 +1514,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.5,
+    "maxFloorPrice": 7900.0
   },
   {
     "name": "Hungary",
@@ -1398,7 +1536,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 19.0,
+    "maxFloorPrice": 370000.0
   },
   {
     "name": "Iceland",
@@ -1418,7 +1558,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "India",
@@ -1438,7 +1580,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "UPI (Google Pay, PhonePe, Paytm), NetBanking, RuPay cards",
       "gamersMindset": "Enormous mobile gaming audience (90%+ mobile-first). Extreme resistance to >₹100 ($1.20+) unlocalized pricing. ₹29, ₹49, and ₹89 are the holy grail impulse micro-transaction brackets.",
       "pricingStrategy": "High volume, sub-dollar charm pricing (₹29 - ₹89). Massive conversion lift when priced below ₹50."
-    }
+    },
+    "minFloorPrice": 4.0,
+    "maxFloorPrice": 84000.0
   },
   {
     "name": "Indonesia",
@@ -1458,7 +1602,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 1000.0,
+    "maxFloorPrice": 16230000.0
   },
   {
     "name": "Iraq",
@@ -1478,7 +1624,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 80.0,
+    "maxFloorPrice": 1310000.0
   },
   {
     "name": "Ireland",
@@ -1498,7 +1646,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Israel",
@@ -1518,7 +1668,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.2,
+    "maxFloorPrice": 3800.0
   },
   {
     "name": "Italy",
@@ -1538,7 +1690,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Jamaica",
@@ -1558,7 +1712,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Japan",
@@ -1578,7 +1734,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 7.0,
+    "maxFloorPrice": 155000.0
   },
   {
     "name": "Jordan",
@@ -1598,7 +1756,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 710.0
   },
   {
     "name": "Kazakhstan",
@@ -1618,7 +1778,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 25.0,
+    "maxFloorPrice": 450000.0
   },
   {
     "name": "Kenya",
@@ -1638,7 +1800,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 6.4,
+    "maxFloorPrice": 134000.0
   },
   {
     "name": "Kuwait",
@@ -1658,7 +1822,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Kyrgyzstan",
@@ -1678,7 +1844,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Laos",
@@ -1698,7 +1866,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Latvia",
@@ -1718,7 +1888,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Lebanon",
@@ -1738,7 +1910,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Liberia",
@@ -1758,7 +1932,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Libya",
@@ -1778,7 +1954,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Liechtenstein",
@@ -1798,7 +1976,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 920.0
   },
   {
     "name": "Lithuania",
@@ -1818,7 +1998,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Luxembourg",
@@ -1838,7 +2020,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Macao",
@@ -1858,7 +2042,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.5,
+    "maxFloorPrice": 8100.0
   },
   {
     "name": "Malaysia",
@@ -1878,7 +2064,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 4800.0
   },
   {
     "name": "Maldives",
@@ -1898,7 +2086,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Mali",
@@ -1918,7 +2108,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Malta",
@@ -1938,7 +2130,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Mauritius",
@@ -1958,7 +2152,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Mexico",
@@ -1978,7 +2174,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 1.2,
+    "maxFloorPrice": 17200.0
   },
   {
     "name": "Micronesia",
@@ -1998,7 +2196,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Moldova",
@@ -2018,7 +2218,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Monaco",
@@ -2038,7 +2240,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Mongolia",
@@ -2058,7 +2262,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 170.0,
+    "maxFloorPrice": 3419965.0
   },
   {
     "name": "Morocco",
@@ -2078,7 +2284,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.6,
+    "maxFloorPrice": 10200.0
   },
   {
     "name": "Mozambique",
@@ -2098,7 +2306,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Myanmar (Burma)",
@@ -2118,7 +2328,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 100.0,
+    "maxFloorPrice": 2110000.0
   },
   {
     "name": "Namibia",
@@ -2138,7 +2350,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Nepal",
@@ -2158,7 +2372,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Netherlands",
@@ -2178,7 +2394,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "New Zealand",
@@ -2198,7 +2416,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.1,
+    "maxFloorPrice": 1700.0
   },
   {
     "name": "Nicaragua",
@@ -2218,7 +2438,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Niger",
@@ -2238,7 +2460,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Nigeria",
@@ -2258,7 +2482,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 25.0,
+    "maxFloorPrice": 1490000.0
   },
   {
     "name": "North Macedonia",
@@ -2278,7 +2504,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Norway",
@@ -2298,7 +2526,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.5,
+    "maxFloorPrice": 11000.0
   },
   {
     "name": "Oman",
@@ -2318,7 +2548,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Pakistan",
@@ -2338,7 +2570,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 10.0,
+    "maxFloorPrice": 279000.0
   },
   {
     "name": "Panama",
@@ -2358,7 +2592,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Papua New Guinea",
@@ -2378,7 +2614,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Paraguay",
@@ -2398,7 +2636,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 400.0,
+    "maxFloorPrice": 7420000.0
   },
   {
     "name": "Peru",
@@ -2418,7 +2658,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 3800.0
   },
   {
     "name": "Philippines",
@@ -2438,7 +2680,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 3.0,
+    "maxFloorPrice": 58000.0
   },
   {
     "name": "Poland",
@@ -2458,7 +2702,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.25,
+    "maxFloorPrice": 4100.0
   },
   {
     "name": "Portugal",
@@ -2478,7 +2724,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Qatar",
@@ -2498,7 +2746,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.2,
+    "maxFloorPrice": 3700.0
   },
   {
     "name": "Romania",
@@ -2518,7 +2768,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 5000.0
   },
   {
     "name": "Russia",
@@ -2538,7 +2790,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 15.0,
+    "maxFloorPrice": 95000.0
   },
   {
     "name": "Rwanda",
@@ -2558,7 +2812,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Samoa",
@@ -2578,7 +2834,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "San Marino",
@@ -2598,7 +2856,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Saudi Arabia",
@@ -2618,7 +2878,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 3800.0
   },
   {
     "name": "Senegal",
@@ -2638,7 +2900,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 30.0,
+    "maxFloorPrice": 627341.0
   },
   {
     "name": "Serbia",
@@ -2658,7 +2922,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 6.0,
+    "maxFloorPrice": 110000.0
   },
   {
     "name": "Seychelles",
@@ -2678,7 +2944,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Sierra Leone",
@@ -2698,7 +2966,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Singapore",
@@ -2718,7 +2988,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.1,
+    "maxFloorPrice": 1370.0
   },
   {
     "name": "Slovakia",
@@ -2738,7 +3010,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Slovenia",
@@ -2758,7 +3032,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Solomon Islands",
@@ -2778,7 +3054,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Somalia",
@@ -2798,7 +3076,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "South Africa",
@@ -2818,7 +3098,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.9,
+    "maxFloorPrice": 19200.0
   },
   {
     "name": "South Korea",
@@ -2838,7 +3120,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 70.0,
+    "maxFloorPrice": 600000.0
   },
   {
     "name": "Spain",
@@ -2858,7 +3142,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Sri Lanka",
@@ -2878,7 +3164,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 11.4,
+    "maxFloorPrice": 300000.0
   },
   {
     "name": "St Kitts & Nevis",
@@ -2898,7 +3186,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "St Lucia",
@@ -2918,7 +3208,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Suriname",
@@ -2938,7 +3230,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Sweden",
@@ -2958,7 +3252,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.6,
+    "maxFloorPrice": 10900.0
   },
   {
     "name": "Switzerland",
@@ -2978,7 +3274,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 920.0
   },
   {
     "name": "Taiwan",
@@ -2998,7 +3296,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 2.0,
+    "maxFloorPrice": 33000.0
   },
   {
     "name": "Tajikistan",
@@ -3018,7 +3318,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Tanzania",
@@ -3038,7 +3340,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 130.0,
+    "maxFloorPrice": 2590000.0
   },
   {
     "name": "Thailand",
@@ -3058,7 +3362,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 2.0,
+    "maxFloorPrice": 37000.0
   },
   {
     "name": "Togo",
@@ -3078,7 +3384,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Tonga",
@@ -3098,7 +3406,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Trinidad & Tobago",
@@ -3118,7 +3428,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Tunisia",
@@ -3138,7 +3450,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Turkmenistan",
@@ -3158,7 +3472,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Turks & Caicos Islands",
@@ -3178,7 +3494,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Türkiye",
@@ -3198,7 +3516,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.59,
+    "maxFloorPrice": 40800.0
   },
   {
     "name": "Uganda",
@@ -3218,7 +3538,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Ukraine",
@@ -3238,7 +3560,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 2.0,
+    "maxFloorPrice": 39800.0
   },
   {
     "name": "United Arab Emirates",
@@ -3258,7 +3582,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 3700.0
   },
   {
     "name": "United Kingdom",
@@ -3278,7 +3604,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 810.0
   },
   {
     "name": "United States",
@@ -3298,7 +3626,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Uruguay",
@@ -3318,7 +3648,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Local digital wallets (Pix in BR, OXXO in MX, BLIK in PL), debit cards",
       "gamersMindset": "Active mobile gamers, moderately price-sensitive. Respond strongly to starter packs, discounts, and regional value parity.",
       "pricingStrategy": "Apply 40% - 55% PPP discount. Charm pricing (.90 / .99 / round local numbers) drives high conversion."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Uzbekistan",
@@ -3338,7 +3670,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 600.0,
+    "maxFloorPrice": 11999880.0
   },
   {
     "name": "Vanuatu",
@@ -3358,7 +3692,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Vatican City",
@@ -3378,7 +3714,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Credit/Debit Card, Google Pay, PayPal, Carrier Billing",
       "gamersMindset": "High disposable income. Habitual spenders on IAP, cosmetics & battle passes. Low price resistance for $0.99 - $4.99 tiers.",
       "pricingStrategy": "Standard base price ($1.49 - $9.99). Emphasize convenience, time-saving, and premium aesthetic."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Venezuela",
@@ -3398,7 +3736,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Vietnam",
@@ -3418,7 +3758,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 1300.0,
+    "maxFloorPrice": 25430000.0
   },
   {
     "name": "Yemen",
@@ -3438,7 +3780,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Zambia",
@@ -3458,7 +3802,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Zimbabwe",
@@ -3478,7 +3824,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "New countries/regions (USD)",
@@ -3498,7 +3846,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "New countries/regions (EUR)",
@@ -3518,7 +3868,9 @@ window.PLAY_STORE_COUNTRIES = [
       "popularPayment": "Prepaid vouchers, carrier billing, local e-wallets, cash agents",
       "gamersMindset": "Very high price sensitivity; high piracy/ad-tolerant behavior. Standard Western exchange rates feel like luxury goods.",
       "pricingStrategy": "Apply 60% - 75% PPP discount. Focus on accessible entry packs ($0.29 - $0.99 equivalent) to convert non-payers into paying users."
-    }
+    },
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   }
 ];
 

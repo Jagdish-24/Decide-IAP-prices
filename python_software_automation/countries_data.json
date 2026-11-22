@@ -3,1056 +3,1408 @@
     "name": "Albania",
     "code": "AL",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Algeria",
     "code": "DZ",
     "currency": "DZD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 7.9,
+    "maxFloorPrice": 134500.0
   },
   {
     "name": "Angola",
     "code": "AO",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Antigua & Barbuda",
     "code": "AG",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Argentina",
     "code": "AR",
     "currency": "ARS",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 74.75,
+    "maxFloorPrice": 1494985.05
   },
   {
     "name": "Armenia",
     "code": "AM",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Aruba",
     "code": "AW",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Australia",
     "code": "AU",
     "currency": "AUD",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.1,
+    "maxFloorPrice": 1550.0
   },
   {
     "name": "Austria",
     "code": "AT",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Azerbaijan",
     "code": "AZ",
     "currency": "AZN",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.08,
+    "maxFloorPrice": 1699.99
   },
   {
     "name": "Bahamas",
     "code": "BS",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Bahrain",
     "code": "BH",
     "currency": "USD",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Bangladesh",
     "code": "BD",
     "currency": "BDT",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 5.0,
+    "maxFloorPrice": 110000.0
   },
   {
     "name": "Belarus",
     "code": "BY",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Belgium",
     "code": "BE",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Belize",
     "code": "BZ",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Benin",
     "code": "BJ",
     "currency": "EUR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Bermuda",
     "code": "BM",
     "currency": "USD",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Bolivia",
     "code": "BO",
     "currency": "BOB",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.4,
+    "maxFloorPrice": 11300.0
   },
   {
     "name": "Bosnia & Herzegovina",
     "code": "BA",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Botswana",
     "code": "BW",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Brazil",
     "code": "BR",
     "currency": "BRL",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 5200.0
   },
   {
     "name": "British Virgin Islands",
     "code": "VG",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Bulgaria",
     "code": "BG",
     "currency": "EUR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Burkina Faso",
     "code": "BF",
     "currency": "EUR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Cambodia",
     "code": "KH",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Cameroon",
     "code": "CM",
     "currency": "XAF",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 30.0,
+    "maxFloorPrice": 627340.0
   },
   {
     "name": "Canada",
     "code": "CA",
     "currency": "CAD",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.1,
+    "maxFloorPrice": 1380.0
   },
   {
     "name": "Cape Verde",
     "code": "CV",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Cayman Islands",
     "code": "KY",
     "currency": "USD",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Central African Republic",
     "code": "CF",
     "currency": "EUR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 30.0,
+    "maxFloorPrice": 627340.0
   },
   {
     "name": "Chad",
     "code": "TD",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Chile",
     "code": "CL",
     "currency": "CLP",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 50.0,
+    "maxFloorPrice": 955000.0
   },
   {
     "name": "Colombia",
     "code": "CO",
     "currency": "COP",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 221.0,
+    "maxFloorPrice": 3920000.0
   },
   {
     "name": "Comoros",
     "code": "KM",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Congo - Brazzaville",
     "code": "CG",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Congo - Kinshasa",
     "code": "CD",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Costa Rica",
     "code": "CR",
     "currency": "CRC",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 35.0,
+    "maxFloorPrice": 510000.0
   },
   {
     "name": "Croatia",
     "code": "HR",
     "currency": "EUR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Cyprus",
     "code": "CY",
     "currency": "EUR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Czechia",
     "code": "CZ",
     "currency": "CZK",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 1.3,
+    "maxFloorPrice": 23700.0
   },
   {
     "name": "Côte d’Ivoire",
     "code": "CI",
     "currency": "XOF",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 30.0,
+    "maxFloorPrice": 627341.0
   },
   {
     "name": "Denmark",
     "code": "DK",
     "currency": "DKK",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.4,
+    "maxFloorPrice": 7000.0
   },
   {
     "name": "Djibouti",
     "code": "DJ",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Dominica",
     "code": "DM",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Dominican Republic",
     "code": "DO",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Ecuador",
     "code": "EC",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Egypt",
     "code": "EG",
     "currency": "EGP",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.9,
+    "maxFloorPrice": 49000.0
   },
   {
     "name": "El Salvador",
     "code": "SV",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Eritrea",
     "code": "ER",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Estonia",
     "code": "EE",
     "currency": "EUR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Ethiopia",
     "code": "ET",
     "currency": "ETB",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 7.92,
+    "maxFloorPrice": 158478.42
   },
   {
     "name": "Fiji",
     "code": "FJ",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Finland",
     "code": "FI",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "France",
     "code": "FR",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Gabon",
     "code": "GA",
     "currency": "EUR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Gambia",
     "code": "GM",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Georgia",
     "code": "GE",
     "currency": "GEL",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.2,
+    "maxFloorPrice": 2700.0
   },
   {
     "name": "Germany",
     "code": "DE",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Ghana",
     "code": "GH",
     "currency": "GHS",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.7,
+    "maxFloorPrice": 13500.0
   },
   {
     "name": "Gibraltar",
     "code": "GI",
     "currency": "GBP",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 810.0
   },
   {
     "name": "Greece",
     "code": "GR",
     "currency": "EUR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Grenada",
     "code": "GD",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Guatemala",
     "code": "GT",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Guinea",
     "code": "GN",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Guinea-Bissau",
     "code": "GW",
     "currency": "EUR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Haiti",
     "code": "HT",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Honduras",
     "code": "HN",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Hong Kong",
     "code": "HK",
     "currency": "HKD",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.5,
+    "maxFloorPrice": 7900.0
   },
   {
     "name": "Hungary",
     "code": "HU",
     "currency": "HUF",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 19.0,
+    "maxFloorPrice": 370000.0
   },
   {
     "name": "Iceland",
     "code": "IS",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "India",
     "code": "IN",
     "currency": "INR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 4.0,
+    "maxFloorPrice": 84000.0
   },
   {
     "name": "Indonesia",
     "code": "ID",
     "currency": "IDR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 1000.0,
+    "maxFloorPrice": 16230000.0
   },
   {
     "name": "Iraq",
     "code": "IQ",
     "currency": "IQD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 80.0,
+    "maxFloorPrice": 1310000.0
   },
   {
     "name": "Ireland",
     "code": "IE",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Israel",
     "code": "IL",
     "currency": "ILS",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.2,
+    "maxFloorPrice": 3800.0
   },
   {
     "name": "Italy",
     "code": "IT",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Jamaica",
     "code": "JM",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Japan",
     "code": "JP",
     "currency": "JPY",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 7.0,
+    "maxFloorPrice": 155000.0
   },
   {
     "name": "Jordan",
     "code": "JO",
     "currency": "JOD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 710.0
   },
   {
     "name": "Kazakhstan",
     "code": "KZ",
     "currency": "KZT",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 25.0,
+    "maxFloorPrice": 450000.0
   },
   {
     "name": "Kenya",
     "code": "KE",
     "currency": "KES",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 6.4,
+    "maxFloorPrice": 134000.0
   },
   {
     "name": "Kuwait",
     "code": "KW",
     "currency": "USD",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Kyrgyzstan",
     "code": "KG",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Laos",
     "code": "LA",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Latvia",
     "code": "LV",
     "currency": "EUR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Lebanon",
     "code": "LB",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Liberia",
     "code": "LR",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Libya",
     "code": "LY",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Liechtenstein",
     "code": "LI",
     "currency": "CHF",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 920.0
   },
   {
     "name": "Lithuania",
     "code": "LT",
     "currency": "EUR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Luxembourg",
     "code": "LU",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Macao",
     "code": "MO",
     "currency": "MOP",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.5,
+    "maxFloorPrice": 8100.0
   },
   {
     "name": "Malaysia",
     "code": "MY",
     "currency": "MYR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 4800.0
   },
   {
     "name": "Maldives",
     "code": "MV",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Mali",
     "code": "ML",
     "currency": "EUR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Malta",
     "code": "MT",
     "currency": "EUR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Mauritius",
     "code": "MU",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Mexico",
     "code": "MX",
     "currency": "MXN",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 1.2,
+    "maxFloorPrice": 17200.0
   },
   {
     "name": "Micronesia",
     "code": "FM",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Moldova",
     "code": "MD",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Monaco",
     "code": "MC",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Mongolia",
     "code": "MN",
     "currency": "MNT",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 170.0,
+    "maxFloorPrice": 3419965.0
   },
   {
     "name": "Morocco",
     "code": "MA",
     "currency": "MAD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.6,
+    "maxFloorPrice": 10200.0
   },
   {
     "name": "Mozambique",
     "code": "MZ",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Myanmar (Burma)",
     "code": "MM",
     "currency": "MMK",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 100.0,
+    "maxFloorPrice": 2110000.0
   },
   {
     "name": "Namibia",
     "code": "NA",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Nepal",
     "code": "NP",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Netherlands",
     "code": "NL",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "New Zealand",
     "code": "NZ",
     "currency": "NZD",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.1,
+    "maxFloorPrice": 1700.0
   },
   {
     "name": "Nicaragua",
     "code": "NI",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Niger",
     "code": "NE",
     "currency": "EUR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Nigeria",
     "code": "NG",
     "currency": "NGN",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 25.0,
+    "maxFloorPrice": 1490000.0
   },
   {
     "name": "North Macedonia",
     "code": "MK",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Norway",
     "code": "NO",
     "currency": "NOK",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.5,
+    "maxFloorPrice": 11000.0
   },
   {
     "name": "Oman",
     "code": "OM",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Pakistan",
     "code": "PK",
     "currency": "PKR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 10.0,
+    "maxFloorPrice": 279000.0
   },
   {
     "name": "Panama",
     "code": "PA",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Papua New Guinea",
     "code": "PG",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Paraguay",
     "code": "PY",
     "currency": "PYG",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 400.0,
+    "maxFloorPrice": 7420000.0
   },
   {
     "name": "Peru",
     "code": "PE",
     "currency": "PEN",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 3800.0
   },
   {
     "name": "Philippines",
     "code": "PH",
     "currency": "PHP",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 3.0,
+    "maxFloorPrice": 58000.0
   },
   {
     "name": "Poland",
     "code": "PL",
     "currency": "PLN",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.25,
+    "maxFloorPrice": 4100.0
   },
   {
     "name": "Portugal",
     "code": "PT",
     "currency": "EUR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Qatar",
     "code": "QA",
     "currency": "QAR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.2,
+    "maxFloorPrice": 3700.0
   },
   {
     "name": "Romania",
     "code": "RO",
     "currency": "RON",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 5000.0
   },
   {
     "name": "Russia",
     "code": "RU",
     "currency": "RUB",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 15.0,
+    "maxFloorPrice": 95000.0
   },
   {
     "name": "Rwanda",
     "code": "RW",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Samoa",
     "code": "WS",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "San Marino",
     "code": "SM",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Saudi Arabia",
     "code": "SA",
     "currency": "SAR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 3800.0
   },
   {
     "name": "Senegal",
     "code": "SN",
     "currency": "XOF",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 30.0,
+    "maxFloorPrice": 627341.0
   },
   {
     "name": "Serbia",
     "code": "RS",
     "currency": "RSD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 6.0,
+    "maxFloorPrice": 110000.0
   },
   {
     "name": "Seychelles",
     "code": "SC",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Sierra Leone",
     "code": "SL",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Singapore",
     "code": "SG",
     "currency": "SGD",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.1,
+    "maxFloorPrice": 1370.0
   },
   {
     "name": "Slovakia",
     "code": "SK",
     "currency": "EUR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Slovenia",
     "code": "SI",
     "currency": "EUR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Solomon Islands",
     "code": "SB",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Somalia",
     "code": "SO",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "South Africa",
     "code": "ZA",
     "currency": "ZAR",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.9,
+    "maxFloorPrice": 19200.0
   },
   {
     "name": "South Korea",
     "code": "KR",
     "currency": "KRW",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 70.0,
+    "maxFloorPrice": 600000.0
   },
   {
     "name": "Spain",
     "code": "ES",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Sri Lanka",
     "code": "LK",
     "currency": "LKR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 11.4,
+    "maxFloorPrice": 300000.0
   },
   {
     "name": "St Kitts & Nevis",
     "code": "KN",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "St Lucia",
     "code": "LC",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Suriname",
     "code": "SR",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Sweden",
     "code": "SE",
     "currency": "SEK",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.6,
+    "maxFloorPrice": 10900.0
   },
   {
     "name": "Switzerland",
     "code": "CH",
     "currency": "CHF",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 920.0
   },
   {
     "name": "Taiwan",
     "code": "TW",
     "currency": "TWD",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 2.0,
+    "maxFloorPrice": 33000.0
   },
   {
     "name": "Tajikistan",
     "code": "TJ",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Tanzania",
     "code": "TZ",
     "currency": "TZS",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 130.0,
+    "maxFloorPrice": 2590000.0
   },
   {
     "name": "Thailand",
     "code": "TH",
     "currency": "THB",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 2.0,
+    "maxFloorPrice": 37000.0
   },
   {
     "name": "Togo",
     "code": "TG",
     "currency": "EUR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Tonga",
     "code": "TO",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Trinidad & Tobago",
     "code": "TT",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Tunisia",
     "code": "TN",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Turkmenistan",
     "code": "TM",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Turks & Caicos Islands",
     "code": "TC",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Türkiye",
     "code": "TR",
     "currency": "TRY",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.59,
+    "maxFloorPrice": 40800.0
   },
   {
     "name": "Uganda",
     "code": "UG",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Ukraine",
     "code": "UA",
     "currency": "UAH",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 2.0,
+    "maxFloorPrice": 39800.0
   },
   {
     "name": "United Arab Emirates",
     "code": "AE",
     "currency": "AED",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.3,
+    "maxFloorPrice": 3700.0
   },
   {
     "name": "United Kingdom",
     "code": "GB",
     "currency": "GBP",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 810.0
   },
   {
     "name": "United States",
     "code": "US",
     "currency": "USD",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Uruguay",
     "code": "UY",
     "currency": "USD",
-    "tier": 2
+    "tier": 2,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Uzbekistan",
     "code": "UZ",
     "currency": "UZS",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 600.0,
+    "maxFloorPrice": 11999880.0
   },
   {
     "name": "Vanuatu",
     "code": "VU",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Vatican City",
     "code": "VA",
     "currency": "EUR",
-    "tier": 1
+    "tier": 1,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   },
   {
     "name": "Venezuela",
     "code": "VE",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Vietnam",
     "code": "VN",
     "currency": "VND",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 1300.0,
+    "maxFloorPrice": 25430000.0
   },
   {
     "name": "Yemen",
     "code": "YE",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Zambia",
     "code": "ZM",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "Zimbabwe",
     "code": "ZW",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "New countries/regions (USD)",
     "code": "GLOBAL_USD",
     "currency": "USD",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 999.99
   },
   {
     "name": "New countries/regions (EUR)",
     "code": "GLOBAL_EUR",
     "currency": "EUR",
-    "tier": 3
+    "tier": 3,
+    "minFloorPrice": 0.05,
+    "maxFloorPrice": 940.0
   }
 ]
